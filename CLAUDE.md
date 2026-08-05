@@ -4,6 +4,7 @@ Multi-tenant salon discovery, management, and reservation platform.
 Roles: SUPERADMIN, SALON_ADMIN, SALON_MANAGER, CUSTOMER.
 
 Authoritative precedence when documents conflict:
+
 1. approved security requirements and threat model;
 2. approved Architecture Decision Records;
 3. approved role-permission matrix;
@@ -12,6 +13,7 @@ Authoritative precedence when documents conflict:
 6. implementation notes.
 
 ## Working style
+
 - Read relevant docs and existing code before changing anything.
 - Work on one approved milestone/section at a time; do not implement future milestones.
 - Prefer small, reviewable diffs. Never rewrite unrelated files.
@@ -21,7 +23,9 @@ Authoritative precedence when documents conflict:
 - Do not paste entire files unless requested.
 
 ## Quality gates
+
 A task is not complete until:
+
 - code compiles, lints, and type-checks;
 - relevant unit/integration/E2E tests pass;
 - authorization is server-side and tenant isolation is tested;
@@ -30,6 +34,7 @@ A task is not complete until:
 - documentation is updated.
 
 ## Security
+
 - Deny by default.
 - Never trust client-supplied identity, role, salon ID, price, duration, or status.
 - Scope every tenant-owned query by the authorized salon ID; never query by ID first and authorize after.
@@ -38,6 +43,7 @@ A task is not complete until:
 - Do not weaken security controls to make tests pass.
 
 ## Database
+
 - All tenant-owned records must have an explicit tenant relationship.
 - Use transactions for multi-step state changes.
 - Enforce invariants with database constraints where possible.
@@ -45,6 +51,7 @@ A task is not complete until:
 - Seed data must be obviously non-production.
 
 ## UI/UX
+
 - Mobile-first, fully responsive, keyboard accessible, visible focus states.
 - Semantic HTML and accessible labels.
 - Handle loading, empty, error, success, disabled, and permission-denied states.
@@ -52,6 +59,7 @@ A task is not complete until:
 - Never hide security solely in the UI; backend authorization is mandatory.
 
 ## Output format
+
 1. Result
 2. Files changed
 3. Tests run

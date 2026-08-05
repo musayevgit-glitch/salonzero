@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: salonomia
+      POSTGRES_PASSWORD: salonomia
+      POSTGRES_DB: salonomia
+    ports:
+      - '5432:5432'
+    volumes:
+      - salonomia_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U salonomia']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  salonomia_postgres_data:

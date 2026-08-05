@@ -1,0 +1,11 @@
+node_modules
+.next
+dist
+coverage
+playwright-report
+test-results
+.turbo
+pnpm-lock.yaml
+docs/Salonomia_Final_Claude_Code_Playbook.md
+docs/Salonomia_Sonnet_From_Zero_To_Production_Prompts.md
+docs/Salonomia_Optimal_Customer_Reservation_Flow.md

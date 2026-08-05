@@ -4,6 +4,7 @@ Booking-flow-specific criteria are authoritative in
 `docs/Salonomia_Optimal_Customer_Reservation_Flow.md#16-final-acceptance-criteria` — not repeated here.
 
 ## Platform-level
+
 - All four roles enforced server-side; denial is default.
 - No tenant-owned query executes without an authorized salon scope in the query itself.
 - SUPERADMIN cross-salon access is explicit and produces an audit event.

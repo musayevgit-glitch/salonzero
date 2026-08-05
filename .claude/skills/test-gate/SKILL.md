@@ -6,6 +6,7 @@ description: Apply before declaring any milestone or feature complete.
 Run the smallest relevant checks first, then the full affected suite.
 
 Required:
+
 - formatting;
 - lint;
 - strict type check;

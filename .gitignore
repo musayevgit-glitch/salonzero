@@ -10,3 +10,6 @@ test-results/
 .env.*
 !.env.example
 .turbo/
+apps/*/dist/
+packages/*/dist/
+packages/database/generated/

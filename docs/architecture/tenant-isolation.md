@@ -4,6 +4,7 @@ Strategy: shared database, shared schema, discriminator column (see
 [ADR-0002](../adr/0002-multi-tenancy.md)).
 
 Rules (see also CLAUDE.md → Security):
+
 - Every tenant-owned Prisma model has a required `salonId` column with an FK to `Salon`.
 - The authorized `salonId` comes only from the resolved session + active `SalonMembership` row (or the
   SUPERADMIN audited context-entry action) — never from a request body, query string, or route param.

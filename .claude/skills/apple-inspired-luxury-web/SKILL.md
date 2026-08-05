@@ -8,6 +8,7 @@ description: Apply to Salonomia public pages, authentication pages, customer boo
 Create a modern, luxurious, calm, simple, trustworthy beauty-platform experience.
 
 Use Apple Human Interface Guidelines as inspiration for:
+
 - clarity;
 - hierarchy;
 - consistency;
@@ -34,6 +35,7 @@ The interface should feel:
 - consistent across public site and dashboards.
 
 Use:
+
 - generous whitespace;
 - strong typography hierarchy;
 - subtle borders;
@@ -47,6 +49,7 @@ Use:
 - purposeful motion only.
 
 Avoid:
+
 - excessive glassmorphism;
 - excessive gradients;
 - glowing effects;
@@ -62,6 +65,7 @@ Avoid:
 # Design-system requirements
 
 Define tokens for:
+
 - colors;
 - typography;
 - spacing;
@@ -80,6 +84,7 @@ Do not place unexplained one-off visual values throughout components.
 Use a modern web-safe or properly licensed web font selected in the design ADR.
 
 Requirements:
+
 - readable body size;
 - comfortable line height;
 - limited number of font weights;
@@ -92,6 +97,7 @@ Requirements:
 Design mobile-first.
 
 Required viewports:
+
 - 320px;
 - 375px;
 - 768px;
@@ -100,6 +106,7 @@ Required viewports:
 - 1440px.
 
 Requirements:
+
 - no horizontal overflow;
 - stable content widths;
 - adaptive sidebars;
@@ -111,6 +118,7 @@ Requirements:
 # Interaction
 
 Every interaction must provide:
+
 - hover where appropriate;
 - active state;
 - visible keyboard focus;
@@ -122,6 +130,7 @@ Every interaction must provide:
 Do not use hover as the only way to access information.
 
 Use motion sparingly:
+
 - fast;
 - subtle;
 - interruptible;
@@ -130,6 +139,7 @@ Use motion sparingly:
 # Forms
 
 Forms must:
+
 - use persistent visible labels;
 - show required/optional state clearly;
 - place validation near the field;
@@ -145,6 +155,7 @@ Forms must:
 # Customer booking flow
 
 The booking flow must:
+
 - show progress;
 - keep a visible or collapsible booking summary;
 - allow back navigation without losing valid choices;
@@ -160,6 +171,7 @@ The booking flow must:
 Dashboards must prioritize operational work.
 
 Use:
+
 - actionable summaries;
 - clear filters;
 - server-side pagination;
@@ -174,6 +186,7 @@ Do not build dashboards as collections of decorative analytics cards.
 # Accessibility
 
 Requirements:
+
 - semantic HTML;
 - logical headings;
 - keyboard navigation;
@@ -191,6 +204,7 @@ Requirements:
 # Review output
 
 For each UI implementation report only:
+
 1. information hierarchy;
 2. responsive behavior;
 3. interaction states;

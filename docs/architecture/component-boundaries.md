@@ -18,5 +18,6 @@ Rule: a module may only read/write rows it owns. Cross-module reads go through t
 not through direct Prisma calls into another module's tables, so authorization stays centralized.
 
 ## Guard order (every protected route)
+
 authentication → active account → role → active salon membership → tenant scope → resource ownership →
 action permission → input validation → forbidden-field rejection → (audit write on success).

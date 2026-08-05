@@ -29,6 +29,7 @@ Review:
 - dependency and supply-chain risks.
 
 Output findings with:
+
 - severity;
 - affected component;
 - attack scenario;

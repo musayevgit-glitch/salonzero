@@ -1,0 +1,12 @@
+// Foundation only. Domain models (Salon, User, Reservation, ...) are added in Phase 3
+// per docs/architecture/data-model.md (not yet created) and docs/adr/0002-multi-tenancy.md.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
