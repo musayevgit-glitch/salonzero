@@ -1,4 +1,6 @@
+import { ToastProvider } from '@salonomia/ui';
 import type { ReactNode } from 'react';
+import './globals.css';
 
 export const metadata = {
   title: 'Salonomia',
@@ -8,7 +10,9 @@ export const metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <ToastProvider>{children}</ToastProvider>
+      </body>
     </html>
   );
 }

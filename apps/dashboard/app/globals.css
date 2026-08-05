@@ -1,0 +1,9 @@
+@import 'tailwindcss';
+@import '@salonomia/ui/src/tokens.css';
+
+@source '../../../packages/ui/src';
+
+body {
+  color: var(--color-text-primary);
+  background-color: var(--color-surface);
+}

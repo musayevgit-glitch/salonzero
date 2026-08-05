@@ -70,6 +70,35 @@ installed (`pnpm exec playwright install` still needed before `pnpm test:e2e` wo
 major version update (6→7) available; stayed on 6.x pinned range, revisit via ADR if needed.
 Next: Section 7 — Design Foundations Before Product UI
 
+## Section 7 — Design Foundations Before Product UI
+
+Status: done. Docs: docs/design/{design-principles,information-architecture,navigation-model,
+responsive-strategy,content-style}.md, docs/adr/0007-design-system.md. Design system in packages/ui:
+tokens.css (Tailwind v4 @theme, semantic color/radius/shadow/motion/z-index/content-width tokens) +
+28 components (Button, IconButton, Link, Input, Textarea, Select, Checkbox, RadioGroup, FormField,
+Alert, Toast/ToastProvider, Badge, Card, List/ListItem, Table, MobileRecordList, Pagination, Dialog,
+ConfirmDialog, Drawer, DropdownMenu, Tabs, Breadcrumbs, Skeleton, EmptyState, ErrorState,
+PermissionDeniedState, PublicShell, DashboardShell). Radix UI used for dialog/dropdown/tabs/checkbox/
+radio/toast (real accessibility complexity); native elements for input/textarea/select/button.
+Tailwind v4 wired into apps/web and apps/dashboard via @tailwindcss/postcss. Dev-only component
+showcase at apps/web /dev/showcase (404s in production builds). UI review performed inline by main
+agent (Sonnet), not a subagent, per caveman token-saving mode (UI review isn't the security-critical
+carve-out).
+Commit: pending (this task)
+Tests: 4 Vitest component tests (Button ×2, FormField ×1, Badge ×1) + 1 Playwright axe-core
+accessibility smoke test against the showcase route (not yet run — Playwright browsers still not
+installed in this environment). Full `install/format:check/lint/typecheck/test/build` gate passed.
+Visually spot-checked showcase page in-browser at 1280px and 375px (screenshots): warm neutral
+palette, terracotta accent, badges/forms/alerts render correctly, no horizontal overflow on mobile.
+Risks: (1) exact WCAG contrast ratios for --color-accent/--color-warning against their backgrounds were
+not run through an automated contrast checker — spot-checked visually only, recommend a real audit
+before Phase 12. (2) Table + MobileRecordList are two separate components a page author must both
+render (`hidden md:block` / `md:hidden`) — no single component enforces pairing them; documented in
+code comments but worth a lint rule or combined component later if misuse shows up. (3) Playwright
+accessibility test not actually executed (no browsers installed) — written and reviewed only.
+(4) 1024px checkpoint not visually spot-checked this session (1280px and 375px were).
+Next: Section 8 — Database Domain Model
+
 ## Blockers / environment notes
 
 - Docker is not installed in this environment — docker-compose.yml exists but is unverified locally;

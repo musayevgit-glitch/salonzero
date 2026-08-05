@@ -21,7 +21,9 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'pnpm --filter @salonomia/web start',
+    // dev server, not build+start: the showcase route (dev/showcase) is intentionally disabled
+    // in production builds, and E2E here needs it reachable.
+    command: 'pnpm --filter @salonomia/web dev',
     port: 3000,
     reuseExistingServer: true,
   },
