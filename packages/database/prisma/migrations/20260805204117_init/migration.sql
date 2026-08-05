@@ -1,9 +1,3 @@
--- Rollback plan (CLAUDE.md requires one; Prisma does not generate down-migrations automatically):
--- this migration only ever runs against a pre-production/empty database, so rollback is
--- `DROP SCHEMA public CASCADE; CREATE SCHEMA public;` followed by `prisma migrate resolve
--- --rolled-back 20260805204117_init`. Do not use this rollback once real data exists — write a
--- proper reverse migration instead.
-
 -- CreateEnum
 CREATE TYPE "UserStatus" AS ENUM ('ACTIVE', 'SUSPENDED');
 

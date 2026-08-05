@@ -145,6 +145,62 @@ not managed by any process supervisor here, so it needs to be started again (`pg
 Application\ Support/Postgres/var-18 start`) if this machine restarts.
 Next: Section 9 — Authentication
 
+## Section 9 — Authentication
+
+Status: done. Docs: docs/security/authentication.md (registration/login/logout/session/forgot-reset/
+invitation-accept/suspended-users/CSRF/rate-limits/safe-redirects specified), ADR-0003 finalized with
+concrete library choices (Passport local strategy, argon2id, express-session, connect-pg-simple,
+custom double-submit CSRF, @nestjs/throttler). Two new Prisma models (PasswordResetToken,
+SalonInvitation, migration `20260805205231_auth_tokens`). Backend: apps/api/src/auth/* (AuthService,
+PasswordService, TokenService, LocalStrategy, SessionSerializer, CsrfGuard, AuthenticatedGuard,
+ZodBodyGuard, AuthController with register/login/logout/me/forgot-password/reset-password/
+invitations/accept). UI: apps/web (login, register, forgot-password, reset-password, account —
+session-expired redirect with returnTo preserved) and apps/dashboard (login, invitations/accept),
+using the Section 7 design system throughout; shared `isSafeRedirectPath` validator in
+packages/validation/src/auth.ts.
+Commit: pending (this task)
+Tests: 15 backend tests (11 new integration tests via Supertest + a real Nest app + real Postgres:
+register/duplicate-email/mass-assignment/wrong-password/nonexistent-email/suspended-account/CSRF
+missing-header/CSRF mismatched-header/CSRF valid/forgot-password enumeration-resistance/reset-password
+invalid-token), 7 new shared Zod schema tests. Full repo gate (install/format/lint/typecheck/test/
+build, 11/11 tasks) passed. Playwright auth-journey specs written (e2e/auth-journeys.spec.ts) but not
+executed — browsers still not installed in this environment.
+Two real, previously-undetected bugs found and fixed via actual runtime verification (not just
+compiled/tested in isolation):
+1. **Shared packages were never actually buildable for a real Node runtime.** `packages/validation`,
+   `packages/auth`, `packages/contracts`, `packages/database` all had `package.json#main` pointing
+   directly at `.ts` source with no real `build` script (only `tsc --noEmit`). This worked for Next.js
+   (webpack/turbopack bundles workspace TS source) and for Vitest (esbuild/swc transform on the fly),
+   but `node dist/main.js` — the actual production runtime — crashed with
+   `ERR_MODULE_NOT_FOUND`/`ERR_UNSUPPORTED_DIR_IMPORT` under Node 24's native TypeScript handling.
+   This had been silently true since Section 6 and was only caught now because this phase's work
+   prompted an actual `node dist/main.js` smoke test rather than stopping at `nest build` (which only
+   type-checks/transpiles apps/api's own source, not its workspace dependencies). Fixed: all four
+   packages now have a real `build` script emitting CommonJS to `dist/`, and `main`/`types` point
+   there. Also discovered and killed two orphaned `nest start --watch` background processes left over
+   from this session that were interfering with re-runs.
+2. **Login never established a session.** `AuthGuard('local')` runs `LocalStrategy.validate` but does
+   *not* itself call `req.login()` (unlike what its own inline comment assumed) — `POST /auth/login`
+   returned 200 with correct user data while creating zero session, so every subsequent request was
+   unauthenticated. Only found via an actual browser walkthrough (register → logout → login → hit
+   `/account` again) after `curl` comparison against a working `/auth/register` call showed
+   `Set-Cookie` was present on register but absent on login. Fixed by calling `req.login()` explicitly
+   in the login handler, same as register/accept-invitation already did. Added a regression assertion
+   (`GET /auth/me` must return 200 immediately after login, not just after suspension) that would have
+   caught this the first time.
+Security/tenant checks: enumeration resistance verified for login and forgot-password (identical
+responses); CSRF double-submit verified to actually reject missing/mismatched tokens, not just accept
+valid ones; suspended-account check re-verified per-request, not cached in session.
+Risks: (1) email delivery for password reset/invitations is not implemented (out of MVP scope per
+docs/product/out-of-scope.md — no notification provider yet); tokens are created but never sent
+anywhere. (2) Rate limiting (@nestjs/throttler) is wired but not explicitly load-tested in this phase.
+(3) `nest start --watch` (the `pnpm dev` convenience script) is broken under this environment's Node
+24 due to the same native-TS/ESM quirk noted above in a different form — `pnpm build && node dist/
+main.js` works and is what CI/production actually run, so this is a dev-ergonomics gap, not a
+correctness one; not fixed this session (out of scope for auth, tracked here for whoever picks up
+Section 10+).
+Next: Section 10 — Authorization and Tenant Isolation
+
 ## Blockers / environment notes
 
 - Docker is not installed in this environment; resolved by using the existing Postgres.app (PG 18)

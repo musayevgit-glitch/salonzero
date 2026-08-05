@@ -10,6 +10,12 @@ export const apiEnvSchema = baseEnvSchema.extend({
   PORT: z.coerce.number().int().positive().default(4000),
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
   SESSION_SECRET: z.string().min(16, 'SESSION_SECRET must be at least 16 characters'),
+  // Comma-separated allowlist — CORS must never wildcard while credentials are enabled
+  // (docs/security/security-requirements.md).
+  CORS_ORIGINS: z
+    .string()
+    .default('http://localhost:3000,http://localhost:3001')
+    .transform((value) => value.split(',').map((origin) => origin.trim())),
 });
 
 export type ApiEnv = z.infer<typeof apiEnvSchema>;

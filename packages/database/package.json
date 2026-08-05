@@ -2,8 +2,8 @@
   "name": "@salonomia/database",
   "private": true,
   "version": "0.0.0",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },
@@ -14,7 +14,7 @@
     "lint": "eslint . --ignore-pattern generated",
     "typecheck": "prisma generate && tsc --noEmit",
     "test": "prisma generate && vitest run",
-    "build": "prisma generate"
+    "build": "prisma generate && tsc -p tsconfig.json"
   },
   "dependencies": {
     "@prisma/client": "^6.1.0"

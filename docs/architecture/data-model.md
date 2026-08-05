@@ -17,6 +17,17 @@ Deletion: soft (`status = SUSPENDED`); hard delete blocked while reservations/au
 user (`Restrict`/no-FK, see below). Audit relevance: actor in most `AuditLog` rows. Privacy: sensitive PII
 (email, phone, name).
 
+## PasswordResetToken / SalonInvitation
+
+Added in Phase 4 ([docs/security/authentication.md](../security/authentication.md)). Both store only a
+hash of the actual token (never the plaintext), have a required `expiresAt`, and a nullable `usedAt` /
+`acceptedAt` marking single-use consumption. `PasswordResetToken.userId` is `Cascade` (meaningless
+without its user). `SalonInvitation.salonId` is `Restrict` (matches other salon-owned tables);
+`invitedByUserId` is a plain nullable string with no FK, matching `AuditLog`'s "must outlive what it
+references" pattern, since an inviter's account could later be suspended/removed without invalidating
+history of who sent the invite. Privacy: sensitive (the hash is not secret-equivalent, but the flow is
+security-critical) — never returned in any API response.
+
 ## SalonMembership
 
 Links `User` ↔ `Salon` with a typed `role` (`SALON_ADMIN` | `SALON_MANAGER`). Tenant ownership: `salonId`.
