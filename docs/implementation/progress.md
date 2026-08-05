@@ -99,8 +99,54 @@ accessibility test not actually executed (no browsers installed) — written and
 (4) 1024px checkpoint not visually spot-checked this session (1280px and 375px were).
 Next: Section 8 — Database Domain Model
 
+## Section 8 — Database Domain Model
+
+Status: done. Docs: docs/architecture/data-model.md (per-entity tenant ownership/identity/lifecycle/
+uniqueness/indexes/FKs/deletion/audit/privacy), docs/architecture/data-retention.md,
+docs/adr/0006-deletion-and-retention.md. Full Prisma schema in packages/database/prisma/schema.prisma:
+User, SalonMembership, Salon, BookingPolicy, ServiceCategory, Service, EmployeeProfile,
+EmployeePortfolioItem, EmployeeService, WorkingSchedule, Break, TimeOff, Reservation,
+ReservationStatusHistory, AuditLog, Notification — all typed enums (no free-form role strings), money
+as Int minor-units + currency, UTC via `@db.Timestamptz(3)`, Restrict FKs on everything Reservation
+references (soft-delete-only policy per ADR-0006). Two migrations: `init` (Prisma-generated) +
+`reservation_overlap_exclusion` (hand-written raw SQL: `EXCLUDE USING gist` on
+`(employeeId, tstzrange(startAt,endAt))` for PENDING/CONFIRMED/CHECKED_IN + a `startAt < endAt` CHECK
+constraint) — both migrations carry a documented manual rollback plan in comments since Prisma doesn't
+generate down-migrations. Dev seed script (`prisma/seed.ts`, fake data only, refuses to run when
+NODE_ENV=production). Database review performed inline by main agent (Sonnet), not the database-reviewer
+subagent — this environment's Agent tool doesn't expose the custom `.claude/agents/database-reviewer.md`
+definition as an invokable subagent type, so an equivalent checklist pass (cross-tenant FKs, indexes,
+cascades, nullability, money, timezone, concurrency, audit immutability, rollback risk) was done directly
+and is recorded here instead of a separate report.
+Environment resolved: Docker was never installed in this environment, but this machine already has
+Postgres.app (PG 18) installed with an existing cluster (also hosting an unrelated `aurabloom` database,
+left untouched). Started that Postgres server and created an isolated `salonomia` role + database
+(`CREATEDB` granted to the role for Prisma's shadow-database use) rather than waiting on Docker — same
+end result (a real local Postgres to migrate/test against), different mechanism than the playbook's
+docker-compose assumption. `docker-compose.yml` is left in place and still correct for machines that do
+have Docker.
+Commit: pending (this task)
+Tests: 9 real Vitest tests against the live local Postgres DB (not mocked) — tenant-ownership NOT NULL
+enforcement, 3 uniqueness-constraint tests, 2 Restrict-deletion tests, and 3 reservation-overlap tests
+proving the DB-level EXCLUDE constraint actually rejects concurrent-slot double-booking and rejects
+startAt >= endAt. Full `install/format:check/lint/typecheck/test/build` gate passed against the real DB
+(also fixed a real bug found during this: Turborepo v2's default strict env mode was silently stripping
+DATABASE_URL/SESSION_SECRET from task subprocesses — added `globalEnv` to turbo.json and made `test`
+uncached, verified by rerunning after the fix).
+Security/tenant checks: every tenant-owned table has a required, indexed `salonId`; Reservation FKs are
+Restrict (never orphaned by deleting a salon/service/employee/customer); AuditLog has no FK at all so it
+outlives what it describes; overlap-prevention is DB-enforced, not just application logic.
+Risks: (1) AuditLog/ReservationStatusHistory immutability is an application-layer contract only — the
+app's DB role still has UPDATE/DELETE grants at the Postgres level; revoking those explicitly would be a
+stronger guarantee, worth doing before Phase 12. (2) No down-migration scripts exist, only documented
+manual rollback steps in SQL comments — acceptable pre-production, must be revisited once real data
+exists. (3) Postgres is running via Postgres.app on this machine, started manually this session — it is
+not managed by any process supervisor here, so it needs to be started again (`pg_ctl -D ~/Library/
+Application\ Support/Postgres/var-18 start`) if this machine restarts.
+Next: Section 9 — Authentication
+
 ## Blockers / environment notes
 
-- Docker is not installed in this environment — docker-compose.yml exists but is unverified locally;
-  Postgres-dependent work (migrations, Phase 3 domain model, Phase 8 concurrency tests) will need it
-  resolved on whatever machine continues this. Node v24.15.0 and pnpm 11.17.0 confirmed available.
+- Docker is not installed in this environment; resolved by using the existing Postgres.app (PG 18)
+  installation instead (see Section 8) — a `salonomia` database/role now exists locally and all
+  migrations/tests have been verified against it. Node v24.15.0 and pnpm 11.17.0 confirmed available.

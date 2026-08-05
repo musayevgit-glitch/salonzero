@@ -1,5 +1,5 @@
-// Foundation only. Domain models (Salon, User, Reservation, ...) are added in Phase 3
-// per docs/architecture/data-model.md (not yet created) and docs/adr/0002-multi-tenancy.md.
+// Domain model — see docs/architecture/data-model.md for the rationale behind every choice here
+// (tenant ownership, deletion policy, indexes, money/timezone representation).
 
 generator client {
   provider = "prisma-client-js"
@@ -9,4 +9,341 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum SalonStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum GenderFocus {
+  WOMEN
+  MEN
+  UNISEX
+}
+
+enum SalonRole {
+  SALON_ADMIN
+  SALON_MANAGER
+}
+
+enum MembershipStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+  CANCELLED_BY_CUSTOMER
+  CANCELLED_BY_SALON
+  CHECKED_IN
+  COMPLETED
+  NO_SHOW
+}
+
+// ---------------------------------------------------------------------------
+// Identity
+// ---------------------------------------------------------------------------
+
+model User {
+  id               String     @id @default(uuid())
+  email            String     @unique
+  passwordHash     String
+  fullName         String
+  phone            String?
+  status           UserStatus @default(ACTIVE)
+  isSuperadmin     Boolean    @default(false)
+  marketingConsent Boolean    @default(false)
+  createdAt        DateTime   @default(now()) @db.Timestamptz(3)
+  updatedAt        DateTime   @updatedAt @db.Timestamptz(3)
+
+  memberships   SalonMembership[]
+  reservations  Reservation[]
+  statusChanges ReservationStatusHistory[]
+  notifications Notification[]
+
+  @@index([status])
+}
+
+model SalonMembership {
+  id        String           @id @default(uuid())
+  userId    String
+  salonId   String
+  role      SalonRole
+  status    MembershipStatus @default(ACTIVE)
+  createdAt DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime         @updatedAt @db.Timestamptz(3)
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Restrict)
+  salon Salon @relation(fields: [salonId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, salonId])
+  @@index([salonId, role])
+}
+
+// ---------------------------------------------------------------------------
+// Salon
+// ---------------------------------------------------------------------------
+
+model Salon {
+  id           String       @id @default(uuid())
+  slug         String       @unique
+  name         String
+  status       SalonStatus  @default(ACTIVE)
+  deletedAt    DateTime?    @db.Timestamptz(3)
+  timezone     String
+  description  String?
+  addressLine  String?
+  city         String?
+  phone        String?
+  email        String?
+  subdomain    String?      @unique
+  customDomain String?      @unique
+  genderFocus  GenderFocus?
+  createdAt    DateTime     @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime     @updatedAt @db.Timestamptz(3)
+
+  memberships       SalonMembership[]
+  bookingPolicy     BookingPolicy?
+  serviceCategories ServiceCategory[]
+  services          Service[]
+  employees         EmployeeProfile[]
+  reservations      Reservation[]
+
+  @@index([status])
+}
+
+model BookingPolicy {
+  id                      String   @id @default(uuid())
+  salonId                 String   @unique
+  autoConfirm             Boolean  @default(false)
+  minNoticeMinutes        Int      @default(60)
+  maxAdvanceDays          Int      @default(60)
+  cancellationWindowHours Int      @default(24)
+  rescheduleWindowHours   Int      @default(24)
+  createdAt               DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt               DateTime @updatedAt @db.Timestamptz(3)
+
+  salon Salon @relation(fields: [salonId], references: [id], onDelete: Restrict)
+}
+
+// ---------------------------------------------------------------------------
+// Services
+// ---------------------------------------------------------------------------
+
+model ServiceCategory {
+  id        String   @id @default(uuid())
+  salonId   String
+  name      String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  salon    Salon     @relation(fields: [salonId], references: [id], onDelete: Restrict)
+  services Service[]
+
+  @@unique([salonId, name])
+}
+
+model Service {
+  id              String   @id @default(uuid())
+  salonId         String
+  categoryId      String?
+  name            String
+  description     String?
+  priceAmount     Int
+  currency        String
+  durationMinutes Int
+  bufferMinutes   Int      @default(0)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime @updatedAt @db.Timestamptz(3)
+
+  salon        Salon             @relation(fields: [salonId], references: [id], onDelete: Restrict)
+  category     ServiceCategory?  @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  employees    EmployeeService[]
+  reservations Reservation[]
+
+  @@index([salonId, isActive])
+}
+
+// ---------------------------------------------------------------------------
+// Employees
+// ---------------------------------------------------------------------------
+
+model EmployeeProfile {
+  id        String   @id @default(uuid())
+  salonId   String
+  fullName  String
+  bio       String?
+  photoUrl  String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  salon            Salon                   @relation(fields: [salonId], references: [id], onDelete: Restrict)
+  portfolio        EmployeePortfolioItem[]
+  eligibleServices EmployeeService[]
+  workingSchedules WorkingSchedule[]
+  breaks           Break[]
+  timeOff          TimeOff[]
+  reservations     Reservation[]
+
+  @@index([salonId, isActive])
+}
+
+model EmployeePortfolioItem {
+  id         String   @id @default(uuid())
+  employeeId String
+  imageUrl   String
+  caption    String?
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
+
+  employee EmployeeProfile @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
+model EmployeeService {
+  id         String @id @default(uuid())
+  employeeId String
+  serviceId  String
+
+  employee EmployeeProfile @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  service  Service         @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, serviceId])
+}
+
+// Recurring weekly availability, defined in the salon's local timezone (Salon.timezone).
+model WorkingSchedule {
+  id               String @id @default(uuid())
+  employeeId       String
+  weekday          Int // 0 (Sunday) - 6 (Saturday)
+  startMinuteOfDay Int
+  endMinuteOfDay   Int
+
+  employee EmployeeProfile @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId, weekday])
+}
+
+model Break {
+  id               String @id @default(uuid())
+  employeeId       String
+  weekday          Int
+  startMinuteOfDay Int
+  endMinuteOfDay   Int
+
+  employee EmployeeProfile @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId, weekday])
+}
+
+// Absolute (non-recurring) time off, stored as UTC instants.
+model TimeOff {
+  id         String   @id @default(uuid())
+  employeeId String
+  startAt    DateTime @db.Timestamptz(3)
+  endAt      DateTime @db.Timestamptz(3)
+  reason     String?
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
+
+  employee EmployeeProfile @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId, startAt])
+}
+
+// ---------------------------------------------------------------------------
+// Reservations
+// ---------------------------------------------------------------------------
+
+model Reservation {
+  id           String            @id @default(uuid())
+  salonId      String
+  serviceId    String
+  employeeId   String
+  customerId   String
+  status       ReservationStatus @default(PENDING)
+  startAt      DateTime          @db.Timestamptz(3)
+  endAt        DateTime          @db.Timestamptz(3)
+  priceAmount  Int
+  currency     String
+  customerNote String?
+  createdAt    DateTime          @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime          @updatedAt @db.Timestamptz(3)
+  cancelledAt  DateTime?         @db.Timestamptz(3)
+  completedAt  DateTime?         @db.Timestamptz(3)
+
+  salon    Salon           @relation(fields: [salonId], references: [id], onDelete: Restrict)
+  service  Service         @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  employee EmployeeProfile @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  customer User            @relation(fields: [customerId], references: [id], onDelete: Restrict)
+
+  statusHistory ReservationStatusHistory[]
+
+  @@index([salonId, startAt])
+  @@index([employeeId, startAt])
+  @@index([customerId, startAt])
+}
+
+// Append-only. Double-booking prevention is a DB-level EXCLUDE constraint added in a follow-up
+// raw-SQL migration (see docs/adr/0005-reservation-concurrency.md) — Prisma has no native syntax
+// for EXCLUDE USING gist, so it cannot be expressed in this schema file.
+model ReservationStatusHistory {
+  id              String             @id @default(uuid())
+  reservationId   String
+  fromStatus      ReservationStatus?
+  toStatus        ReservationStatus
+  changedByUserId String?
+  reason          String?
+  createdAt       DateTime           @default(now()) @db.Timestamptz(3)
+
+  reservation   Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  changedByUser User?       @relation(fields: [changedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([reservationId, createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Audit + notifications
+// ---------------------------------------------------------------------------
+
+// Deliberately no FK on actorUserId/salonId: an audit row must outlive the user or salon it
+// references (docs/architecture/data-model.md → AuditLog).
+model AuditLog {
+  id          String   @id @default(uuid())
+  actorUserId String?
+  action      String
+  targetType  String
+  targetId    String
+  salonId     String?
+  metadata    Json?
+  createdAt   DateTime @default(now()) @db.Timestamptz(3)
+
+  @@index([salonId, createdAt])
+  @@index([actorUserId, createdAt])
+}
+
+model Notification {
+  id        String    @id @default(uuid())
+  userId    String
+  type      String
+  payload   Json?
+  readAt    DateTime? @db.Timestamptz(3)
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
 }
