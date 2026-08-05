@@ -13,3 +13,4 @@ test-results/
 apps/*/dist/
 packages/*/dist/
 packages/database/generated/
+*.tsbuildinfo
