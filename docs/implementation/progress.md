@@ -167,6 +167,7 @@ build, 11/11 tasks) passed. Playwright auth-journey specs written (e2e/auth-jour
 executed — browsers still not installed in this environment.
 Two real, previously-undetected bugs found and fixed via actual runtime verification (not just
 compiled/tested in isolation):
+
 1. **Shared packages were never actually buildable for a real Node runtime.** `packages/validation`,
    `packages/auth`, `packages/contracts`, `packages/database` all had `package.json#main` pointing
    directly at `.ts` source with no real `build` script (only `tsc --noEmit`). This worked for Next.js
@@ -180,7 +181,7 @@ compiled/tested in isolation):
    there. Also discovered and killed two orphaned `nest start --watch` background processes left over
    from this session that were interfering with re-runs.
 2. **Login never established a session.** `AuthGuard('local')` runs `LocalStrategy.validate` but does
-   *not* itself call `req.login()` (unlike what its own inline comment assumed) — `POST /auth/login`
+   _not_ itself call `req.login()` (unlike what its own inline comment assumed) — `POST /auth/login`
    returned 200 with correct user data while creating zero session, so every subsequent request was
    unauthenticated. Only found via an actual browser walkthrough (register → logout → login → hit
    `/account` again) after `curl` comparison against a working `/auth/register` call showed
@@ -188,18 +189,55 @@ compiled/tested in isolation):
    in the login handler, same as register/accept-invitation already did. Added a regression assertion
    (`GET /auth/me` must return 200 immediately after login, not just after suspension) that would have
    caught this the first time.
-Security/tenant checks: enumeration resistance verified for login and forgot-password (identical
-responses); CSRF double-submit verified to actually reject missing/mismatched tokens, not just accept
-valid ones; suspended-account check re-verified per-request, not cached in session.
-Risks: (1) email delivery for password reset/invitations is not implemented (out of MVP scope per
-docs/product/out-of-scope.md — no notification provider yet); tokens are created but never sent
-anywhere. (2) Rate limiting (@nestjs/throttler) is wired but not explicitly load-tested in this phase.
-(3) `nest start --watch` (the `pnpm dev` convenience script) is broken under this environment's Node
-24 due to the same native-TS/ESM quirk noted above in a different form — `pnpm build && node dist/
+   Security/tenant checks: enumeration resistance verified for login and forgot-password (identical
+   responses); CSRF double-submit verified to actually reject missing/mismatched tokens, not just accept
+   valid ones; suspended-account check re-verified per-request, not cached in session.
+   Risks: (1) email delivery for password reset/invitations is not implemented (out of MVP scope per
+   docs/product/out-of-scope.md — no notification provider yet); tokens are created but never sent
+   anywhere. (2) Rate limiting (@nestjs/throttler) is wired but not explicitly load-tested in this phase.
+   (3) `nest start --watch` (the `pnpm dev` convenience script) is broken under this environment's Node
+   24 due to the same native-TS/ESM quirk noted above in a different form — `pnpm build && node dist/
 main.js` works and is what CI/production actually run, so this is a dev-ergonomics gap, not a
-correctness one; not fixed this session (out of scope for auth, tracked here for whoever picks up
-Section 10+).
-Next: Section 10 — Authorization and Tenant Isolation
+   correctness one; not fixed this session (out of scope for auth, tracked here for whoever picks up
+   Section 10+).
+   Next: Section 10 — Authorization and Tenant Isolation
+
+## Section 10 — Authorization and Tenant Isolation
+
+Status: done. Docs: docs/security/authorization.md (deny-by-default guard order, effective-role
+resolution, 404-not-403 denial policy, per-role policy table, test matrix). Implementation:
+apps/api/src/authz/{roles.decorator,roles.guard,salon-context,authz.module}.ts. `RolesGuard`
+resolves the caller's role for `:salonId` in the route (SUPERADMIN bypass — audited every time via
+`AuditLog` action `superadmin.context_entry` — or an active `SalonMembership` row looked up by
+`(userId, salonId)`, never trusting body/query-supplied values), attaches `SalonContext` via
+`@CurrentSalonContext()`, and denies with `404` (not `403`) by default, including when a route forgets
+`@Roles(...)` entirely (fails closed rather than allowing any authenticated caller through).
+`packages/database` now also exports the `SalonRole` enum; `packages/auth`'s `Role` type is the shared
+vocabulary. No business CRUD routes were added, per this phase's scope.
+Commit: pending (this task)
+Tests: 10 new integration tests (apps/api/src/authz/roles.guard.e2e.test.ts) against a real Nest app +
+real Postgres, using a throwaway test-only controller to exercise the guard through the actual HTTP
+pipeline rather than a hand-mocked ExecutionContext: unauthenticated→401, misconfigured route (no
+`@Roles()`)→404, no membership/guessed salon ID→404, right salon/wrong role→404 then right
+role→200, suspended membership→404, cross-salon membership→404, SUPERADMIN bypass→200 + audit row
+verified, SUPERADMIN denied on a non-SUPERADMIN route, CUSTOMER-only route allows any authenticated
+user (ownership is the handler's job), forged `salonId` in the request body ignored (route param wins).
+Full repo gate (12/12 tasks: format/lint/typecheck/test/build) passed against the real DB; compiled
+`node dist/main.js` smoke-tested again (learned from Section 9 not to trust `nest build` alone) and
+starts cleanly with `AuthzModule` wired in.
+Security/tenant checks: verified the guard is genuinely DB-backed (not a client-trust shortcut) via
+the cross-salon and forged-salonId tests; verified SUPERADMIN bypass is per-route, not global; verified
+fail-closed behavior on a misconfigured route.
+Audit performed inline by main agent (Sonnet) against the Prompt 10.3 checklist — this environment's
+Agent tool cannot invoke the custom `security-reviewer`/`test-engineer` subagent definitions, consistent
+with prior sections.
+Risks: (1) "changed customer ID" / ownership-based denial is documented (docs/security/authorization.md
+§ CUSTOMER routes) but not yet tested end-to-end, because no CUSTOMER-owned resource (e.g. Reservation)
+has CRUD routes yet — the pattern (`where: { id, customerId: req.user.id }`) is specified but only
+provable once Phase 8's reservation engine or an earlier customer-profile route exists; add that test
+alongside the first such route. (2) Rate limiting on the new authz-guarded paths inherits the global
+throttler default (120/min) since no business routes exist yet to give stricter limits to.
+Next: Section 11 — Superadmin (build in small slices)
 
 ## Blockers / environment notes
 

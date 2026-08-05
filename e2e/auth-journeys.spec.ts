@@ -21,7 +21,9 @@ test('customer can register, land on their account, and log out', async ({ page 
   await expect(page).toHaveURL(/\/login$/);
 });
 
-test('login rejects the wrong password without revealing whether the email exists', async ({ page }) => {
+test('login rejects the wrong password without revealing whether the email exists', async ({
+  page,
+}) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill(`nonexistent-${randomUUID()}@example.com`);
   await page.getByLabel('Password').fill('whatever123');
