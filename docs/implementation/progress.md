@@ -278,6 +278,54 @@ installed) — `e2e/superadmin-salons.spec.ts` written but unverified by Playwri
 walkthrough above used the Claude Browser tool directly instead).
 Next: Section 11.2 — Superadmin: create salon + initial SALON_ADMIN invitation
 
+## Section 11.2 — Superadmin: create salon + initial SALON_ADMIN invitation
+
+Status: done. `packages/validation/src/salons.ts` → `createSalonSchema` (`.strict()`, rejects unknown/
+protected fields like `status`/`id`/`subdomain`; slug is optional and normalized to lowercase; adminEmail
+required). `SalonsService.create()`: validates timezone against `Intl.supportedValuesOf('timeZone')`
+(+ explicit `'UTC'` — see bug below), derives slug from name when omitted, 409s on slug conflict,
+creates Salon + default BookingPolicy + a SalonInvitation (role SALON_ADMIN, 7-day TTL, reusing
+Section 9's TokenService) inside one transaction, records `salon.created` audit event. Returns the raw
+invitation token once (no email provider exists — docs/security/authentication.md), for the SUPERADMIN
+to relay manually. UI: `apps/dashboard/app/superadmin/salons/new/page.tsx` — responsive form, submit
+disabled while in flight (duplicate-submit protection) backed by the DB-level slug unique constraint
+as the real guarantee, confirmation screen showing the copyable invite link + expiry. Extended
+`RolesGuard`'s existing platform-level-SUPERADMIN branch (added in 11.1) to also cover this POST.
+Commit: pending (this task)
+Tests: 8 new backend integration tests: unauthenticated→401 (CSRF-primed, see bug below),
+non-superadmin→404, full success path (booking policy + invitation + audit row all verified against
+real Postgres), slug derivation + normalization, duplicate-slug→409, invalid-timezone→400,
+missing-required-field→400, forbidden-field-injection→400. Full repo gate (12/12) passed; compiled
+`node dist/main.js` + real dashboard `next dev` both smoke-tested; full browser walkthrough as the
+seeded superadmin (fill form → submit → confirmation with real invite link) followed by a curl-driven
+verification that the *actual* token from that *actual* invitation really works end-to-end (accepted →
+new User created → SalonMembership(SALON_ADMIN) row created) — not a synthetic test double.
+Two real bugs found and fixed, both by actually running the thing rather than trusting the first green
+test run:
+1. `Intl.supportedValuesOf('timeZone')` does not include plain `'UTC'` — ICU's canonical form is
+   `'Etc/UTC'`. Since `'UTC'` is a completely standard identifier already used throughout this
+   project's own seed data and tests, rejecting it would have been a real product bug for the first
+   salon anyone tried to create. Fixed by adding `'UTC'` to the accepted set explicitly.
+2. The "rejects an unauthenticated request" test itself was wrong: it POSTed with no CSRF handshake
+   at all and expected `401`, but the global `CsrfGuard` runs before any controller-level guard, so an
+   unauthenticated + CSRF-less request correctly gets `403` first. Fixed the test to prime CSRF (as a
+   real browser would) so it actually exercises `AuthenticatedGuard`'s `401`, not `CsrfGuard`'s `403`.
+Also hit and fixed a test-infrastructure issue unrelated to this feature's logic: the global
+`AUTH_THROTTLE` (10 registrations/60s, shared across all `apps/api` test files in one process) started
+rejecting legitimate test registrations once enough test files accumulated Section 9/10/11 auth calls
+in the same 60-second window. Made the limit `AUTH_THROTTLE_LIMIT` env-overridable (production default
+unchanged at 10) and set it in `apps/api`'s own `test` script so `pnpm test` works without a special
+invocation — this is a real scaling concern for future phases too (more test files, same shared bucket).
+Security/tenant checks: mass-assignment rejected at the schema layer before the service ever runs;
+slug/timezone/adminEmail all server-validated; invitation token only ever appears in the one API
+response that creates it, never logged, never re-returned by any other endpoint.
+Risks: (1) `AUTH_THROTTLE_LIMIT` env-override strategy should be revisited once there are enough auth
+test files that even 1000/60s in one process feels fragile — a per-test-file fresh Nest app with
+isolated throttler storage would be the more scalable fix, not attempted here (would touch every
+existing test file). (2) Invitation email delivery is still just a manually-copied link — unchanged
+known gap from Section 9, now with a second call site.
+Next: Section 11.3 — Superadmin: edit salon (allowlisted fields)
+
 ## Blockers / environment notes
 
 - Docker is not installed in this environment; resolved by using the existing Postgres.app (PG 18)

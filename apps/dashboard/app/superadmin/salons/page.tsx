@@ -110,7 +110,10 @@ export default function SuperadminSalonsPage() {
 
   return (
     <main className="flex flex-col gap-6 p-8">
-      <h1 className="text-xl font-semibold text-text-primary">Salons</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-semibold text-text-primary">Salons</h1>
+        <Link href="/superadmin/salons/new">+ New salon</Link>
+      </div>
 
       <div className="flex flex-col gap-3 sm:flex-row">
         <Input

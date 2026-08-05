@@ -31,7 +31,12 @@ import { CurrentUser } from './decorators/current-user.decorator';
 import { AuthenticatedGuard } from './guards/authenticated.guard';
 import type { AuthenticatedUser } from './types';
 
-const AUTH_THROTTLE = { default: { limit: 10, ttl: 60_000 } };
+// Overridable via env so integration test suites (which legitimately register/login far more than
+// 10 times/minute from one IP across many files) don't fight the same limit real abuse does.
+// Production keeps the strict default of 10/60s unless explicitly reconfigured.
+const AUTH_THROTTLE = {
+  default: { limit: Number(process.env.AUTH_THROTTLE_LIMIT ?? 10), ttl: 60_000 },
+};
 
 @Controller('auth')
 export class AuthController {

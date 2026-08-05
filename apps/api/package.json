@@ -8,7 +8,7 @@
     "start": "node dist/main.js",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "AUTH_THROTTLE_LIMIT=1000 vitest run"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.15",

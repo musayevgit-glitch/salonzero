@@ -1,6 +1,23 @@
-import { Controller, Get, Param, ParseUUIDPipe, Query, UseGuards } from '@nestjs/common';
-import { listSalonsQuerySchema, type ListSalonsQuery } from '@salonomia/validation';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  createSalonSchema,
+  listSalonsQuerySchema,
+  type CreateSalonInput,
+  type ListSalonsQuery,
+} from '@salonomia/validation';
 import { AuthenticatedGuard } from '../auth/guards/authenticated.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import type { AuthenticatedUser } from '../auth/types';
 import { Roles } from '../authz/roles.decorator';
 import { RolesGuard } from '../authz/roles.guard';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
@@ -21,5 +38,15 @@ export class SalonsController {
   @Get(':salonId')
   detail(@Param('salonId', new ParseUUIDPipe({ errorHttpStatusCode: 404 })) salonId: string) {
     return this.salonsService.detail(salonId);
+  }
+
+  @Roles('SUPERADMIN')
+  @HttpCode(201)
+  @Post()
+  create(
+    @Body(new ZodValidationPipe(createSalonSchema)) body: CreateSalonInput,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.salonsService.create(body, user.id);
   }
 }
