@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Card, Skeleton } from '@salonomia/ui';
+import { Button, Card, Link, Skeleton } from '@salonomia/ui';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { apiFetch, ApiError } from '../lib/api-client';
@@ -9,6 +9,7 @@ interface CurrentUser {
   id: string;
   email: string;
   fullName: string;
+  isSuperadmin: boolean;
 }
 
 export default function DashboardHomePage() {
@@ -52,9 +53,15 @@ export default function DashboardHomePage() {
       <Card className="max-w-md">
         <h1 className="text-xl font-semibold text-text-primary">Welcome, {user.fullName}</h1>
         <p className="text-sm text-text-secondary">{user.email}</p>
-        <p className="mt-2 text-sm text-text-secondary">
-          Salon management screens land in later phases (superadmin/salon admin/manager dashboards).
-        </p>
+        {user.isSuperadmin ? (
+          <p className="mt-4 text-sm">
+            <Link href="/superadmin/salons">Manage salons →</Link>
+          </p>
+        ) : (
+          <p className="mt-2 text-sm text-text-secondary">
+            Salon management screens land in later phases (salon admin/manager dashboards).
+          </p>
+        )}
         <Button variant="secondary" className="mt-4" onClick={handleLogout} loading={loggingOut}>
           Log out
         </Button>

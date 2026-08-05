@@ -239,6 +239,45 @@ alongside the first such route. (2) Rate limiting on the new authz-guarded paths
 throttler default (120/min) since no business routes exist yet to give stricter limits to.
 Next: Section 11 — Superadmin (build in small slices)
 
+## Section 11.1 — Superadmin: salon list and detail (read-only)
+
+Status: done. First of five Section-11 slices (create/edit/suspend-restore/domain come next, each its
+own commit). Extended `RolesGuard` to support platform-level SUPERADMIN routes (no `:salonId` in the
+path, e.g. listing all salons) — audits as `superadmin.platform_action` vs. the existing per-salon
+`superadmin.context_entry`. New: `packages/validation/src/salons.ts` (`listSalonsQuerySchema` — page/
+pageSize/search/status, `.strict()` rejects unknown params), `apps/api/src/salons/*`
+(SalonsController/Service — `GET /salons` paginated+searchable+status-filterable list,
+`GET /salons/:salonId` detail with active-membership count, both SUPERADMIN-only, both 404 on denial
+per docs/security/authorization.md). UI: `apps/dashboard/app/superadmin/salons/{page.tsx,[salonId]/
+page.tsx}` — search/status filter, desktop Table + MobileRecordList, Pagination, loading/empty/error/
+permission-denied states; dashboard home now links to it when `isSuperadmin`. No create/edit/delete —
+explicitly out of scope for this slice.
+Commit: pending (this task)
+Tests: 7 new backend integration tests (unauthenticated→401, non-superadmin→404 on both list and
+detail, pagination/search/status-filter correctness, unknown-query-param/oversized-pageSize→400,
+malformed-ID/nonexistent-ID→404 with identical response shape, platform_action and context_entry audit
+rows verified). Full repo gate (12/12) passed; compiled `node dist/main.js` + real `next dev` dashboard
+both smoke-tested; full browser walkthrough as a seeded superadmin (login → salon list with 7 real
+Postgres rows → detail page with correct active-staff count).
+One real bug found and fixed via the browser walkthrough (not caught by any automated test): the
+salon-detail page's `<dt>`/`<dd>` pair for `Slug` used `flex justify-between` with no gap — for a slug
+long enough that label+value together exceeded the card width, flexbox had zero space left to
+distribute and the label ran directly into the value with no visible separation. Fixed with
+`flex-wrap` + `gap-x-3` + `shrink-0` on the label + `break-all` on the value; verified visually after
+the fix. This is the kind of "long content" case docs/design/responsive-strategy.md calls out, but no
+existing automated test would have caught a CSS-only spacing collapse — worth a note for future UI
+work that pairs a fixed label with an unbounded-length value.
+Security/tenant checks: detail endpoint returns byte-identical 404s for "wrong role" / "malformed ID" /
+"nonexistent ID" (no existence leakage); list/detail both audited; unknown query params rejected
+outright rather than silently ignored (mass-assignment-style guard on read paths too).
+Risks: (1) `SalonListItem`/`SalonDetail` response shapes are hand-duplicated as TS interfaces in both
+the NestJS service and the two dashboard pages — `packages/contracts` was created for exactly this and
+is still just a placeholder; worth moving these shared shapes there once a second consumer needs them,
+not urgent with one caller each right now. (2) No E2E test executed (Playwright browsers still not
+installed) — `e2e/superadmin-salons.spec.ts` written but unverified by Playwright itself (browser
+walkthrough above used the Claude Browser tool directly instead).
+Next: Section 11.2 — Superadmin: create salon + initial SALON_ADMIN invitation
+
 ## Blockers / environment notes
 
 - Docker is not installed in this environment; resolved by using the existing Postgres.app (PG 18)

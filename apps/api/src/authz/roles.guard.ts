@@ -44,7 +44,21 @@ export class RolesGuard implements CanActivate {
 
     const salonIdParam = request.params.salonId;
     const salonId = Array.isArray(salonIdParam) ? salonIdParam[0] : salonIdParam;
+
+    // Platform-level SUPERADMIN routes (e.g. listing all salons) have no :salonId in the path at
+    // all — there is no per-salon membership to resolve, so this is the only branch where a bare
+    // isSuperadmin check is sufficient. Still denied for anyone else, still audited.
     if (!salonId) {
+      if (user.isSuperadmin && requiredRoles.length === 1 && requiredRoles[0] === 'SUPERADMIN') {
+        await this.audit.record({
+          actorUserId: user.id,
+          action: 'superadmin.platform_action',
+          targetType: 'Platform',
+          targetId: 'platform',
+          metadata: { route: request.route?.path, method: request.method },
+        });
+        return true;
+      }
       throw new NotFoundException();
     }
 
