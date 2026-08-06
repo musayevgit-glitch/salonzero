@@ -201,6 +201,62 @@ describe('CSRF protection', () => {
     const logoutRes = await agent.post('/auth/logout').set('x-csrf-token', csrfToken).send();
     expect(logoutRes.status).toBe(200);
   });
+
+  it('rotates the CSRF token after login and rejects the pre-login token', async () => {
+    const password = 'longenoughpassword';
+    const email = `csrf-rotate-${randomUUID()}@example.com`;
+    const setup = await newAgentWithCsrf();
+    await setup.agent
+      .post('/auth/register')
+      .set('x-csrf-token', setup.csrfToken)
+      .send({ email, password, fullName: 'CSRF Rotate' });
+
+    const { agent, csrfToken: preLoginToken } = await newAgentWithCsrf();
+    const loginRes = await agent
+      .post('/auth/login')
+      .set('x-csrf-token', preLoginToken)
+      .send({ email, password });
+    expect(loginRes.status).toBe(200);
+
+    const postLoginToken = extractCookie(loginRes.headers['set-cookie'], 'csrfToken');
+    expect(postLoginToken).toBeDefined();
+    expect(postLoginToken).not.toBe(preLoginToken);
+
+    const oldTokenLogout = await agent.post('/auth/logout').set('x-csrf-token', preLoginToken).send();
+    expect(oldTokenLogout.status).toBe(403);
+
+    const logoutRes = await agent.post('/auth/logout').set('x-csrf-token', postLoginToken!).send();
+    expect(logoutRes.status).toBe(200);
+  });
+
+  it('rejects a request whose csrf cookie was replaced after login', async () => {
+    const password = 'longenoughpassword';
+    const email = `csrf-toss-${randomUUID()}@example.com`;
+    const setup = await newAgentWithCsrf();
+    await setup.agent
+      .post('/auth/register')
+      .set('x-csrf-token', setup.csrfToken)
+      .send({ email, password, fullName: 'CSRF Toss' });
+
+    const loginAgent = await newAgentWithCsrf();
+    const loginRes = await loginAgent.agent
+      .post('/auth/login')
+      .set('x-csrf-token', loginAgent.csrfToken)
+      .send({ email, password });
+    expect(loginRes.status).toBe(200);
+
+    const postLoginToken = extractCookie(loginRes.headers['set-cookie'], 'csrfToken');
+    const sessionCookie = extractCookie(loginRes.headers['set-cookie'], 'connect.sid');
+    expect(postLoginToken).toBeDefined();
+    expect(sessionCookie).toBeDefined();
+
+    const res = await request(app.getHttpServer())
+      .post('/auth/logout')
+      .set('Cookie', [`connect.sid=${sessionCookie}`, 'csrfToken=tossed'])
+      .set('x-csrf-token', postLoginToken!)
+      .send();
+    expect(res.status).toBe(403);
+  });
 });
 
 describe('POST /auth/forgot-password', () => {

@@ -26,6 +26,12 @@ import {
 } from '@salonomia/validation';
 import { ZodBodyGuard } from '../common/zod-body.guard';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
+import {
+  bindSessionCsrfToken,
+  clearCsrfCookie,
+  getSessionCsrfToken,
+  rotateSessionCsrfToken,
+} from '../common/csrf-token';
 import { validateAuthThrottleLimit } from '../config/env';
 import { AuthService } from './auth.service';
 import { CurrentUser } from './decorators/current-user.decorator';
@@ -48,11 +54,19 @@ export class AuthController {
   @Throttle(AUTH_THROTTLE)
   @Post('register')
   @UsePipes(new ZodValidationPipe(registerSchema))
-  async register(@Body() body: RegisterInput, @Req() req: Request) {
+  async register(
+    @Body() body: RegisterInput,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const preRegisterCsrfToken = getSessionCsrfToken(req);
     const user = await this.authService.register(body);
     await new Promise<void>((resolve, reject) => {
       req.login(user, (err) => (err ? reject(err) : resolve()));
     });
+    if (preRegisterCsrfToken) {
+      bindSessionCsrfToken(req, res, preRegisterCsrfToken);
+    }
     return user;
   }
 
@@ -60,12 +74,17 @@ export class AuthController {
   @UseGuards(new ZodBodyGuard(loginSchema), AuthGuard('local'))
   @HttpCode(200)
   @Post('login')
-  async login(@CurrentUser() user: AuthenticatedUser, @Req() req: Request) {
+  async login(
+    @CurrentUser() user: AuthenticatedUser,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     // AuthGuard('local') only runs LocalStrategy.validate — it does not itself call req.login,
     // so the session cookie is never established without doing it explicitly here too.
     await new Promise<void>((resolve, reject) => {
       req.login(user, (err) => (err ? reject(err) : resolve()));
     });
+    rotateSessionCsrfToken(req, res);
     return user;
   }
 
@@ -81,6 +100,7 @@ export class AuthController {
     );
     await new Promise<void>((resolve) => req.session.destroy(() => resolve()));
     res.clearCookie('connect.sid');
+    clearCsrfCookie(res);
     return res.status(200).json({ ok: true });
   }
 
@@ -126,7 +146,11 @@ export class AuthController {
   @HttpCode(200)
   @Post('invitations/accept')
   @UsePipes(new ZodValidationPipe(acceptInvitationSchema))
-  async acceptInvitation(@Body() body: AcceptInvitationInput, @Req() req: Request) {
+  async acceptInvitation(
+    @Body() body: AcceptInvitationInput,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const callerUserId = (req.user as { id?: string } | undefined)?.id;
     const user = await this.authService.acceptInvitation(body, callerUserId);
     if (!user) {
@@ -139,6 +163,7 @@ export class AuthController {
       await new Promise<void>((resolve, reject) => {
         req.login(user, (err) => (err ? reject(err) : resolve()));
       });
+      rotateSessionCsrfToken(req, res);
     }
     return user;
   }
