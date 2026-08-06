@@ -158,6 +158,14 @@ export class TransitionsService {
     const current = await this.findForCustomer(customerId, reservationId);
     this.assertCancellableOrReschedulable(current.status);
 
+    const salon = await this.prisma.salon.findUnique({
+      where: { id: current.salonId },
+      select: { status: true },
+    });
+    if (salon?.status !== 'ACTIVE') {
+      throw new ConflictException('This salon is not accepting reservation changes.');
+    }
+
     const policy = await this.prisma.bookingPolicy.findUnique({ where: { salonId: current.salonId } });
     const windowHours = policy?.rescheduleWindowHours ?? 24;
     const deadline = current.startAt.getTime() - windowHours * 60 * 60_000;

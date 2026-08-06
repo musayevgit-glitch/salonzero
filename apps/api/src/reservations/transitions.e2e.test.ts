@@ -391,6 +391,31 @@ describe('reschedule', () => {
     expect(res.status).toBe(409);
   });
 
+  it('SEC-017: suspended salons reject customer reschedule but still allow customer cancel', async () => {
+    const farFuture = new Date(Date.now() + 30 * 24 * 60 * 60_000);
+    farFuture.setUTCHours(10, 0, 0, 0);
+    while (farFuture.getUTCDay() !== 1) farFuture.setUTCDate(farFuture.getUTCDate() + 1);
+
+    const { salon, reservation, custAgent, custCsrf } = await setup('tr-suspended-customer', {
+      startAt: farFuture,
+      endAt: new Date(farFuture.getTime() + 60 * 60_000),
+    });
+    await prisma.salon.update({ where: { id: salon.id }, data: { status: 'SUSPENDED' } });
+
+    const reschedule = await custAgent
+      .post(`/reservations/${reservation.id}/reschedule`)
+      .set('x-csrf-token', custCsrf)
+      .send({ startAt: new Date(farFuture.getTime() + 2 * 60 * 60_000).toISOString() });
+    expect(reschedule.status).toBe(409);
+
+    const cancel = await custAgent
+      .post(`/reservations/${reservation.id}/cancel`)
+      .set('x-csrf-token', custCsrf)
+      .send({ reason: 'Salon unavailable' });
+    expect(cancel.status).toBe(200);
+    expect(cancel.body.status).toBe('CANCELLED_BY_CUSTOMER');
+  });
+
   it('rejects customer reschedule outside the reschedule window', async () => {
     const soon = new Date(Date.now() + 60 * 60_000);
     const { reservation, custAgent, custCsrf } = await setup('tr-cust-reschedule-toolate', {
