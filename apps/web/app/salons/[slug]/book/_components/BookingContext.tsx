@@ -49,7 +49,7 @@ interface BookingContextValue {
   draftLoaded: boolean;
   setService: (serviceId: string) => void;
   setStylist: (employeeId: string | null) => void;
-  setStartAt: (startAt: string) => void;
+  setStartAt: (startAt: string | undefined) => void;
   clearDraft: () => void;
 }
 
@@ -129,7 +129,7 @@ export function BookingShell({
   );
 
   const setStartAt = useCallback(
-    (startAt: string) => {
+    (startAt: string | undefined) => {
       setDraft((prev) => {
         const next: Partial<BookingDraft> = { ...prev, startAt, idempotencyKey: ensureKey(prev) };
         writeDraft(salonData.slug, next);

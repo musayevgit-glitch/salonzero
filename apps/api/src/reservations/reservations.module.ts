@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { CustomerReservationsController } from './customer-reservations.controller';
+import { CustomerReservationsService } from './customer-reservations.service';
 import { CustomerTransitionsController } from './customer-transitions.controller';
 import { ManualReservationsController } from './manual-reservations.controller';
 import { ReservationsController } from './reservations.controller';
@@ -15,7 +17,8 @@ import { TransitionsService } from './transitions.service';
     StaffReservationsController,
     StaffTransitionsController,
     CustomerTransitionsController,
+    CustomerReservationsController,
   ],
-  providers: [ReservationsService, StaffReservationsService, TransitionsService],
+  providers: [ReservationsService, StaffReservationsService, TransitionsService, CustomerReservationsService],
 })
 export class ReservationsModule {}

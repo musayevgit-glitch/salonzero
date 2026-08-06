@@ -83,7 +83,7 @@ export async function generateMetadata({
   };
 }
 
-function ServiceRow({ service }: { service: PublicService }) {
+function ServiceRow({ service, slug }: { service: PublicService; slug: string }) {
   return (
     <li className="flex items-center justify-between gap-4 py-2">
       <div>
@@ -91,9 +91,15 @@ function ServiceRow({ service }: { service: PublicService }) {
         {service.description ? <p className="text-sm text-text-secondary">{service.description}</p> : null}
         <p className="text-sm text-text-secondary">{service.durationMinutes} min</p>
       </div>
-      <p className="shrink-0 font-medium text-text-primary">
-        {formatMoney(service.priceAmount, service.currency)}
-      </p>
+      <div className="flex shrink-0 items-center gap-3">
+        <p className="font-medium text-text-primary">{formatMoney(service.priceAmount, service.currency)}</p>
+        <a
+          href={`/salons/${slug}/book/service`}
+          className="rounded-[var(--radius-sm)] border border-accent px-3 py-1 text-xs font-medium text-accent hover:bg-accent/5"
+        >
+          Book
+        </a>
+      </div>
     </li>
   );
 }
@@ -212,7 +218,7 @@ export default async function SalonDetailPage({ params }: { params: Promise<{ sl
                   <h3 className="text-sm font-semibold text-text-secondary">{category.name}</h3>
                   <ul className="divide-y divide-border">
                     {category.services.map((s) => (
-                      <ServiceRow key={s.id} service={s} />
+                      <ServiceRow key={s.id} service={s} slug={salon.slug} />
                     ))}
                   </ul>
                 </div>
@@ -224,7 +230,7 @@ export default async function SalonDetailPage({ params }: { params: Promise<{ sl
                   ) : null}
                   <ul className="divide-y divide-border">
                     {salon.uncategorizedServices.map((s) => (
-                      <ServiceRow key={s.id} service={s} />
+                      <ServiceRow key={s.id} service={s} slug={salon.slug} />
                     ))}
                   </ul>
                 </div>
@@ -270,7 +276,7 @@ export default async function SalonDetailPage({ params }: { params: Promise<{ sl
 
         <div className="fixed inset-x-0 bottom-0 border-t border-border bg-surface-raised p-4 shadow-[var(--shadow-md)] lg:hidden">
           <a
-            href="#services"
+            href={`/salons/${salon.slug}/book/service`}
             className="flex min-h-11 w-full items-center justify-center rounded-[var(--radius-sm)] bg-accent px-4 text-sm font-medium text-white"
           >
             Book now
@@ -278,7 +284,7 @@ export default async function SalonDetailPage({ params }: { params: Promise<{ sl
         </div>
         <div className="hidden lg:block">
           <a
-            href="#services"
+            href={`/salons/${salon.slug}/book/service`}
             className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-sm)] bg-accent px-6 text-sm font-medium text-white"
           >
             Book now
