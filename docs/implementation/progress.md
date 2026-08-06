@@ -733,6 +733,74 @@ and closures) still needs the salon-wide-closure schema gap flagged as an open d
 implementation, not improvised.
 Next: Section 14.3 — Salon Admin: time off and closures
 
+## Section 14.3 — Salon Admin: employee time off (salon-wide closures deferred)
+
+Status: done, scoped down deliberately. Prompt 14.3 asks for both "employee time off and salon closure
+periods," but the approved data model only has a per-employee `TimeOff` table — no salon-wide closure
+model exists, and adding one is a real schema/architecture decision (new table, cross-cutting effect on
+every employee's availability, its own reservation-conflict policy), not a safe default to improvise.
+Asked the user how to proceed; confirmed **employee time off only** for this slice, with salon-wide
+closures recorded as a new open decision (`docs/product/open-decisions.md` #6) for its own future
+ADR/milestone.
+`packages/validation/src/time-off.ts` → `createTimeOffSchema`: absolute UTC `startAt`/`endAt` (matching
+the `TimeOff` model, unlike the weekday/minute-of-day shape used for schedules/breaks), `.refine()`
+rejecting `endAt <= startAt`, `reason` capped at 500 chars, and an `acknowledgeConflicts` flag (see
+below).
+Backend: `apps/api/src/employees/time-off/*` nested at
+`salons/:salonId/employees/:employeeId/time-off`, `@Roles('SUPERADMIN','SALON_ADMIN')`, list/create/
+delete. `create()` implements Prompt 14.3's core safety requirement literally: it never touches a
+reservation. It first rejects overlap with the employee's *other* time-off periods (409), then checks
+for overlapping reservations still in an active status (PENDING/CONFIRMED/CHECKED_IN — terminal
+statuses like CANCELLED_*/COMPLETED/NO_SHOW can never conflict). If any exist and the caller hasn't set
+`acknowledgeConflicts`, the endpoint returns 409 with the conflicting reservations in the body **and
+does not create the time-off row at all** — "surface conflicts for explicit admin action" means the
+admin must see them and consciously resubmit with `acknowledgeConflicts: true` to proceed. Even after
+that override, reservations are still never modified — actually cancelling one, if the admin decides
+to, remains a separate action on the reservation itself (not yet built; reservation status transitions
+are Section 15/19 territory). `remove()` re-verifies tenant/employee ownership before deleting.
+Commit: pending (this task)
+Tests: 15 new e2e tests — unauthenticated→401, SALON_MANAGER/no-membership→404, cross-salon
+employeeId→404 on list, create with no conflicts + audit, reject endAt≤startAt, reject an
+over-length reason, reject overlapping time-off for the same employee, **surface conflicting
+reservations without creating the time-off row, verify the reservation is left untouched, then
+successfully create via the explicit `acknowledgeConflicts` override and verify the reservation is
+*still* untouched afterward**, terminal-status reservations (cancelled) never count as conflicts,
+cross-salon create denied, delete + audit, cross-employee delete→404 with row untouched, cross-salon
+employeeId on delete→404. 7 new schema tests in `packages/validation`. `apps/api` total: 188 passing
+tests (104 in `packages/validation`). Full repo gate (14/14) passed.
+UI: `apps/dashboard/.../employees/[employeeId]/time-off.tsx` — a form (two `datetime-local` inputs +
+optional reason), a list of existing periods, and a distinct conflict-review panel: when the API
+returns 409 with conflicts, the form is not resubmitted automatically — the conflicting reservations
+are rendered with an explicit "Add time off anyway" button that resends the same request with
+`acknowledgeConflicts: true`. Extended `apps/dashboard/lib/api-client.ts`'s `ApiError` with a `body`
+property so callers can read structured error payloads like `conflicts`, not just the message string.
+Time inputs are collected in the admin's own browser-local time and converted directly to UTC — there
+is no SALON_ADMIN-accessible endpoint to read the salon's own timezone today (`GET /salons/:salonId` is
+SUPERADMIN-only per Section 11), so salon-local and admin-local are assumed to match; documented as a
+known simplification rather than a silently-skipped requirement.
+Browser walkthrough: added a Sept 1–3 vacation with a reason through the live form, confirmed it
+rendered correctly; seeded a CONFIRMED reservation on Sept 15 via a direct DB script (same technique
+used for prior sections' verification), attempted to add Sept 14–16 time off through the live form —
+confirmed the API returned 409 with the conflicting reservation shown in a review panel and that **no**
+time-off row was created; clicked "Add time off anyway," confirmed the time-off was created and the
+reservation's status was still `CONFIRMED` afterward (queried directly); removed a time-off entry and
+confirmed it disappeared from the list. Also hit the same click-registration flakiness noted in 14.2
+(a `left_click` on the submit button not registering) and worked around it with a direct
+`element.click()` call — confirmed to be a browser-tool quirk, not an app bug, since the exact same
+request succeeded once actually dispatched.
+Security/tenant checks: create/delete re-derive the authorized salonId and re-check employee ownership;
+the conflict-detection query is scoped by both `salonId` and `employeeId` (never a bare employeeId
+lookup); reservation status is never written by this code path under any circumstance, including the
+explicit-override path — verified directly against the database, not just asserted in code.
+Risks: (1) Salon-wide closures remain unimplemented — tracked as open decision #6, needs its own
+ADR/schema change before a future milestone. (2) Time-off input assumes admin-local time equals
+salon-local time (no salon-timezone read endpoint available to SALON_ADMIN); acceptable for MVP, worth
+revisiting if salons and their admins end up in different timezones in practice. (3) Section 11.5
+(domain/subdomain management) remains deferred. This completes Section 14 (Salon Admin — Scheduling)
+for everything the current schema supports.
+Next: Section 15 — Reservation Engine (backend-first; flagged in the playbook as the most critical
+area, to be worked in separate focused sessions)
+
 ## Blockers / environment notes
 
 - Docker is not installed in this environment; resolved by using the existing Postgres.app (PG 18)

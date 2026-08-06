@@ -7,6 +7,8 @@ import { EmployeeServicesController } from './services/employee-services.control
 import { EmployeeServicesService } from './services/employee-services.service';
 import { PortfolioController } from './portfolio/portfolio.controller';
 import { PortfolioService } from './portfolio/portfolio.service';
+import { TimeOffController } from './time-off/time-off.controller';
+import { TimeOffService } from './time-off/time-off.service';
 import { WorkingScheduleController } from './working-schedule/working-schedule.controller';
 import { WorkingScheduleService } from './working-schedule/working-schedule.service';
 
@@ -17,6 +19,7 @@ import { WorkingScheduleService } from './working-schedule/working-schedule.serv
     EmployeeServicesController,
     WorkingScheduleController,
     BreaksController,
+    TimeOffController,
   ],
   providers: [
     EmployeesService,
@@ -24,6 +27,7 @@ import { WorkingScheduleService } from './working-schedule/working-schedule.serv
     EmployeeServicesService,
     WorkingScheduleService,
     BreaksService,
+    TimeOffService,
   ],
 })
 export class EmployeesModule {}

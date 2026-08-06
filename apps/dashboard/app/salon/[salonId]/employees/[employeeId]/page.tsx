@@ -19,6 +19,7 @@ import { PortfolioGallery } from './portfolio-gallery';
 import { ServiceAssignment } from './service-assignment';
 import { WorkingScheduleEditor } from './working-schedule';
 import { BreaksEditor } from './breaks';
+import { TimeOffEditor } from './time-off';
 
 interface EmployeeDetail {
   id: string;
@@ -164,6 +165,13 @@ export default function EmployeeDetailPage() {
         <h2 className="text-lg font-semibold text-text-primary">Breaks</h2>
         <div className="mt-4">
           <BreaksEditor salonId={salonId} employeeId={employee.id} />
+        </div>
+      </Card>
+
+      <Card className="max-w-2xl">
+        <h2 className="text-lg font-semibold text-text-primary">Time off</h2>
+        <div className="mt-4">
+          <TimeOffEditor salonId={salonId} employeeId={employee.id} />
         </div>
       </Card>
 

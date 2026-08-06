@@ -11,6 +11,7 @@ export class ApiError extends Error {
   constructor(
     public status: number,
     message: string,
+    public body?: unknown,
   ) {
     super(message);
   }
@@ -37,7 +38,7 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
     const body = await res
       .json()
       .catch(() => ({ message: 'Something went wrong. Please try again.' }));
-    throw new ApiError(res.status, body.message ?? 'Something went wrong. Please try again.');
+    throw new ApiError(res.status, body.message ?? 'Something went wrong. Please try again.', body);
   }
 
   if (res.status === 204) {
