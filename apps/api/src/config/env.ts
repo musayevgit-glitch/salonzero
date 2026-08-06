@@ -45,6 +45,34 @@ export const apiEnvSchema = apiEnvObjectSchema
     }
 
     if (env.NODE_ENV === 'production') {
+      for (const origin of env.CORS_ORIGINS) {
+        let parsed: URL;
+        try {
+          parsed = new URL(origin);
+        } catch {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['CORS_ORIGINS'],
+            message: `CORS_ORIGINS contains an invalid origin: ${origin}`,
+          });
+          continue;
+        }
+
+        const hostname = parsed.hostname.toLowerCase();
+        if (
+          parsed.protocol !== 'https:' ||
+          hostname === 'localhost' ||
+          hostname === '127.0.0.1' ||
+          hostname === '::1'
+        ) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['CORS_ORIGINS'],
+            message: 'Production CORS_ORIGINS must be HTTPS non-localhost origins',
+          });
+        }
+      }
+
       for (const key of ['SESSION_SECRET', 'LOCAL_STORAGE_SIGNING_SECRET'] as const) {
         const value = env[key];
         if (value && PLACEHOLDER_SECRETS.has(value)) {

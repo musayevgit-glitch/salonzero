@@ -1,4 +1,5 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import {
   listPublicSalonsQuerySchema,
   publicAvailabilityQuerySchema,
@@ -22,6 +23,7 @@ export class PublicSalonsController {
   }
 
   @Get(':slug/availability')
+  @Throttle({ default: { ttl: 60_000, limit: 30 } })
   availability(
     @Param('slug') slug: string,
     @Query(new ZodValidationPipe(publicAvailabilityQuerySchema)) query: PublicAvailabilityQuery,

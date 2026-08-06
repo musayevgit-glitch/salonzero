@@ -44,6 +44,35 @@ describe('validateApiEnv', () => {
     ).toThrow();
   });
 
+  it('SEC-022: rejects localhost or non-HTTPS CORS origins in production', () => {
+    expect(() =>
+      validateApiEnv({
+        ...validEnv,
+        NODE_ENV: 'production',
+        CORS_ORIGINS: 'http://localhost:3000,https://app.example.com',
+      }),
+    ).toThrow();
+    expect(() =>
+      validateApiEnv({
+        ...validEnv,
+        NODE_ENV: 'production',
+        CORS_ORIGINS: 'http://app.example.com',
+      }),
+    ).toThrow();
+  });
+
+  it('SEC-022: accepts HTTPS CORS origins in production', () => {
+    const result = validateApiEnv({
+      ...validEnv,
+      NODE_ENV: 'production',
+      CORS_ORIGINS: 'https://app.example.com,https://dashboard.example.com',
+    });
+    expect(result.CORS_ORIGINS).toEqual([
+      'https://app.example.com',
+      'https://dashboard.example.com',
+    ]);
+  });
+
   // SEC-006 regression: a non-numeric AUTH_THROTTLE_LIMIT must fail validation at startup rather
   // than silently producing NaN and disabling rate limiting.
   it('SEC-006: rejects a non-numeric AUTH_THROTTLE_LIMIT', () => {

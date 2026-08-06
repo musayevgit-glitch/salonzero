@@ -28,6 +28,8 @@ session store) and clears the cookie. `AuditLog` event `user.logout`.
 ## Session model
 
 - Cookie: httpOnly, `SameSite=Lax`, `Secure` in production, signed with `SESSION_SECRET`.
+- Deployment requirement: API, web, and dashboard must stay same-site (same registrable domain) so
+  `SameSite=Lax` session cookies work without weakening them to `SameSite=None`.
 - Store: Postgres (`connect-pg-simple`) — revoking a session means deleting its store row; a suspended
   user's active sessions are not auto-revoked in MVP (documented gap — see Risks in
   `docs/implementation/progress.md` once implemented) but every subsequent request re-checks
@@ -60,9 +62,10 @@ before suspension stops working on the very next request, not just the next logi
 
 ## CSRF
 
-Double-submit cookie: a non-httpOnly `csrfToken` cookie is set alongside the session; every
+Session-bound double-submit cookie: a non-httpOnly `csrfToken` cookie is set alongside the session; every
 state-changing request (`POST`/`PATCH`/`PUT`/`DELETE`) must echo it in an `x-csrf-token` header. Bodies
-never carry the token (keeps it out of logs/referrers).
+never carry the token (keeps it out of logs/referrers). In production, the cookie uses the `__Host-`
+prefix.
 
 ## Rate limits (`@nestjs/throttler`)
 

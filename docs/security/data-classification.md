@@ -9,4 +9,6 @@
 - **Tenant-internal**: reservation details, schedules, service prices — visible only within the owning
   salon's authorized roles and the owning customer.
 - **Public**: salon public profile, active services/prices, active stylist public profile, aggregate
-  ratings, publicly computed availability slots (no customer identity attached).
+  ratings, publicly computed availability slots (no customer identity attached). Per-stylist public
+  availability can reveal occupancy patterns by differencing slot lists over time; this is an accepted
+  booking-product trade-off and the endpoint has a dedicated public rate limit.
