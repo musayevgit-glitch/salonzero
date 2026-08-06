@@ -36,9 +36,10 @@ export class RolesGuard implements CanActivate {
       throw new NotFoundException();
     }
 
-    // CUSTOMER-only routes have no :salonId — ownership is checked by the handler's own query
-    // (docs/security/authorization.md), not by this guard.
+    // CUSTOMER-only routes have no :salonId — bind an explicit self-scope to the request so
+    // handlers/services never infer salon tenancy from this branch.
     if (requiredRoles.length === 1 && requiredRoles[0] === 'CUSTOMER') {
+      request.principalContext = { userId: user.id, scope: 'SELF' };
       return true;
     }
 
@@ -71,6 +72,15 @@ export class RolesGuard implements CanActivate {
     }
 
     if (user.isSuperadmin && requiredRoles.includes('SUPERADMIN')) {
+      const salon = await this.prisma.salon.findUnique({
+        where: { id: salonId },
+        select: { id: true },
+      });
+      if (!salon) {
+        await this.recordDenied(request, salonId, requiredRoles, 'missing_salon');
+        throw new NotFoundException();
+      }
+
       await this.audit.record({
         actorUserId: user.id,
         action: 'superadmin.context_entry',

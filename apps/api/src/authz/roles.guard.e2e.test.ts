@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
-import { Controller, Get, INestApplication, Module, UseGuards } from '@nestjs/common';
+import { Controller, Get, INestApplication, Module, Req, UseGuards } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import type { Request } from 'express';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { AppModule } from '../app.module';
@@ -37,8 +38,8 @@ class TestAuthzController {
 
   @Roles('CUSTOMER')
   @Get('customer-only')
-  customerOnly() {
-    return { ok: true };
+  customerOnly(@Req() req: Request) {
+    return { ok: true, principalContext: req.principalContext };
   }
 
   // Deliberately no @Roles() — proves the guard fails closed rather than allowing any authenticated
@@ -249,10 +250,11 @@ describe('RolesGuard denial matrix (docs/security/authorization.md)', () => {
     expect(contextEntry).toBeNull();
   });
 
-  it('allows any authenticated user on a CUSTOMER-only route (ownership is the handler’s job, not this guard’s)', async () => {
-    const { agent } = await registerAndLogin(`authz-customer-${randomUUID()}@example.com`);
+  it('binds CUSTOMER-only routes to the authenticated user self-scope', async () => {
+    const { agent, userId } = await registerAndLogin(`authz-customer-${randomUUID()}@example.com`);
     const res = await agent.get('/test-authz/customer-only');
     expect(res.status).toBe(200);
+    expect(res.body.principalContext).toEqual({ userId, scope: 'SELF' });
   });
 
   it('returns 404 for a malformed (non-UUID) salonId — never 500', async () => {
@@ -263,6 +265,22 @@ describe('RolesGuard denial matrix (docs/security/authorization.md)', () => {
       where: { actorUserId: userId, action: 'authz.denied', targetId: 'not-a-uuid' },
     });
     expect(denied).not.toBeNull();
+  });
+
+  it('rejects SUPERADMIN context entry for a non-existent salon UUID', async () => {
+    const missingSalonId = randomUUID();
+    const { agent, userId } = await registerAndLogin(
+      `authz-super-missing-${randomUUID()}@example.com`,
+    );
+    await prisma.user.update({ where: { id: userId }, data: { isSuperadmin: true } });
+
+    const res = await agent.get(`/test-authz/superadmin-only/${missingSalonId}`);
+    expect(res.status).toBe(404);
+
+    const contextEntry = await prisma.auditLog.findFirst({
+      where: { actorUserId: userId, action: 'superadmin.context_entry', salonId: missingSalonId },
+    });
+    expect(contextEntry).toBeNull();
   });
 
   it('ignores a forged salonId in the request body — only the route param is authoritative', async () => {

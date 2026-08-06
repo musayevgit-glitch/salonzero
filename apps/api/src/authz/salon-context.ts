@@ -14,9 +14,15 @@ export interface SalonContext {
   isSuperadminBypass: boolean;
 }
 
+export interface PrincipalContext {
+  userId: string;
+  scope: 'SELF';
+}
+
 declare module 'express' {
   interface Request {
     salonContext?: SalonContext;
+    principalContext?: PrincipalContext;
   }
 }
 

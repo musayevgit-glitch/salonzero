@@ -156,6 +156,24 @@ describe('GET /customer/reservations', () => {
     expect(res.body.items).toEqual([]);
     expect(res.body.total).toBe(0);
   });
+
+  it('returns only the caller-owned reservations for a salon manager using a customer route', async () => {
+    const { reservationId, salon } = await setup('manager-self-scope');
+    const { agent: managerAgent, userId: managerUserId } = await registerCustomer(
+      `cust-manager-scope-${randomUUID()}@example.com`,
+    );
+    await prisma.salonMembership.create({
+      data: { userId: managerUserId, salonId: salon.id, role: 'SALON_MANAGER' },
+    });
+
+    const res = await managerAgent.get('/customer/reservations');
+    expect(res.status).toBe(200);
+    expect(res.body.items).toEqual([]);
+    expect(res.body.total).toBe(0);
+    expect((res.body.items as { id: string }[]).map((item) => item.id)).not.toContain(
+      reservationId,
+    );
+  });
 });
 
 describe('GET /customer/reservations/:reservationId', () => {
