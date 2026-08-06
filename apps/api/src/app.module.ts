@@ -8,6 +8,7 @@ import { EmployeesModule } from './employees/employees.module';
 import { HealthController } from './health/health.controller';
 import { PrismaModule } from './prisma/prisma.module';
 import { SalonsModule } from './salons/salons.module';
+import { ServiceCategoriesModule } from './service-categories/service-categories.module';
 import { StorageModule } from './storage/storage.module';
 import { UploadsModule } from './uploads/uploads.module';
 
@@ -21,6 +22,7 @@ import { UploadsModule } from './uploads/uploads.module';
     AuthzModule,
     SalonsModule,
     EmployeesModule,
+    ServiceCategoriesModule,
     UploadsModule,
   ],
   controllers: [HealthController],

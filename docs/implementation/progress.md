@@ -516,6 +516,51 @@ confirmed (orphaned objects) — acceptable for now, a background sweep can be a
 API contract change. (2) Section 11.5 (domain/subdomain management) remains deferred.
 Next: Section 13 — Salon Admin: Services (service categories)
 
+## Section 13.1 — Salon Admin: service categories
+
+Status: done. Schema gap found and fixed first: the approved `ServiceCategory` model (Section 8) had
+`name`/`sortOrder` but no `isActive` field, even though Prompt 13.1 explicitly requires validating
+"active state". Added `isActive Boolean @default(true)` via an additive, reversible migration
+(`20260806094511_add_service_category_is_active`) — applied directly and marked resolved with `prisma
+migrate resolve --applied` rather than through `migrate dev`, since the dev database had unrelated,
+expected drift (the runtime-created `session` table isn't Prisma-managed) that would otherwise have
+forced a full destructive reset. `slug` was deliberately not added — the prompt says "slug if used" and
+nothing in the app uses category slugs yet, so adding it now would be speculative.
+`packages/validation/src/service-categories.ts` → `createServiceCategorySchema` (name only, `.strict()`
+— salonId/id/isActive/sortOrder all rejected, matching the employee-profile pattern of keeping
+lifecycle state off the create/update surface), `updateServiceCategorySchema` (name + optional
+`expectedUpdatedAt`), `reorderServiceCategoriesSchema`. Backend: `apps/api/src/service-categories/*` at
+`salons/:salonId/service-categories`, `@Roles('SUPERADMIN','SALON_ADMIN')` per method (SALON_MANAGER
+denied). Routes: list (no pagination — categories are a small, fully-loaded set), detail, create,
+update (optimistic concurrency via `expectedUpdatedAt`, same pattern as employees), activate/deactivate
+as dedicated audited actions (not folded into update), and a transactional reorder endpoint (rejects any
+payload that isn't exactly the salon's current category-id set — same pattern as the portfolio
+reorder). Uniqueness (`@@unique([salonId, name])`) is pre-checked with a friendly 409 before insert/
+update, matching the existing slug-uniqueness pattern in `salons.service.ts`, and re-checked on rename
+only when the name actually changes.
+Commit: pending (this task)
+Tests: 20 new e2e tests — unauthenticated→401, SALON_MANAGER/no-membership→404 on every route, cross-
+salon list returns `[]` (never another salon's rows), create + audit, missing-name/forbidden-fields→400,
+duplicate name→409, same name allowed across two different salons, cross-salon create denied, edit +
+audit, rename-to-duplicate→409, stale `expectedUpdatedAt`→409, cross-salon edit→404 with row untouched,
+activate/deactivate + both audit rows, cross-salon lifecycle→404, reorder + audit, reorder with a
+missing category→400, reorder denied for SALON_MANAGER. 10 new schema tests in `packages/validation`.
+`apps/api` total: 106 passing tests (61 in `packages/validation`). Full repo gate (14/14) passed.
+UI: `apps/dashboard/app/salon/[salonId]/service-categories/{page.tsx,new/page.tsx,
+[categoryId]/edit/page.tsx}` — flat list (no pagination, matching the small-set assumption) with
+inline move-earlier/move-later `IconButton`s and an activate/deactivate `Button` per row, a create
+form, and an edit form using the same `expectedUpdatedAt` concurrency pattern as employees.
+Browser walkthrough: created "Hair" then "Nails" as a seeded SALON_ADMIN, confirmed correct initial
+order; moved "Nails" earlier and confirmed the swap persisted; renamed it to "Nails & Spa" via the edit
+form and confirmed the list reflected it; deactivated "Nails & Spa" and confirmed the badge flipped to
+"Inactive" with the button relabeling to "Activate".
+Security/tenant checks: every route re-derives salonId from `SalonContext`; update/setActive/reorder
+all re-scope the actual write by `id`/`categoryId` + `salonId`, not just at the ownership pre-check;
+isActive is unreachable from create/update bodies (`.strict()` schemas), only settable through the
+role-gated, audited activate/deactivate actions.
+Risks: none new. Section 11.5 (domain/subdomain management) remains deferred.
+Next: Section 13.2 — Salon Admin: Services (service CRUD)
+
 ## Blockers / environment notes
 
 - Docker is not installed in this environment; resolved by using the existing Postgres.app (PG 18)
