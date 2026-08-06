@@ -1,5 +1,6 @@
 import { Badge, Card, EmptyState, ErrorState, Input, Link, PublicShell, Select } from '@salonomia/ui';
 import type { Metadata } from 'next';
+import { getIsAuthenticated } from '../lib/fetch-api-server';
 import { fetchPublicApi, PublicApiError } from '../lib/public-api';
 
 export const metadata: Metadata = {
@@ -60,12 +61,17 @@ export default async function HomePage({
   if (minPrice) query.set('minPrice', minPrice);
   if (maxPrice) query.set('maxPrice', maxPrice);
 
+  const [isAuthenticated, fetchResult] = await Promise.all([
+    getIsAuthenticated(),
+    fetchPublicApi<SalonListResponse>(`/public/salons?${query.toString()}`).catch((err) => err),
+  ]);
+
   let data: SalonListResponse | null = null;
   let errorMessage: string | null = null;
-  try {
-    data = await fetchPublicApi<SalonListResponse>(`/public/salons?${query.toString()}`);
-  } catch (err) {
-    errorMessage = err instanceof PublicApiError ? err.message : 'Something went wrong.';
+  if (fetchResult instanceof Error) {
+    errorMessage = fetchResult instanceof PublicApiError ? fetchResult.message : 'Something went wrong.';
+  } else {
+    data = fetchResult;
   }
 
   const pageCount = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
@@ -78,7 +84,7 @@ export default async function HomePage({
   }
 
   return (
-    <PublicShell>
+    <PublicShell isAuthenticated={isAuthenticated}>
       <div className="flex flex-col gap-8">
         <div>
           <h1 className="text-3xl font-semibold text-text-primary">Discover salons</h1>

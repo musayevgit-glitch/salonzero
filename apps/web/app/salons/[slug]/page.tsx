@@ -1,6 +1,7 @@
 import { Badge, Card, ErrorState, PublicShell } from '@salonomia/ui';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { getIsAuthenticated } from '../../../lib/fetch-api-server';
 import { fetchPublicApi, PublicApiError } from '../../../lib/public-api';
 
 interface PublicService {
@@ -107,26 +108,29 @@ function ServiceRow({ service, slug }: { service: PublicService; slug: string })
 export default async function SalonDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
-  let salon: SalonDetail | null;
-  try {
-    salon = await loadSalon(slug);
-  } catch (err) {
+  const [isAuthenticated, salonResult] = await Promise.all([
+    getIsAuthenticated(),
+    loadSalon(slug).catch((err) => err as Error),
+  ]);
+
+  if (salonResult instanceof Error) {
     return (
-      <PublicShell>
+      <PublicShell isAuthenticated={isAuthenticated}>
         <ErrorState
           title="Couldn't load this salon"
-          description={err instanceof PublicApiError ? err.message : 'Something went wrong.'}
+          description={salonResult instanceof PublicApiError ? salonResult.message : 'Something went wrong.'}
         />
       </PublicShell>
     );
   }
 
+  const salon = salonResult;
   if (!salon) notFound();
 
   const hasServices = salon.serviceCategories.length > 0 || salon.uncategorizedServices.length > 0;
 
   return (
-    <PublicShell>
+    <PublicShell isAuthenticated={isAuthenticated}>
       <div className="flex flex-col gap-8 pb-20 lg:pb-0">
         <div>
           <div className="flex flex-wrap items-start justify-between gap-2">

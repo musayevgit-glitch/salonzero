@@ -35,3 +35,18 @@ export async function fetchApiServer<T>(path: string, init?: RequestInit): Promi
 
   return res.json();
 }
+
+/**
+ * Cheap server-side auth check for public pages: tries GET /auth/me and returns true if
+ * the session is valid. Swallows all errors (401, network failures) and returns false.
+ * Use this only to populate UI (e.g. "Account" vs "Log in" in the nav) — never to gate
+ * access; real authorization still lives on the API.
+ */
+export async function getIsAuthenticated(): Promise<boolean> {
+  try {
+    await fetchApiServer('/auth/me', { cache: 'no-store' });
+    return true;
+  } catch {
+    return false;
+  }
+}
