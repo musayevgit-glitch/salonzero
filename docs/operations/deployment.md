@@ -64,6 +64,7 @@ pnpm --filter @salonomia/dashboard start
 ## Rollback
 
 If a deploy fails:
+
 1. Keep the previous API version running (do not tear down until verified).
 2. If migrations ran: run `prisma migrate resolve --rolled-back <migration>` and re-apply the previous migration. Document in the rollback plan.
 3. Deploy the previous artifact version.

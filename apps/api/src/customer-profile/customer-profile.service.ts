@@ -27,7 +27,10 @@ export class CustomerProfileService {
   ) {}
 
   async get(userId: string): Promise<CustomerProfile> {
-    const user = await this.prisma.user.findUnique({ where: { id: userId }, select: PROFILE_SELECT });
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: PROFILE_SELECT,
+    });
     if (!user) throw new NotFoundException();
     return user;
   }

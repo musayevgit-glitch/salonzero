@@ -46,17 +46,13 @@ export class SuperadminReportsController {
 
   @Get()
   @Roles('SUPERADMIN')
-  globalReport(
-    @Query(new ZodValidationPipe(salonReportQuerySchema)) query: SalonReportQuery,
-  ) {
+  globalReport(@Query(new ZodValidationPipe(salonReportQuerySchema)) query: SalonReportQuery) {
     return this.reports.globalReport(query);
   }
 
   @Get('audit-logs')
   @Roles('SUPERADMIN')
-  auditLogs(
-    @Query(new ZodValidationPipe(auditLogQuerySchema)) query: AuditLogQuery,
-  ) {
+  auditLogs(@Query(new ZodValidationPipe(auditLogQuerySchema)) query: AuditLogQuery) {
     return this.reports.auditLogs(null, query);
   }
 }

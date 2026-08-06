@@ -82,16 +82,24 @@ async function setup(prefix: string, overrides: SetupOverrides = {}) {
   });
   await prisma.employeeService.create({ data: { employeeId: employee.id, serviceId: service.id } });
   await prisma.workingSchedule.create({
-    data: { employeeId: employee.id, weekday: 1, startMinuteOfDay: 9 * 60, endMinuteOfDay: 17 * 60 },
+    data: {
+      employeeId: employee.id,
+      weekday: 1,
+      startMinuteOfDay: 9 * 60,
+      endMinuteOfDay: 17 * 60,
+    },
   });
 
-  const { agent: adminAgent, userId: adminId, csrfToken: adminCsrf } = await registerAsSalonAdmin(
-    `${prefix}-admin-${randomUUID()}@example.com`,
-    salon.id,
-  );
-  const { agent: custAgent, userId: customerId, csrfToken: custCsrf } = await registerUser(
-    `${prefix}-cust-${randomUUID()}@example.com`,
-  );
+  const {
+    agent: adminAgent,
+    userId: adminId,
+    csrfToken: adminCsrf,
+  } = await registerAsSalonAdmin(`${prefix}-admin-${randomUUID()}@example.com`, salon.id);
+  const {
+    agent: custAgent,
+    userId: customerId,
+    csrfToken: custCsrf,
+  } = await registerUser(`${prefix}-cust-${randomUUID()}@example.com`);
 
   const startAt = overrides.startAt ?? SLOT_START;
   const endAt = overrides.endAt ?? new Date(startAt.getTime() + 60 * 60_000);
@@ -264,7 +272,8 @@ describe('cancellation', () => {
 
 describe('reschedule', () => {
   it('staff reschedules with transactional slot release/acquisition', async () => {
-    const { salon, reservation, employee, adminAgent, adminCsrf } = await setup('tr-staff-reschedule');
+    const { salon, reservation, employee, adminAgent, adminCsrf } =
+      await setup('tr-staff-reschedule');
     const newStart = new Date('2026-08-10T14:00:00.000Z');
     const res = await adminAgent
       .post(`/salons/${salon.id}/reservations/${reservation.id}/reschedule`)
@@ -276,9 +285,8 @@ describe('reschedule', () => {
   });
 
   it('rejects rescheduling onto a conflicting slot', async () => {
-    const { salon, service, employee, reservation, adminAgent, adminCsrf } = await setup(
-      'tr-reschedule-conflict',
-    );
+    const { salon, service, employee, reservation, adminAgent, adminCsrf } =
+      await setup('tr-reschedule-conflict');
     const otherCustomer = await prisma.user.create({
       data: { email: `other-${randomUUID()}@example.com`, passwordHash: 'x', fullName: 'Other' },
     });
@@ -507,9 +515,12 @@ describe('CHECKED_IN cannot be cancelled or rescheduled', () => {
   });
 
   it('rejects salon-rescheduling a checked-in reservation', async () => {
-    const { salon, reservation, adminAgent, adminCsrf } = await setup('tr-checkedin-salon-reschedule', {
-      status: 'CHECKED_IN',
-    });
+    const { salon, reservation, adminAgent, adminCsrf } = await setup(
+      'tr-checkedin-salon-reschedule',
+      {
+        status: 'CHECKED_IN',
+      },
+    );
     const res = await adminAgent
       .post(`/salons/${salon.id}/reservations/${reservation.id}/reschedule`)
       .set('x-csrf-token', adminCsrf)

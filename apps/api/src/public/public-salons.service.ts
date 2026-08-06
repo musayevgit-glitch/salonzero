@@ -184,7 +184,11 @@ export class PublicSalonsService {
           select: {
             id: true,
             name: true,
-            services: { where: { isActive: true }, orderBy: { name: 'asc' }, select: PUBLIC_SERVICE_SELECT },
+            services: {
+              where: { isActive: true },
+              orderBy: { name: 'asc' },
+              select: PUBLIC_SERVICE_SELECT,
+            },
           },
         },
         employees: {
@@ -198,7 +202,9 @@ export class PublicSalonsService {
               orderBy: { sortOrder: 'asc' },
               select: { id: true, imageUrl: true, caption: true },
             },
-            workingSchedules: { select: { weekday: true, startMinuteOfDay: true, endMinuteOfDay: true } },
+            workingSchedules: {
+              select: { weekday: true, startMinuteOfDay: true, endMinuteOfDay: true },
+            },
           },
         },
       },
@@ -226,7 +232,10 @@ export class PublicSalonsService {
       })),
     );
 
-    const openingHoursByWeekday = new Map<number, { startMinuteOfDay: number; endMinuteOfDay: number }>();
+    const openingHoursByWeekday = new Map<
+      number,
+      { startMinuteOfDay: number; endMinuteOfDay: number }
+    >();
     for (const employee of salon.employees) {
       for (const block of employee.workingSchedules) {
         const existing = openingHoursByWeekday.get(block.weekday);
@@ -303,7 +312,9 @@ export class PublicSalonsService {
       where: employeeWhere,
       select: {
         id: true,
-        workingSchedules: { select: { weekday: true, startMinuteOfDay: true, endMinuteOfDay: true } },
+        workingSchedules: {
+          select: { weekday: true, startMinuteOfDay: true, endMinuteOfDay: true },
+        },
         breaks: { select: { weekday: true, startMinuteOfDay: true, endMinuteOfDay: true } },
         timeOff: {
           where: { startAt: { lt: rangeEnd }, endAt: { gt: rangeStart } },

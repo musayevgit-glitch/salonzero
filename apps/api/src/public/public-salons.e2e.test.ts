@@ -88,10 +88,23 @@ describe('GET /public/salons (list)', () => {
     const prefix = `pub-price-${randomUUID()}`;
     const salon = await createSalon(prefix);
     await prisma.service.create({
-      data: { salonId: salon.id, name: 'Cheap', priceAmount: 1000, currency: 'USD', durationMinutes: 30 },
+      data: {
+        salonId: salon.id,
+        name: 'Cheap',
+        priceAmount: 1000,
+        currency: 'USD',
+        durationMinutes: 30,
+      },
     });
     await prisma.service.create({
-      data: { salonId: salon.id, name: 'Pricey', priceAmount: 20000, currency: 'USD', durationMinutes: 90, isActive: true },
+      data: {
+        salonId: salon.id,
+        name: 'Pricey',
+        priceAmount: 20000,
+        currency: 'USD',
+        durationMinutes: 90,
+        isActive: true,
+      },
     });
 
     const inRange = await request(app.getHttpServer()).get(
@@ -149,7 +162,9 @@ describe('GET /public/salons/:slug (detail)', () => {
 
   it('returns services grouped by category plus uncategorized, active employees with resolved portfolio URLs, and a booking policy summary', async () => {
     const salon = await createSalon('pub-detail-full');
-    const category = await prisma.serviceCategory.create({ data: { salonId: salon.id, name: 'Hair' } });
+    const category = await prisma.serviceCategory.create({
+      data: { salonId: salon.id, name: 'Hair' },
+    });
     await prisma.service.create({
       data: {
         salonId: salon.id,
@@ -161,22 +176,49 @@ describe('GET /public/salons/:slug (detail)', () => {
       },
     });
     await prisma.service.create({
-      data: { salonId: salon.id, name: 'Uncategorized Service', priceAmount: 2000, currency: 'USD', durationMinutes: 20 },
+      data: {
+        salonId: salon.id,
+        name: 'Uncategorized Service',
+        priceAmount: 2000,
+        currency: 'USD',
+        durationMinutes: 20,
+      },
     });
     await prisma.service.create({
-      data: { salonId: salon.id, name: 'Inactive', priceAmount: 100, currency: 'USD', durationMinutes: 10, isActive: false },
+      data: {
+        salonId: salon.id,
+        name: 'Inactive',
+        priceAmount: 100,
+        currency: 'USD',
+        durationMinutes: 10,
+        isActive: false,
+      },
     });
     const employee = await prisma.employeeProfile.create({
-      data: { salonId: salon.id, fullName: 'Jane Stylist', bio: 'Great with color', isActive: true },
+      data: {
+        salonId: salon.id,
+        fullName: 'Jane Stylist',
+        bio: 'Great with color',
+        isActive: true,
+      },
     });
     await prisma.employeeProfile.create({
       data: { salonId: salon.id, fullName: 'Inactive Stylist', isActive: false },
     });
     await prisma.employeePortfolioItem.create({
-      data: { employeeId: employee.id, imageUrl: `employees/${employee.id}/${randomUUID()}.jpg`, caption: 'Before/after' },
+      data: {
+        employeeId: employee.id,
+        imageUrl: `employees/${employee.id}/${randomUUID()}.jpg`,
+        caption: 'Before/after',
+      },
     });
     await prisma.workingSchedule.create({
-      data: { employeeId: employee.id, weekday: 1, startMinuteOfDay: 9 * 60, endMinuteOfDay: 17 * 60 },
+      data: {
+        employeeId: employee.id,
+        weekday: 1,
+        startMinuteOfDay: 9 * 60,
+        endMinuteOfDay: 17 * 60,
+      },
     });
 
     const res = await request(app.getHttpServer()).get(`/public/salons/${salon.slug}`);
@@ -213,7 +255,13 @@ describe('GET /public/salons/:slug/availability', () => {
   async function createSalonWithService(prefix: string) {
     const salon = await createSalon(prefix);
     const service = await prisma.service.create({
-      data: { salonId: salon.id, name: 'Cut', priceAmount: 2000, currency: 'AZN', durationMinutes: 30 },
+      data: {
+        salonId: salon.id,
+        name: 'Cut',
+        priceAmount: 2000,
+        currency: 'AZN',
+        durationMinutes: 30,
+      },
     });
     const employee = await prisma.employeeProfile.create({
       data: {

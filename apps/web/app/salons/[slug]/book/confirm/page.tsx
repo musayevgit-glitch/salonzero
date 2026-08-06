@@ -39,7 +39,11 @@ export default function ConfirmStep() {
     profileLoaded.current = true;
     apiFetch<CustomerProfile>('/customer/profile')
       .then((p) => setProfile(p))
-      .catch(() => router.replace(`/login?returnTo=${encodeURIComponent(`/salons/${salon.slug}/book/confirm`)}`));
+      .catch(() =>
+        router.replace(
+          `/login?returnTo=${encodeURIComponent(`/salons/${salon.slug}/book/confirm`)}`,
+        ),
+      );
   }, [router, salon.slug]);
 
   if (!draftLoaded || !draft.serviceId || !draft.startAt) return null;
@@ -130,7 +134,12 @@ export default function ConfirmStep() {
             />
             <span className="text-sm text-text-secondary">
               I agree to the{' '}
-              <a href="/terms" className="text-accent underline" target="_blank" rel="noopener noreferrer">
+              <a
+                href="/terms"
+                className="text-accent underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 terms and conditions
               </a>
               . I understand that late cancellations may incur a fee.

@@ -1,6 +1,14 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import type { ReactNode } from 'react';
 
 export interface PublicService {
@@ -127,7 +135,11 @@ export function BookingShell({
   const setStartAt = useCallback(
     (startAt: string | undefined) => {
       setDraft((prev) => {
-        const next: Partial<BookingDraft> = { ...prev, startAt, idempotencyKey: crypto.randomUUID() };
+        const next: Partial<BookingDraft> = {
+          ...prev,
+          startAt,
+          idempotencyKey: crypto.randomUUID(),
+        };
         writeDraft(salonData.slug, next);
         return next;
       });
@@ -141,7 +153,15 @@ export function BookingShell({
   }, [salonData.slug]);
 
   const value = useMemo<BookingContextValue>(
-    () => ({ salon: salonData, draft, draftLoaded, setService, setStylist, setStartAt, clearDraft }),
+    () => ({
+      salon: salonData,
+      draft,
+      draftLoaded,
+      setService,
+      setStylist,
+      setStartAt,
+      clearDraft,
+    }),
     [salonData, draft, draftLoaded, setService, setStylist, setStartAt, clearDraft],
   );
 

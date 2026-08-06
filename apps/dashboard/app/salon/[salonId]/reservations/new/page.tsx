@@ -1,12 +1,27 @@
 'use client';
 
-import { Alert, Breadcrumbs, Button, Card, FormField, Input, Select, Textarea } from '@salonomia/ui';
+import {
+  Alert,
+  Breadcrumbs,
+  Button,
+  Card,
+  FormField,
+  Input,
+  Select,
+  Textarea,
+} from '@salonomia/ui';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { apiFetch, ApiError } from '../../../../../lib/api-client';
 
 interface BookingOptions {
-  services: { id: string; name: string; durationMinutes: number; priceAmount: number; currency: string }[];
+  services: {
+    id: string;
+    name: string;
+    durationMinutes: number;
+    priceAmount: number;
+    currency: string;
+  }[];
   employees: { id: string; fullName: string }[];
 }
 
@@ -99,7 +114,12 @@ export default function NewManualReservationPage() {
 
           <FormField label="Service">
             {(fieldProps) => (
-              <Select {...fieldProps} required value={serviceId} onChange={(e) => setServiceId(e.target.value)}>
+              <Select
+                {...fieldProps}
+                required
+                value={serviceId}
+                onChange={(e) => setServiceId(e.target.value)}
+              >
                 <option value="">Choose a service…</option>
                 {options?.services.map((s) => (
                   <option key={s.id} value={s.id}>
@@ -112,7 +132,11 @@ export default function NewManualReservationPage() {
 
           <FormField label="Stylist" optional description="Leave blank for any available stylist.">
             {(fieldProps) => (
-              <Select {...fieldProps} value={employeeId} onChange={(e) => setEmployeeId(e.target.value)}>
+              <Select
+                {...fieldProps}
+                value={employeeId}
+                onChange={(e) => setEmployeeId(e.target.value)}
+              >
                 <option value="">Any available stylist</option>
                 {options?.employees.map((e) => (
                   <option key={e.id} value={e.id}>
@@ -137,7 +161,11 @@ export default function NewManualReservationPage() {
 
           <FormField label="Note" optional>
             {(fieldProps) => (
-              <Textarea {...fieldProps} value={customerNote} onChange={(e) => setCustomerNote(e.target.value)} />
+              <Textarea
+                {...fieldProps}
+                value={customerNote}
+                onChange={(e) => setCustomerNote(e.target.value)}
+              />
             )}
           </FormField>
 

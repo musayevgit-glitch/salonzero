@@ -222,7 +222,10 @@ describe('CSRF protection', () => {
     expect(postLoginToken).toBeDefined();
     expect(postLoginToken).not.toBe(preLoginToken);
 
-    const oldTokenLogout = await agent.post('/auth/logout').set('x-csrf-token', preLoginToken).send();
+    const oldTokenLogout = await agent
+      .post('/auth/logout')
+      .set('x-csrf-token', preLoginToken)
+      .send();
     expect(oldTokenLogout.status).toBe(403);
 
     const logoutRes = await agent.post('/auth/logout').set('x-csrf-token', postLoginToken!).send();
@@ -346,18 +349,32 @@ describe('POST /auth/reset-password', () => {
     const raw2 = randomUUID();
     await prisma.passwordResetToken.createMany({
       data: [
-        { userId, tokenHash: createHash('sha256').update(raw1).digest('hex'), expiresAt: new Date(Date.now() + 3_600_000) },
-        { userId, tokenHash: createHash('sha256').update(raw2).digest('hex'), expiresAt: new Date(Date.now() + 3_600_000) },
+        {
+          userId,
+          tokenHash: createHash('sha256').update(raw1).digest('hex'),
+          expiresAt: new Date(Date.now() + 3_600_000),
+        },
+        {
+          userId,
+          tokenHash: createHash('sha256').update(raw2).digest('hex'),
+          expiresAt: new Date(Date.now() + 3_600_000),
+        },
       ],
     });
 
     // Consume token 1
     const { agent, csrfToken } = await newAgentWithCsrf();
-    await agent.post('/auth/reset-password').set('x-csrf-token', csrfToken).send({ token: raw1, password: 'newpass123456' });
+    await agent
+      .post('/auth/reset-password')
+      .set('x-csrf-token', csrfToken)
+      .send({ token: raw1, password: 'newpass123456' });
 
     // Token 2 must be rejected
     const { agent: a2, csrfToken: ct2 } = await newAgentWithCsrf();
-    const res2 = await a2.post('/auth/reset-password').set('x-csrf-token', ct2).send({ token: raw2, password: 'anotherpass456' });
+    const res2 = await a2
+      .post('/auth/reset-password')
+      .set('x-csrf-token', ct2)
+      .send({ token: raw2, password: 'anotherpass456' });
     expect(res2.status).toBe(401);
   });
 });
@@ -414,7 +431,7 @@ describe('POST /auth/invitations/accept — SEC-001 regression', () => {
     expect(meRes.status).toBe(401);
   });
 
-  it('rejects an attacker authenticated as a different account trying to accept someone else\'s invitation', async () => {
+  it("rejects an attacker authenticated as a different account trying to accept someone else's invitation", async () => {
     const salon = await prisma.salon.create({
       data: { slug: `sec-001b-${randomUUID()}`, name: 'SEC-001b Salon', timezone: 'UTC' },
     });
@@ -432,7 +449,11 @@ describe('POST /auth/invitations/accept — SEC-001 regression', () => {
     await attackerSetup.agent
       .post('/auth/register')
       .set('x-csrf-token', attackerSetup.csrfToken)
-      .send({ email: `sec001-attacker-${randomUUID()}@example.com`, password: 'atkpass123', fullName: 'Attacker' });
+      .send({
+        email: `sec001-attacker-${randomUUID()}@example.com`,
+        password: 'atkpass123',
+        fullName: 'Attacker',
+      });
 
     const res = await attackerSetup.agent
       .post('/auth/invitations/accept')
@@ -514,10 +535,16 @@ describe('GET /auth/my-salons', () => {
     const registerRes = await agent
       .post('/auth/register')
       .set('x-csrf-token', csrfToken)
-      .send({ email: `my-salons-${randomUUID()}@example.com`, password: 'longenoughpassword', fullName: 'Member' });
+      .send({
+        email: `my-salons-${randomUUID()}@example.com`,
+        password: 'longenoughpassword',
+        fullName: 'Member',
+      });
     const userId = registerRes.body.id as string;
 
-    await prisma.salonMembership.create({ data: { userId, salonId: salon.id, role: 'SALON_MANAGER' } });
+    await prisma.salonMembership.create({
+      data: { userId, salonId: salon.id, role: 'SALON_MANAGER' },
+    });
     await prisma.salonMembership.create({
       data: { userId, salonId: suspendedSalon.id, role: 'SALON_ADMIN' },
     });
@@ -530,7 +557,11 @@ describe('GET /auth/my-salons', () => {
     const otherRegisterRes = await other.agent
       .post('/auth/register')
       .set('x-csrf-token', other.csrfToken)
-      .send({ email: `my-salons-other-${randomUUID()}@example.com`, password: 'longenoughpassword', fullName: 'Other' });
+      .send({
+        email: `my-salons-other-${randomUUID()}@example.com`,
+        password: 'longenoughpassword',
+        fullName: 'Other',
+      });
     void otherRegisterRes;
     const otherRes = await other.agent.get('/auth/my-salons');
     expect(otherRes.body).toEqual([]);

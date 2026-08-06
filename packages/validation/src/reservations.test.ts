@@ -75,8 +75,10 @@ describe('createManualReservationSchema', () => {
 
   it('lowercases the email, matching the shared auth email normalization', () => {
     expect(
-      createManualReservationSchema.parse({ ...VALID_MANUAL, customerEmail: 'Customer@Example.com' })
-        .customerEmail,
+      createManualReservationSchema.parse({
+        ...VALID_MANUAL,
+        customerEmail: 'Customer@Example.com',
+      }).customerEmail,
     ).toBe('customer@example.com');
   });
 
@@ -115,7 +117,9 @@ describe('createManualReservationSchema', () => {
     expect(() =>
       createManualReservationSchema.parse({ ...VALID_MANUAL, salonId: 'forged' }),
     ).toThrow();
-    expect(() => createManualReservationSchema.parse({ ...VALID_MANUAL, priceAmount: 1 })).toThrow();
+    expect(() =>
+      createManualReservationSchema.parse({ ...VALID_MANUAL, priceAmount: 1 }),
+    ).toThrow();
     expect(() =>
       createManualReservationSchema.parse({ ...VALID_MANUAL, status: 'CONFIRMED' }),
     ).toThrow();

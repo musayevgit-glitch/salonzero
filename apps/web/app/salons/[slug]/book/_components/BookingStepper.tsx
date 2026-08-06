@@ -15,17 +15,21 @@ export function BookingStepper() {
   const currentIndex = STEPS.findIndex((s) => pathname.endsWith(`/book/${s.segment}`));
 
   return (
-    <nav aria-label="Booking steps" className="overflow-x-auto py-1">
-      <ol className="flex min-w-max items-center gap-1">
+    <nav aria-label="Booking steps" className="py-1">
+      <ol className="grid grid-cols-5 items-start gap-1">
         {STEPS.map((step, i) => {
           const done = i < currentIndex;
           const active = i === currentIndex;
           return (
-            <li key={step.segment} className="flex items-center gap-1">
-              {i > 0 && <span aria-hidden className="h-px w-5 shrink-0 bg-border" />}
-              <span className={`flex flex-col items-center gap-0.5 ${!done && !active ? 'opacity-40' : ''}`}>
+            <li key={step.segment} className="relative flex min-w-0 justify-center">
+              {i > 0 && (
+                <span aria-hidden className="absolute left-[-50%] top-3 h-px w-full bg-border" />
+              )}
+              <span
+                className={`flex flex-col items-center gap-0.5 ${!done && !active ? 'opacity-40' : ''}`}
+              >
                 <span
-                  className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold ${
+                  className={`relative z-10 flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold ${
                     active
                       ? 'bg-accent text-white'
                       : done
@@ -37,7 +41,7 @@ export function BookingStepper() {
                   {done ? '✓' : i + 1}
                 </span>
                 <span
-                  className={`whitespace-nowrap text-xs ${active ? 'font-medium text-text-primary' : 'text-text-secondary'}`}
+                  className={`max-w-16 text-center text-[11px] leading-tight sm:max-w-none sm:text-xs ${active ? 'font-medium text-text-primary' : 'text-text-secondary'}`}
                 >
                   {step.label}
                 </span>

@@ -90,7 +90,10 @@ function computeEmployeeSlots(
   const slots: AvailableSlot[] = [];
   const busySpans: Array<{ start: Date; end: Date }> = [
     ...employee.timeOff.map((t) => ({ start: t.startAt, end: t.endAt })),
-    ...employee.blockingReservations.map((r) => ({ start: r.startAt, end: r.blockedUntil ?? r.endAt })),
+    ...employee.blockingReservations.map((r) => ({
+      start: r.startAt,
+      end: r.blockedUntil ?? r.endAt,
+    })),
   ];
 
   let cursor: LocalDateParts = getLocalDateParts(earliestBookable, timezone);
@@ -250,7 +253,10 @@ export function isEmployeeSlotAvailable(input: SingleSlotCheckInput): boolean {
 
   const busySpans: Array<{ start: Date; end: Date }> = [
     ...employee.timeOff.map((t) => ({ start: t.startAt, end: t.endAt })),
-    ...employee.blockingReservations.map((r) => ({ start: r.startAt, end: r.blockedUntil ?? r.endAt })),
+    ...employee.blockingReservations.map((r) => ({
+      start: r.startAt,
+      end: r.blockedUntil ?? r.endAt,
+    })),
   ];
   return !busySpans.some((span) =>
     overlaps(candidateStart, candidateBusyEnd, span.start, span.end),

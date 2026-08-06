@@ -8,15 +8,15 @@ no HTTP surface yet).
 
 ## Routes (`apps/web`)
 
-| Route | Step | Auth |
-| --- | --- | --- |
-| `/salons/[slug]` | Salon (exists — CTA → book) | no |
-| `/salons/[slug]/book/service` | Service | no |
-| `/salons/[slug]/book/stylist` | Stylist preference | no |
-| `/salons/[slug]/book/datetime` | Date + time | no |
-| `/salons/[slug]/book/summary` | Summary | no |
-| `/salons/[slug]/book/confirm` | Final form + submit | yes |
-| `/salons/[slug]/book/result/[reservationId]` | Success | yes |
+| Route                                        | Step                        | Auth |
+| -------------------------------------------- | --------------------------- | ---- |
+| `/salons/[slug]`                             | Salon (exists — CTA → book) | no   |
+| `/salons/[slug]/book/service`                | Service                     | no   |
+| `/salons/[slug]/book/stylist`                | Stylist preference          | no   |
+| `/salons/[slug]/book/datetime`               | Date + time                 | no   |
+| `/salons/[slug]/book/summary`                | Summary                     | no   |
+| `/salons/[slug]/book/confirm`                | Final form + submit         | yes  |
+| `/salons/[slug]/book/result/[reservationId]` | Success                     | yes  |
 
 `/book` redirects to `/book/service`. Step guards: missing prior choice → redirect back.
 Invalid slug → 404 via public salon fetch.
@@ -53,12 +53,12 @@ Confirm page re-checks session server-side (redirect to login if expired). Custo
 
 ## API calls by step
 
-| Step | Call |
-| --- | --- |
-| All | `GET /public/salons/:slug` (server, cache no-store for signed portfolio URLs) |
-| Datetime | `GET /public/salons/:slug/availability?serviceId&date&employeeId?` **(new in 18.3)** |
-| Confirm | `GET /customer/profile` (prefill name/phone), `POST /reservations` |
-| Result | `GET /reservations/:id` **(new customer detail read in 18.5/18.6)** or POST response body |
+| Step     | Call                                                                                      |
+| -------- | ----------------------------------------------------------------------------------------- |
+| All      | `GET /public/salons/:slug` (server, cache no-store for signed portfolio URLs)             |
+| Datetime | `GET /public/salons/:slug/availability?serviceId&date&employeeId?` **(new in 18.3)**      |
+| Confirm  | `GET /customer/profile` (prefill name/phone), `POST /reservations`                        |
+| Result   | `GET /reservations/:id` **(new customer detail read in 18.5/18.6)** or POST response body |
 
 Submit body: `{ salonId, serviceId, employeeId?, startAt, customerNote?, idempotencyKey }` per
 `createReservationSchema`. Terms checkbox UI-only in 18.5 (required before enable submit; marketing

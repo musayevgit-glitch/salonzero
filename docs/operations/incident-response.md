@@ -2,12 +2,12 @@
 
 ## Severity levels
 
-| Level | Definition | Response time |
-|---|---|---|
-| P0 — Critical | Full outage, data breach, active exploit | Immediate (<15 min) |
-| P1 — High | Booking creation broken, auth broken, data loss risk | <1 hour |
-| P2 — Medium | Degraded performance, non-critical feature broken | <4 hours |
-| P3 — Low | Cosmetic, single user affected, workaround exists | Next business day |
+| Level         | Definition                                           | Response time       |
+| ------------- | ---------------------------------------------------- | ------------------- |
+| P0 — Critical | Full outage, data breach, active exploit             | Immediate (<15 min) |
+| P1 — High     | Booking creation broken, auth broken, data loss risk | <1 hour             |
+| P2 — Medium   | Degraded performance, non-critical feature broken    | <4 hours            |
+| P3 — Low      | Cosmetic, single user affected, workaround exists    | Next business day   |
 
 ## P0 playbook (data breach / active exploit)
 
@@ -46,6 +46,7 @@ The `AuthenticatedGuard` checks `user.status` on every request — a suspended u
 ## Post-incident review
 
 Required for P0/P1 within 5 business days:
+
 - Timeline of events
 - Root cause
 - Impact (users affected, data at risk)

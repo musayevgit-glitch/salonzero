@@ -82,16 +82,13 @@ async function setup(prefix: string) {
     `cust-res-${prefix}-${randomUUID()}@example.com`,
   );
   // Create a reservation for the customer
-  const resRes = await agent
-    .post('/reservations')
-    .set('x-csrf-token', csrfToken)
-    .send({
-      salonId: salon.id,
-      serviceId: service.id,
-      employeeId: employee.id,
-      startAt: SLOT_START,
-      idempotencyKey: randomUUID(),
-    });
+  const resRes = await agent.post('/reservations').set('x-csrf-token', csrfToken).send({
+    salonId: salon.id,
+    serviceId: service.id,
+    employeeId: employee.id,
+    startAt: SLOT_START,
+    idempotencyKey: randomUUID(),
+  });
   expect(resRes.status).toBe(201);
   const reservationId: string = resRes.body.id;
   return { salon, service, employee, agent, customerId: userId, csrfToken, reservationId };
@@ -148,9 +145,7 @@ describe('GET /customer/reservations', () => {
   });
 
   it('returns empty list for a new customer with no reservations', async () => {
-    const { agent: newAgent } = await registerCustomer(
-      `cust-empty-${randomUUID()}@example.com`,
-    );
+    const { agent: newAgent } = await registerCustomer(`cust-empty-${randomUUID()}@example.com`);
     const res = await newAgent.get('/customer/reservations');
     expect(res.status).toBe(200);
     expect(res.body.items).toEqual([]);
@@ -211,9 +206,7 @@ describe('GET /customer/reservations/:reservationId', () => {
 
   it('returns 404 when accessing another customers reservation', async () => {
     const { reservationId } = await setup('cross-customer-owner');
-    const { agent: otherAgent } = await registerCustomer(
-      `cust-cross-${randomUUID()}@example.com`,
-    );
+    const { agent: otherAgent } = await registerCustomer(`cust-cross-${randomUUID()}@example.com`);
     const res = await otherAgent.get(`/customer/reservations/${reservationId}`);
     expect(res.status).toBe(404);
   });

@@ -5,7 +5,7 @@ import { test, expect } from '@playwright/test';
 // browsers aren't installed here); see docs/implementation/progress.md. Runs under both the
 // "mobile" (375px-equivalent) and "desktop" (1440px) projects defined in playwright.config.ts.
 
-test('manager sees today\'s reservations with contextual quick actions', async ({ page }) => {
+test("manager sees today's reservations with contextual quick actions", async ({ page }) => {
   // Assumes a logged-in SALON_MANAGER session via storageState in a real run.
   await page.goto('/salon/DEMO_SALON_ID/reservations');
   await expect(page.getByRole('heading', { name: 'Reservations' })).toBeVisible();
@@ -22,7 +22,10 @@ test('manager confirms a pending reservation from the list without leaving the p
 
 test('manager opens a reservation, reschedules it, and later checks it in', async ({ page }) => {
   await page.goto('/salon/DEMO_SALON_ID/reservations');
-  await page.getByRole('link', { name: /\d{1,2}:\d{2}/ }).first().click();
+  await page
+    .getByRole('link', { name: /\d{1,2}:\d{2}/ })
+    .first()
+    .click();
   await page.getByRole('button', { name: 'Reschedule' }).click();
   await page.getByLabel('New start time').fill('2026-08-10T16:00');
   await page.getByRole('button', { name: 'Save new time' }).click();

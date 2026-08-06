@@ -5,13 +5,7 @@ import type { ReservationStatus } from '@salonomia/database';
 // without trusting the client's clock). Only staff actions are covered here; the customer-facing
 // surface has its own (simpler) cancel/reschedule-window logic in transitions.service.ts.
 export type StaffReservationAction =
-  | 'confirm'
-  | 'reject'
-  | 'reschedule'
-  | 'cancel'
-  | 'checkIn'
-  | 'complete'
-  | 'noShow';
+  'confirm' | 'reject' | 'reschedule' | 'cancel' | 'checkIn' | 'complete' | 'noShow';
 
 export function computeStaffAvailableActions(
   status: ReservationStatus,

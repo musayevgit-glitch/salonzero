@@ -174,9 +174,7 @@ export class ReservationsService {
     }
 
     const endAt = new Date(startAt.getTime() + service.durationMinutes * 60_000);
-    const blockedUntil = new Date(
-      endAt.getTime() + service.bufferMinutes * 60_000,
-    );
+    const blockedUntil = new Date(endAt.getTime() + service.bufferMinutes * 60_000);
     const status = bookingPolicy.autoConfirm ? 'CONFIRMED' : 'PENDING';
 
     let reservation: ReservationDetail;
@@ -246,7 +244,9 @@ export class ReservationsService {
         // both requests could pass it). Return the original reservation instead of a raw 500,
         // matching the idempotency guarantee in docs/architecture/reservation-state-machine.md.
         const original = await this.prisma.reservation.findUnique({
-          where: { customerId_idempotencyKey: { customerId, idempotencyKey: input.idempotencyKey } },
+          where: {
+            customerId_idempotencyKey: { customerId, idempotencyKey: input.idempotencyKey },
+          },
           select: RESERVATION_SELECT_WITH_IDEMPOTENCY,
         });
         if (original) return this.resolveIdempotentReplay(original, idempotencyPayloadHash, now);
@@ -290,13 +290,21 @@ export class ReservationsService {
 
     const service = await this.prisma.service.findFirst({
       where: { id: input.serviceId, salonId: salon.id, isActive: true },
-      select: { id: true, durationMinutes: true, bufferMinutes: true, priceAmount: true, currency: true },
+      select: {
+        id: true,
+        durationMinutes: true,
+        bufferMinutes: true,
+        priceAmount: true,
+        currency: true,
+      },
     });
     if (!service) {
       throw new BadRequestException('This service is not available at this salon.');
     }
 
-    const bookingPolicy = await this.prisma.bookingPolicy.findUnique({ where: { salonId: salon.id } });
+    const bookingPolicy = await this.prisma.bookingPolicy.findUnique({
+      where: { salonId: salon.id },
+    });
     if (!bookingPolicy) {
       throw new BadRequestException('This salon is not configured for booking.');
     }
@@ -327,7 +335,7 @@ export class ReservationsService {
           employeeId: input.employeeId ?? null,
           startAt: input.startAt,
           customerNote: input.customerNote ?? null,
-      })
+        })
       : null;
 
     if (input.idempotencyKey && manualIdempotencyPayloadHash) {
@@ -353,7 +361,11 @@ export class ReservationsService {
 
     let chosenEmployeeId: string | null = null;
     for (const employeeId of candidateEmployeeIds) {
-      const availabilityInput = await this.loadEmployeeAvailabilityInput(employeeId, service.id, startAt);
+      const availabilityInput = await this.loadEmployeeAvailabilityInput(
+        employeeId,
+        service.id,
+        startAt,
+      );
       const available = isEmployeeSlotAvailable({
         employee: availabilityInput,
         salonTimezone: salon.timezone,
@@ -374,9 +386,7 @@ export class ReservationsService {
     }
 
     const endAt = new Date(startAt.getTime() + service.durationMinutes * 60_000);
-    const blockedUntil = new Date(
-      endAt.getTime() + service.bufferMinutes * 60_000,
-    );
+    const blockedUntil = new Date(endAt.getTime() + service.bufferMinutes * 60_000);
     const status = bookingPolicy.autoConfirm ? 'CONFIRMED' : 'PENDING';
 
     let reservation: ReservationDetail;
@@ -447,7 +457,8 @@ export class ReservationsService {
           },
           select: RESERVATION_SELECT_WITH_IDEMPOTENCY,
         });
-        if (original) return this.resolveIdempotentReplay(original, manualIdempotencyPayloadHash, now);
+        if (original)
+          return this.resolveIdempotentReplay(original, manualIdempotencyPayloadHash, now);
       }
       throw err;
     }
@@ -458,7 +469,13 @@ export class ReservationsService {
       targetType: 'Reservation',
       targetId: reservation.id,
       salonId: salon.id,
-      metadata: { serviceId: service.id, employeeId: chosenEmployeeId, status, source: 'MANUAL', customerId },
+      metadata: {
+        serviceId: service.id,
+        employeeId: chosenEmployeeId,
+        status,
+        source: 'MANUAL',
+        customerId,
+      },
     });
 
     return reservation;
@@ -543,10 +560,7 @@ export class ReservationsService {
     expectedHash: string,
     now: Date,
   ): ReservationDetail {
-    if (
-      existing.idempotencyExpiresAt &&
-      existing.idempotencyExpiresAt.getTime() < now.getTime()
-    ) {
+    if (existing.idempotencyExpiresAt && existing.idempotencyExpiresAt.getTime() < now.getTime()) {
       throw new ConflictException('This idempotency key has expired.');
     }
     if (existing.idempotencyPayloadHash && existing.idempotencyPayloadHash !== expectedHash) {
@@ -562,7 +576,9 @@ export class ReservationsService {
 
 function isExclusionConstraintViolation(err: unknown): boolean {
   const message = err instanceof Error ? err.message : String(err);
-  return message.includes('reservation_no_overlap_per_employee') || message.includes('deadlock detected');
+  return (
+    message.includes('reservation_no_overlap_per_employee') || message.includes('deadlock detected')
+  );
 }
 
 function isIdempotencyKeyConflict(err: unknown): boolean {

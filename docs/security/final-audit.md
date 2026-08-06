@@ -4,7 +4,7 @@
 **Scope:** `apps/api`, `apps/web`, `apps/dashboard`, `packages/validation`, `packages/storage`, `packages/database`
 **Method:** Read-only source review. Attacker model assumes full control of URLs, path/query params, JSON
 bodies, headers, cookies the attacker can set on their own client, request timing, and request concurrency;
-and assumes the attacker may hold a valid account in *any* role (CUSTOMER, SALON_MANAGER, SALON_ADMIN).
+and assumes the attacker may hold a valid account in _any_ role (CUSTOMER, SALON_MANAGER, SALON_ADMIN).
 UI-side restrictions are treated as non-controls.
 **Status:** Documentation only — no code was changed.
 
@@ -14,13 +14,13 @@ UI-side restrictions are treated as non-controls.
 
 Tenant isolation in the salon-scoped modules is genuinely strong and is the best part of this codebase.
 `RolesGuard` fails closed when `@Roles()` is absent, resolves the caller's role from a database membership
-row rather than from anything the client sent, and every salon-scoped service takes the *authorized*
+row rather than from anything the client sent, and every salon-scoped service takes the _authorized_
 `SalonContext.salonId` and puts it inside the `where` clause of the read **and** the write
 (`employees.service.ts`, `services.service.ts`, `portfolio.service.ts`, `staff-reservations.service.ts`,
 `transitions.service.ts`). Double-booking is backed by a real Postgres `EXCLUDE USING gist` constraint, not
 just by an application check. All request schemas reviewed use `.strict()`, so classic mass assignment is
 structurally blocked. Passwords use argon2id; reset/invitation tokens are stored only as SHA-256 hashes.
-Passport 0.7 regenerates the session on login and logout, so classic session fixation is *not* present.
+Passport 0.7 regenerates the session on login and logout, so classic session fixation is _not_ present.
 
 The findings below are therefore concentrated in the seams: **account lifecycle** (invitation acceptance and
 password reset), **the manager-facing manual booking path** (which reaches a global `User` record by
@@ -98,7 +98,7 @@ become the account.
 
 Anyone who obtains an invitation token out-of-band (relayed over chat, forwarded email, shoulder-surfed,
 copied from a shared operator ticket, or leaked because the operator must relay it manually since no mailer
-exists) can `POST /auth/invitations/accept` and receive an authenticated session as the *existing* account
+exists) can `POST /auth/invitations/accept` and receive an authenticated session as the _existing_ account
 that owns that email — including an account that is `SUSPENDED`, and including an account that holds
 `isSuperadmin` or memberships in other tenants. The session then carries every one of that user's existing
 privileges, not just the invited role.
@@ -163,7 +163,7 @@ customer: { select: { id: true, fullName: true, email: true } },
 ```
 
 The comment claims the oracle was closed by making `customerFullName` unconditionally required. It closed
-the *error-shape* oracle but not the *response-content* oracle: `User` is a **global**, non-tenant-scoped
+the _error-shape_ oracle but not the _response-content_ oracle: `User` is a **global**, non-tenant-scoped
 table, and the reservation read-back returns the resolved user's **stored** `fullName` and **global** `id`.
 
 ### Attack scenario
@@ -236,13 +236,13 @@ const safeReturnTo = returnTo && isSafeRedirectPath(returnTo) ? returnTo : '/acc
 The regex only blocks a literal second `/`. It does not block a backslash, which the WHATWG URL parser
 normalizes to `/` in the authority position. Verified locally with `new URL(path, 'https://app.example.com')`:
 
-| input | `isSafeRedirectPath` | resolves to |
-| --- | --- | --- |
-| `/\evil.com` | `true` | `https://evil.com/` |
-| `/\/evil.com` | `true` | `https://evil.com/` |
-| `/\\evil.com` | `true` | `https://evil.com/` |
-| `//evil.com` | `false` | (correctly blocked) |
-| `/account` | `true` | `https://app.example.com/account` |
+| input         | `isSafeRedirectPath` | resolves to                       |
+| ------------- | -------------------- | --------------------------------- |
+| `/\evil.com`  | `true`               | `https://evil.com/`               |
+| `/\/evil.com` | `true`               | `https://evil.com/`               |
+| `/\\evil.com` | `true`               | `https://evil.com/`               |
+| `//evil.com`  | `false`              | (correctly blocked)               |
+| `/account`    | `true`               | `https://app.example.com/account` |
 
 ### Attack scenario
 
@@ -264,7 +264,7 @@ Replace the regex with an explicit parse-and-compare:
 ```ts
 export function isSafeRedirectPath(path: string): boolean {
   if (typeof path !== 'string' || !path.startsWith('/')) return false;
-  if (/^\/[\\/]/.test(path)) return false;                       // blocks //host and /\host
+  if (/^\/[\\/]/.test(path)) return false; // blocks //host and /\host
   if ([...path].some((ch) => ch.charCodeAt(0) < 0x20)) return false; // blocks CR/LF/TAB smuggling
   try {
     const url = new URL(path, 'https://placeholder.invalid');
@@ -304,7 +304,7 @@ await this.prisma.$transaction([
 ]);
 ```
 
-Only the *one consumed* token is marked used. Sessions live in the `session` table
+Only the _one consumed_ token is marked used. Sessions live in the `session` table
 (`connect-pg-simple`, `configure-app.ts:19-34`) and are keyed only by session id; nothing deletes the
 victim's other sessions. `SessionSerializer.deserializeUser` re-reads the user on every request but only
 checks `status`, not a password/session epoch (`session.serializer.ts:16-24`).
@@ -363,7 +363,7 @@ cookie: { httpOnly: true, sameSite: 'lax', secure: isProduction, maxAge: 7 * 24 
    incident pressure is to set `secure: false`, which permanently exposes session cookies to any network
    attacker on plaintext hops.
 2. **Rate limiting collapses to one global bucket.** `ThrottlerGuard` (`app.module.ts:39`) tracks by
-   `req.ip`, which without `trust proxy` is the proxy's address for *every* request. The auth limiter
+   `req.ip`, which without `trust proxy` is the proxy's address for _every_ request. The auth limiter
    (10/60s) and the global limiter (120/60s) become platform-wide counters, so (a) one attacker's login
    brute-force locks out **all** legitimate users — a trivial application-layer DoS — and (b) conversely,
    there is no per-attacker throttling at all.
@@ -417,7 +417,7 @@ ThrottlerModule.forRoot({ throttlers: [{ ttl: 60_000, limit: 120 }] }),
    (`apps/api/package.json` has `"test": "AUTH_THROTTLE_LIMIT=1000 vitest run"`), so a value leaking into a
    production manifest is a realistic misconfiguration.
 2. **No per-account throttling.** The limiter is keyed on IP only. A distributed credential-stuffing run
-   from 5,000 residential proxies gets 10 attempts *each per minute* against a single account with zero
+   from 5,000 residential proxies gets 10 attempts _each per minute_ against a single account with zero
    friction, and there is no account lockout, no CAPTCHA, and no enforcement built on the
    `user.login_failed` audit rows (`auth.service.ts:69-85`) — they are written but never read.
 3. **In-memory storage.** The default `ThrottlerStorageService` is per-process. With two API replicas the
@@ -487,7 +487,7 @@ The token is a free-floating random value. It is (a) never derived from or bound
    `Set-Cookie: csrfToken=ATTACKER_VALUE; Domain=.salonomia.example; Path=/`. Cookies ignore port and (for a
    parent `Domain`) same-origin boundaries, so this overwrites/shadows the API's `csrfToken` cookie for the
    victim.
-3. The attacker now *knows* the victim's `csrfToken`. They still need to send an `x-csrf-token` header,
+3. The attacker now _knows_ the victim's `csrfToken`. They still need to send an `x-csrf-token` header,
    which requires a CORS preflight — so the immediate exploit depends on the origin allowlist
    (`configure-app.ts:16`) not containing an attacker-reachable entry. If the allowlist is ever widened to a
    wildcard subdomain pattern, or if any allowlisted origin has an XSS/HTML-injection sink, the CSRF control
@@ -732,11 +732,11 @@ const busySpans: Array<{ start: Date; end: Date }> = [
 
 Two independent gaps:
 
-1. **Concurrency gap.** The buffer check lives in `isEmployeeSlotAvailable`, which runs *before* the
+1. **Concurrency gap.** The buffer check lives in `isEmployeeSlotAvailable`, which runs _before_ the
    transaction on a snapshot loaded outside it (`reservations.service.ts:116-136`). The in-transaction
    re-check (`:150-157`) compares only `startAt < endAt && endAt > startAt` — no buffer. The DB constraint
    ranges are `[startAt, endAt)` — no buffer. So the buffer has **no** serialization point.
-2. **Asymmetry gap.** A candidate's busy span is `[start, start + duration + buffer)`, but an *existing*
+2. **Asymmetry gap.** A candidate's busy span is `[start, start + duration + buffer)`, but an _existing_
    reservation contributes only `[start, end)` to `busySpans`. Booking B starting exactly at A's `endAt`
    therefore passes even single-threaded, silently violating A's trailing buffer.
 
@@ -813,7 +813,7 @@ genuine booking conflicts from the customer.
 
 ### Remediation
 
-- Store a hash of the canonicalized request payload alongside the key; on replay with a *different* hash,
+- Store a hash of the canonicalized request payload alongside the key; on replay with a _different_ hash,
   return 409 rather than the stale record.
 - Expire idempotency keys (e.g. 24h) so they cannot resolve indefinitely.
 - Mint a fresh key whenever the draft's service/stylist/time changes in `BookingContext`.
@@ -922,7 +922,7 @@ implicitly does). Most salon-scoped controllers do not declare a `salonId` param
 1. A SUPERADMIN (or anything that ever obtains `isSuperadmin`) requests
    `GET /salons/does-not-exist/reports?from=2026-01-01&to=2026-01-02`.
 2. An `AuditLog` row is written recording a `superadmin.context_entry` into a salon that does not exist,
-   polluting the audit trail with attacker-chosen `salonId` values *before* any authorization outcome is
+   polluting the audit trail with attacker-chosen `salonId` values _before_ any authorization outcome is
    known. Because this branch audits before the handler runs, the audit log records "entry" for requests
    that were never valid.
 3. Downstream services run `where: { salonId: '<garbage>' }` and return empty results rather than 404,
@@ -988,7 +988,7 @@ Check `existingUser.status === 'ACTIVE'` and `salon.status === 'ACTIVE'` (return
   `packages/validation/src/reservations.ts:31-41`, `packages/database/prisma/schema.prisma:318-322`
 
 `createManualReservationSchema` has no `idempotencyKey`, and `createManual` performs no replay check. A
-double-clicked or retried manual booking for a *different* time creates duplicate reservations for the same
+double-clicked or retried manual booking for a _different_ time creates duplicate reservations for the same
 customer; only exactly-overlapping ones are stopped by the `EXCLUDE` constraint. Combined with SEC-002, each
 retry also re-triggers user-record lookup/creation for the supplied email.
 
@@ -1102,7 +1102,7 @@ Gaps:
    and reading audit logs themselves are all unaudited. Under SEC-002, PII harvesting via manual booking
    leaves only `reservation.created` rows.
 3. **Attempts audited, denials not.** `superadmin.platform_action` (`roles.guard.ts:52-59`) and
-   `superadmin.context_entry` (`:65-73`) are written from the guard *before* the handler runs, so a request
+   `superadmin.context_entry` (`:65-73`) are written from the guard _before_ the handler runs, so a request
    that subsequently 404s or 500s still records a successful-looking "entry". Denied attempts, by contrast,
    are **not** audited at all (`throw new NotFoundException()` at `:62` and `:93` writes nothing) — so a
    broad cross-tenant probing campaign is completely invisible in the audit trail.
@@ -1110,7 +1110,7 @@ Gaps:
    `SALON_ADMIN`. Today that is benign, but nothing constrains what future call sites put in `metadata`; the
    type is `Prisma.InputJsonValue` with only a comment as a guard.
 
-**Remediation:** add `ipAddress`/`userAgent`/`requestId` columns; audit authorization *denials* and sensitive
+**Remediation:** add `ipAddress`/`userAgent`/`requestId` columns; audit authorization _denials_ and sensitive
 reads; move the superadmin audit to an interceptor that records the outcome; introduce a typed metadata union
 per action and redact unknown keys on read.
 **Regression tests:** a cross-tenant denial produces an `authz.denied` audit row; a denied request produces
@@ -1265,33 +1265,33 @@ These were specifically probed and found sound; they should stay protected by th
 
 ## Summary
 
-| Severity | Count | IDs |
-| --- | --- | --- |
-| CRITICAL | 0 | — |
-| HIGH | 2 | SEC-001, SEC-002 |
-| MEDIUM | 9 | SEC-003, SEC-004, SEC-005, SEC-006, SEC-007, SEC-008, SEC-009, SEC-010, SEC-011 |
-| LOW | 10 | SEC-012, SEC-013, SEC-014, SEC-015, SEC-016, SEC-017, SEC-018, SEC-019, SEC-020, SEC-021 |
-| INFO | 3 | SEC-022, SEC-023, SEC-024 |
-| **Total** | **24** | |
+| Severity  | Count  | IDs                                                                                      |
+| --------- | ------ | ---------------------------------------------------------------------------------------- |
+| CRITICAL  | 0      | —                                                                                        |
+| HIGH      | 2      | SEC-001, SEC-002                                                                         |
+| MEDIUM    | 9      | SEC-003, SEC-004, SEC-005, SEC-006, SEC-007, SEC-008, SEC-009, SEC-010, SEC-011          |
+| LOW       | 10     | SEC-012, SEC-013, SEC-014, SEC-015, SEC-016, SEC-017, SEC-018, SEC-019, SEC-020, SEC-021 |
+| INFO      | 3      | SEC-022, SEC-023, SEC-024                                                                |
+| **Total** | **24** |                                                                                          |
 
 **By confidence:** 21 CONFIRMED, 3 PLAUSIBLE (SEC-007, SEC-010, SEC-021).
 
 **By category:**
 
-| Category | IDs |
-| --- | --- |
-| Broken access control / account takeover | SEC-001, SEC-013, SEC-014 |
-| Cross-tenant leakage | SEC-002, SEC-009 |
-| Session / authentication lifecycle | SEC-004, SEC-015, SEC-022 |
-| CSRF | SEC-007 |
-| Reservation concurrency / idempotency | SEC-011, SEC-012, SEC-016, SEC-017 |
-| File upload | SEC-010, SEC-008 (partly) |
-| Open redirect | SEC-003 |
-| Rate limiting / availability | SEC-005, SEC-006, SEC-021, SEC-024 |
-| Transport and header hardening | SEC-008, SEC-009, SEC-022 |
-| Secrets / configuration | SEC-019, SEC-006 |
-| Audit and observability | SEC-020, SEC-014 |
-| Information leakage | SEC-023, SEC-024 |
+| Category                                 | IDs                                |
+| ---------------------------------------- | ---------------------------------- |
+| Broken access control / account takeover | SEC-001, SEC-013, SEC-014          |
+| Cross-tenant leakage                     | SEC-002, SEC-009                   |
+| Session / authentication lifecycle       | SEC-004, SEC-015, SEC-022          |
+| CSRF                                     | SEC-007                            |
+| Reservation concurrency / idempotency    | SEC-011, SEC-012, SEC-016, SEC-017 |
+| File upload                              | SEC-010, SEC-008 (partly)          |
+| Open redirect                            | SEC-003                            |
+| Rate limiting / availability             | SEC-005, SEC-006, SEC-021, SEC-024 |
+| Transport and header hardening           | SEC-008, SEC-009, SEC-022          |
+| Secrets / configuration                  | SEC-019, SEC-006                   |
+| Audit and observability                  | SEC-020, SEC-014                   |
+| Information leakage                      | SEC-023, SEC-024                   |
 
 ### Recommended remediation order
 

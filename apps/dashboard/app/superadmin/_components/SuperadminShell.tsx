@@ -14,7 +14,7 @@ export function SuperadminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   const activeHref =
-    NAV_ITEMS.find((item) => pathname.startsWith(item.href))?.href ?? (NAV_ITEMS[0]?.href ?? '');
+    NAV_ITEMS.find((item) => pathname.startsWith(item.href))?.href ?? NAV_ITEMS[0]?.href ?? '';
 
   return (
     <DashboardShell

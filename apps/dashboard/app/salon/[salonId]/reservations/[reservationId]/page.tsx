@@ -53,7 +53,9 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 function formatMoney(amountMinorUnits: number, currency: string): string {
-  return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(amountMinorUnits / 100);
+  return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(
+    amountMinorUnits / 100,
+  );
 }
 
 function toDatetimeLocalValue(iso: string): string {
@@ -125,7 +127,10 @@ export default function ReservationDetailPage() {
       load();
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
-        showToast(err.message || 'This reservation changed since you last viewed it — refreshed.', 'danger');
+        showToast(
+          err.message || 'This reservation changed since you last viewed it — refreshed.',
+          'danger',
+        );
         load();
       } else {
         showToast(err instanceof ApiError ? err.message : 'Something went wrong.', 'danger');
@@ -173,7 +178,9 @@ export default function ReservationDetailPage() {
 
       <Card className="max-w-lg">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-text-primary">{reservation.customer.fullName}</h1>
+          <h1 className="text-xl font-semibold text-text-primary">
+            {reservation.customer.fullName}
+          </h1>
           <Badge>{STATUS_LABEL[reservation.status] ?? reservation.status}</Badge>
         </div>
         <dl className="mt-4 flex flex-col gap-2 text-sm">
@@ -264,7 +271,11 @@ export default function ReservationDetailPage() {
             <Button variant="secondary" onClick={() => setRejectOpen(false)} disabled={busy}>
               Cancel
             </Button>
-            <Button variant="destructive" loading={busy} onClick={() => runAction('reject', { reason: reasonInput || undefined })}>
+            <Button
+              variant="destructive"
+              loading={busy}
+              onClick={() => runAction('reject', { reason: reasonInput || undefined })}
+            >
               Reject
             </Button>
           </>
@@ -292,7 +303,11 @@ export default function ReservationDetailPage() {
             <Button variant="secondary" onClick={() => setCancelOpen(false)} disabled={busy}>
               Keep reservation
             </Button>
-            <Button variant="destructive" loading={busy} onClick={() => runAction('cancel', { reason: reasonInput || undefined })}>
+            <Button
+              variant="destructive"
+              loading={busy}
+              onClick={() => runAction('cancel', { reason: reasonInput || undefined })}
+            >
               Cancel reservation
             </Button>
           </>

@@ -38,13 +38,21 @@ async function registerUser(email: string) {
   return { agent, csrfToken, userId: res.body.id as string };
 }
 
-async function makeSuperadmin(agent: ReturnType<typeof request.agent>, userId: string, csrfToken: string) {
+async function makeSuperadmin(
+  agent: ReturnType<typeof request.agent>,
+  userId: string,
+  csrfToken: string,
+) {
   await prisma.user.update({ where: { id: userId }, data: { isSuperadmin: true } });
   // Re-login to refresh the session
   const loginRes = await agent
     .post('/auth/login')
     .set('x-csrf-token', csrfToken)
-    .send({ email: (await prisma.user.findUnique({ where: { id: userId }, select: { email: true } }))!.email, password: 'longenoughpassword' });
+    .send({
+      email: (await prisma.user.findUnique({ where: { id: userId }, select: { email: true } }))!
+        .email,
+      password: 'longenoughpassword',
+    });
   return loginRes;
 }
 
@@ -79,7 +87,12 @@ describe('GET /salons/:salonId/reports', () => {
   it('requires authentication', async () => {
     const agent = request.agent(app.getHttpServer());
     const salon = await prisma.salon.create({
-      data: { slug: `rep-unauth-${randomUUID()}`, name: 'R', timezone: 'UTC', bookingPolicy: { create: { autoConfirm: true, minNoticeMinutes: 0, maxAdvanceDays: 60 } } },
+      data: {
+        slug: `rep-unauth-${randomUUID()}`,
+        name: 'R',
+        timezone: 'UTC',
+        bookingPolicy: { create: { autoConfirm: true, minNoticeMinutes: 0, maxAdvanceDays: 60 } },
+      },
     });
     const res = await agent.get(`/salons/${salon.id}/reports?from=${RANGE.from}&to=${RANGE.to}`);
     expect(res.status).toBe(401);
@@ -101,7 +114,9 @@ describe('GET /salons/:salonId/reports', () => {
   it('rejects a SALON_ADMIN from another salon', async () => {
     const { salon } = await createSalonWithAdmin();
     const { agent: otherAgent } = await createSalonWithAdmin();
-    const res = await otherAgent.get(`/salons/${salon.id}/reports?from=${RANGE.from}&to=${RANGE.to}`);
+    const res = await otherAgent.get(
+      `/salons/${salon.id}/reports?from=${RANGE.from}&to=${RANGE.to}`,
+    );
     expect([403, 404]).toContain(res.status);
   });
 
@@ -120,7 +135,9 @@ describe('GET /salons/:salonId/reports', () => {
 
   it('rejects unknown query params', async () => {
     const { salon, agent } = await createSalonWithAdmin();
-    const res = await agent.get(`/salons/${salon.id}/reports?from=${RANGE.from}&to=${RANGE.to}&evil=true`);
+    const res = await agent.get(
+      `/salons/${salon.id}/reports?from=${RANGE.from}&to=${RANGE.to}&evil=true`,
+    );
     expect(res.status).toBe(400);
   });
 });
@@ -147,9 +164,16 @@ describe('GET /salons/:salonId/reports/audit-logs', () => {
     const { salon: salonB, agent: agentB } = await createSalonWithAdmin();
     // Write an audit event scoped to salonA
     await prisma.auditLog.create({
-      data: { action: 'test.cross_tenant', targetType: 'Test', targetId: randomUUID(), salonId: salonA.id },
+      data: {
+        action: 'test.cross_tenant',
+        targetType: 'Test',
+        targetId: randomUUID(),
+        salonId: salonA.id,
+      },
     });
-    const res = await agentB.get(`/salons/${salonB.id}/reports/audit-logs?action=test.cross_tenant`);
+    const res = await agentB.get(
+      `/salons/${salonB.id}/reports/audit-logs?action=test.cross_tenant`,
+    );
     expect(res.status).toBe(200);
     // salonB admin must not see salonA events
     expect(res.body.items.every((i: { salonId: string }) => i.salonId === salonB.id)).toBe(true);

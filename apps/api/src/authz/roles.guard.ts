@@ -48,7 +48,10 @@ export class RolesGuard implements CanActivate {
 
     // Reject non-UUID salonId before touching the DB — avoids Prisma throwing a 500 on malformed
     // input and prevents information leakage via error message differences.
-    if (salonId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(salonId)) {
+    if (
+      salonId &&
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(salonId)
+    ) {
       await this.recordDenied(request, salonId, requiredRoles, 'invalid_salon_id');
       throw new NotFoundException();
     }

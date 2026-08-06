@@ -1,5 +1,8 @@
 import { Body, Controller, Get, Patch, UseGuards } from '@nestjs/common';
-import { updateCustomerProfileSchema, type UpdateCustomerProfileInput } from '@salonomia/validation';
+import {
+  updateCustomerProfileSchema,
+  type UpdateCustomerProfileInput,
+} from '@salonomia/validation';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { AuthenticatedGuard } from '../auth/guards/authenticated.guard';
 import type { AuthenticatedUser } from '../auth/types';

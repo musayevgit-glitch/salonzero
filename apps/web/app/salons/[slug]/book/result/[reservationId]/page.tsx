@@ -77,7 +77,9 @@ export default async function ResultPage({
           <dl className="flex flex-col gap-3">
             <div className="flex justify-between gap-4">
               <dt className="text-text-secondary">Service</dt>
-              <dd className="text-right font-medium text-text-primary">{reservation.service.name}</dd>
+              <dd className="text-right font-medium text-text-primary">
+                {reservation.service.name}
+              </dd>
             </div>
             <div className="flex justify-between gap-4">
               <dt className="text-text-secondary">Stylist</dt>

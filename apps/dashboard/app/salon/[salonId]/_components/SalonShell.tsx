@@ -23,7 +23,7 @@ export function SalonShell({ salonId, children }: { salonId: string; children: R
   }));
 
   const activeHref =
-    navItems.find((item) => pathname.startsWith(item.href))?.href ?? (navItems[0]?.href ?? '');
+    navItems.find((item) => pathname.startsWith(item.href))?.href ?? navItems[0]?.href ?? '';
 
   return (
     <DashboardShell

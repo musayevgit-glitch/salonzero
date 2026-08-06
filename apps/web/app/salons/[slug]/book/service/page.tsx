@@ -15,8 +15,7 @@ export default function ServiceStep() {
   const { salon, draft, setService } = useBookingContext();
   const router = useRouter();
 
-  const hasServices =
-    salon.serviceCategories.length > 0 || salon.uncategorizedServices.length > 0;
+  const hasServices = salon.serviceCategories.length > 0 || salon.uncategorizedServices.length > 0;
 
   function handleSelect(serviceId: string) {
     setService(serviceId);

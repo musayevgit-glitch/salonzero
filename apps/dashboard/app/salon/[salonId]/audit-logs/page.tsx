@@ -35,11 +35,19 @@ export default function SalonAuditLogsPage() {
     const params = new URLSearchParams({ page: String(p), pageSize: '50' });
     if (actionFilter) params.set('action', actionFilter);
     apiFetch<AuditLogResponse>(`/salons/${salonId}/reports/audit-logs?${params}`)
-      .then((r) => { setData(r); setLoading(false); })
-      .catch((err) => { setError(err instanceof ApiError ? err.message : 'Failed to load.'); setLoading(false); });
+      .then((r) => {
+        setData(r);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err instanceof ApiError ? err.message : 'Failed to load.');
+        setLoading(false);
+      });
   }
 
-  useEffect(() => { load(page); }, [page]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    load(page);
+  }, [page]);
 
   const totalPages = data ? Math.ceil(data.total / data.pageSize) : 0;
 
@@ -48,7 +56,11 @@ export default function SalonAuditLogsPage() {
       <h1 className="text-xl font-semibold">Audit log</h1>
 
       <form
-        onSubmit={(e) => { e.preventDefault(); setPage(1); load(1); }}
+        onSubmit={(e) => {
+          e.preventDefault();
+          setPage(1);
+          load(1);
+        }}
         className="flex gap-2"
       >
         <input
@@ -100,8 +112,11 @@ export default function SalonAuditLogsPage() {
                   <tr key={log.id} className="border-b last:border-0 hover:bg-muted/30">
                     <td className="px-3 py-2 text-muted-foreground">
                       {new Intl.DateTimeFormat(undefined, {
-                        month: 'short', day: 'numeric',
-                        hour: 'numeric', minute: '2-digit', second: '2-digit',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        second: '2-digit',
                       }).format(new Date(log.createdAt))}
                     </td>
                     <td className="px-3 py-2 font-mono text-xs">{log.action}</td>
@@ -132,7 +147,9 @@ export default function SalonAuditLogsPage() {
               >
                 ← Previous
               </button>
-              <span className="text-muted-foreground">Page {page} of {totalPages} · {data.total} events</span>
+              <span className="text-muted-foreground">
+                Page {page} of {totalPages} · {data.total} events
+              </span>
               <button
                 type="button"
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}

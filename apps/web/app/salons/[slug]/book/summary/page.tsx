@@ -58,9 +58,7 @@ export default function SummaryStep() {
   ].find((s) => s.id === draft.serviceId);
 
   const selectedEmployee =
-    draft.employeeId != null
-      ? salon.employees.find((e) => e.id === draft.employeeId)
-      : null;
+    draft.employeeId != null ? salon.employees.find((e) => e.id === draft.employeeId) : null;
 
   const confirmHref = `/salons/${salon.slug}/book/confirm`;
   const loginHref = `/login?returnTo=${encodeURIComponent(confirmHref)}`;
@@ -100,11 +98,15 @@ export default function SummaryStep() {
               <>
                 <div className="flex justify-between gap-4">
                   <dt className="text-text-secondary">Service</dt>
-                  <dd className="text-right font-medium text-text-primary">{selectedService.name}</dd>
+                  <dd className="text-right font-medium text-text-primary">
+                    {selectedService.name}
+                  </dd>
                 </div>
                 <div className="flex justify-between gap-4">
                   <dt className="text-text-secondary">Duration</dt>
-                  <dd className="text-right text-text-primary">{selectedService.durationMinutes} min</dd>
+                  <dd className="text-right text-text-primary">
+                    {selectedService.durationMinutes} min
+                  </dd>
                 </div>
                 <div className="flex justify-between gap-4">
                   <dt className="text-text-secondary">Price</dt>

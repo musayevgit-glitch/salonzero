@@ -7,12 +7,7 @@ import { z } from 'zod';
 export const updateCustomerProfileSchema = z
   .object({
     fullName: z.string().trim().min(1).max(200).optional(),
-    phone: z
-      .string()
-      .trim()
-      .max(30)
-      .nullable()
-      .optional(),
+    phone: z.string().trim().max(30).nullable().optional(),
     marketingConsent: z.boolean().optional(),
   })
   .strict()

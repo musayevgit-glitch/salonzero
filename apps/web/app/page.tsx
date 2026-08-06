@@ -1,4 +1,13 @@
-import { Badge, Card, EmptyState, ErrorState, Input, Link, PublicShell, Select } from '@salonomia/ui';
+import {
+  Badge,
+  Card,
+  EmptyState,
+  ErrorState,
+  Input,
+  Link,
+  PublicShell,
+  Select,
+} from '@salonomia/ui';
 import type { Metadata } from 'next';
 import { getIsAuthenticated } from '../lib/fetch-api-server';
 import { fetchPublicApi, PublicApiError } from '../lib/public-api';
@@ -69,7 +78,8 @@ export default async function HomePage({
   let data: SalonListResponse | null = null;
   let errorMessage: string | null = null;
   if (fetchResult instanceof Error) {
-    errorMessage = fetchResult instanceof PublicApiError ? fetchResult.message : 'Something went wrong.';
+    errorMessage =
+      fetchResult instanceof PublicApiError ? fetchResult.message : 'Something went wrong.';
   } else {
     data = fetchResult;
   }
@@ -86,19 +96,30 @@ export default async function HomePage({
   return (
     <PublicShell isAuthenticated={isAuthenticated}>
       <div className="flex flex-col gap-8">
-        <div>
-          <h1 className="text-3xl font-semibold text-text-primary">Discover salons</h1>
-          <p className="mt-2 text-text-secondary">
+        <section className="rounded-[var(--radius-lg)] border border-border bg-surface-raised p-5 shadow-[var(--shadow-sm)] sm:p-8">
+          <p className="text-sm font-medium text-accent">Book calmer. Look sharper.</p>
+          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-text-primary sm:text-5xl">
+            Discover salons
+          </h1>
+          <p className="mt-3 max-w-2xl text-base leading-7 text-text-secondary sm:text-lg">
             Browse salons, compare services, and book your next appointment.
           </p>
-        </div>
+        </section>
 
-        <form method="get" className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-6">
+        <form
+          method="get"
+          className="grid grid-cols-1 gap-3 rounded-[var(--radius-lg)] border border-border bg-surface-raised p-4 shadow-[var(--shadow-sm)] sm:grid-cols-2 sm:p-5 lg:grid-cols-6"
+        >
           <div className="sm:col-span-2 lg:col-span-2">
             <label htmlFor="search" className="mb-1.5 block text-sm font-medium text-text-primary">
               Search
             </label>
-            <Input id="search" name="search" defaultValue={search} placeholder="Salon name or city" />
+            <Input
+              id="search"
+              name="search"
+              defaultValue={search}
+              placeholder="Salon name or city"
+            />
           </div>
           <div>
             <label htmlFor="city" className="mb-1.5 block text-sm font-medium text-text-primary">
@@ -107,7 +128,10 @@ export default async function HomePage({
             <Input id="city" name="city" defaultValue={city} placeholder="Any city" />
           </div>
           <div>
-            <label htmlFor="genderFocus" className="mb-1.5 block text-sm font-medium text-text-primary">
+            <label
+              htmlFor="genderFocus"
+              className="mb-1.5 block text-sm font-medium text-text-primary"
+            >
               Focus
             </label>
             <Select id="genderFocus" name="genderFocus" defaultValue={genderFocus}>
@@ -118,19 +142,25 @@ export default async function HomePage({
             </Select>
           </div>
           <div>
-            <label htmlFor="minPrice" className="mb-1.5 block text-sm font-medium text-text-primary">
+            <label
+              htmlFor="minPrice"
+              className="mb-1.5 block text-sm font-medium text-text-primary"
+            >
               Min price
             </label>
             <Input id="minPrice" type="number" name="minPrice" defaultValue={minPrice} min={0} />
           </div>
           <div>
-            <label htmlFor="maxPrice" className="mb-1.5 block text-sm font-medium text-text-primary">
+            <label
+              htmlFor="maxPrice"
+              className="mb-1.5 block text-sm font-medium text-text-primary"
+            >
               Max price
             </label>
             <Input id="maxPrice" type="number" name="maxPrice" defaultValue={maxPrice} min={0} />
           </div>
-          <div className="sm:col-span-2 lg:col-span-6 flex flex-wrap items-end gap-3">
-            <div>
+          <div className="flex flex-col gap-3 sm:col-span-2 sm:flex-row sm:items-end lg:col-span-6">
+            <div className="sm:w-48">
               <label htmlFor="sort" className="mb-1.5 block text-sm font-medium text-text-primary">
                 Sort by
               </label>
@@ -142,7 +172,7 @@ export default async function HomePage({
             </div>
             <button
               type="submit"
-              className="min-h-11 rounded-[var(--radius-sm)] bg-accent px-4 text-sm font-medium text-white"
+              className="min-h-11 rounded-[var(--radius-sm)] bg-accent px-4 text-sm font-medium text-white transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring active:opacity-80 sm:w-auto"
             >
               Apply filters
             </button>
@@ -161,22 +191,35 @@ export default async function HomePage({
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {data.items.map((salon) => (
                 <Link key={salon.id} href={`/salons/${salon.slug}`} className="no-underline">
-                  <Card className="h-full transition-shadow hover:shadow-[var(--shadow-md)]">
-                    <div className="flex items-start justify-between gap-2">
-                      <h2 className="text-lg font-semibold text-text-primary">{salon.name}</h2>
+                  <Card className="group h-full transition-[box-shadow,transform] hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]">
+                    <div className="flex min-w-0 items-start justify-between gap-2">
+                      <h2 className="min-w-0 break-words text-lg font-semibold text-text-primary">
+                        {salon.name}
+                      </h2>
                       {salon.genderFocus ? (
-                        <Badge>{GENDER_FOCUS_LABEL[salon.genderFocus] ?? salon.genderFocus}</Badge>
+                        <span className="shrink-0">
+                          <Badge>
+                            {GENDER_FOCUS_LABEL[salon.genderFocus] ?? salon.genderFocus}
+                          </Badge>
+                        </span>
                       ) : null}
                     </div>
-                    {salon.city ? <p className="mt-1 text-sm text-text-secondary">{salon.city}</p> : null}
+                    {salon.city ? (
+                      <p className="mt-1 text-sm text-text-secondary">{salon.city}</p>
+                    ) : null}
                     {salon.description ? (
-                      <p className="mt-2 line-clamp-2 text-sm text-text-secondary">{salon.description}</p>
+                      <p className="mt-2 line-clamp-2 text-sm text-text-secondary">
+                        {salon.description}
+                      </p>
                     ) : null}
                     {salon.startingPrice ? (
                       <p className="mt-3 text-sm font-medium text-text-primary">
                         {formatStartingPrice(salon.startingPrice)}
                       </p>
                     ) : null}
+                    <p className="mt-4 text-sm font-medium text-accent group-hover:underline">
+                      View salon →
+                    </p>
                   </Card>
                 </Link>
               ))}

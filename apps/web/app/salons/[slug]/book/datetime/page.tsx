@@ -88,10 +88,9 @@ export default function DatetimeStep() {
       try {
         const params = new URLSearchParams({ serviceId: draft.serviceId, date });
         if (draft.employeeId) params.set('employeeId', draft.employeeId);
-        const res = await fetch(
-          `${API_URL}/public/salons/${salon.slug}/availability?${params}`,
-          { signal: controller.signal },
-        );
+        const res = await fetch(`${API_URL}/public/salons/${salon.slug}/availability?${params}`, {
+          signal: controller.signal,
+        });
         if (!res.ok) throw new Error('Could not load availability.');
         const data = (await res.json()) as AvailabilityResponse;
         setSlots(data.slots);
@@ -143,8 +142,7 @@ export default function DatetimeStep() {
         <h1 className="mt-6 text-2xl font-semibold text-text-primary">Choose a date &amp; time</h1>
 
         <p className="mt-1 text-sm text-text-secondary">
-          Times shown in{' '}
-          <span className="font-medium text-text-primary">{timezone}</span>
+          Times shown in <span className="font-medium text-text-primary">{timezone}</span>
           {selectedService && (
             <>
               {' · '}
@@ -182,10 +180,17 @@ export default function DatetimeStep() {
                   }`}
                 >
                   <span className="font-medium leading-tight">
-                    {new Intl.DateTimeFormat(undefined, { weekday: 'short', timeZone: timezone }).format(d)}
+                    {new Intl.DateTimeFormat(undefined, {
+                      weekday: 'short',
+                      timeZone: timezone,
+                    }).format(d)}
                   </span>
                   <span className="text-xs leading-tight opacity-80">
-                    {new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', timeZone: timezone }).format(d)}
+                    {new Intl.DateTimeFormat(undefined, {
+                      month: 'short',
+                      day: 'numeric',
+                      timeZone: timezone,
+                    }).format(d)}
                   </span>
                 </button>
               );
@@ -196,7 +201,9 @@ export default function DatetimeStep() {
         {/* Slot grid */}
         <div className="mt-4">
           {!selectedDate && (
-            <p className="text-sm text-text-secondary">Select a date above to see available times.</p>
+            <p className="text-sm text-text-secondary">
+              Select a date above to see available times.
+            </p>
           )}
 
           {selectedDate && loadState === 'loading' && (

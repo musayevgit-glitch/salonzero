@@ -52,7 +52,12 @@ const SLOT_START = '2026-08-10T10:00:00.000Z'; // a Monday
 
 async function setup(prefix: string, options: { bufferMinutes?: number } = {}) {
   const salon = await prisma.salon.create({
-    data: { slug: `${prefix}-${randomUUID()}`, name: prefix, timezone: 'UTC', bookingPolicy: { create: {} } },
+    data: {
+      slug: `${prefix}-${randomUUID()}`,
+      name: prefix,
+      timezone: 'UTC',
+      bookingPolicy: { create: {} },
+    },
   });
   const service = await prisma.service.create({
     data: {
@@ -69,7 +74,12 @@ async function setup(prefix: string, options: { bufferMinutes?: number } = {}) {
   });
   await prisma.employeeService.create({ data: { employeeId: employee.id, serviceId: service.id } });
   await prisma.workingSchedule.create({
-    data: { employeeId: employee.id, weekday: 1, startMinuteOfDay: 9 * 60, endMinuteOfDay: 17 * 60 },
+    data: {
+      employeeId: employee.id,
+      weekday: 1,
+      startMinuteOfDay: 9 * 60,
+      endMinuteOfDay: 17 * 60,
+    },
   });
   const { agent, userId, csrfToken } = await registerAsSalonAdmin(
     `${prefix}-admin-${randomUUID()}@example.com`,
@@ -112,10 +122,11 @@ describe('POST /salons/:salonId/reservations/manual', () => {
 
   it('allows SALON_MANAGER and creates a new customer + reservation, audited with source MANUAL', async () => {
     const { salon, service, employee } = await setup('man-manager-ok');
-    const { agent, userId: managerId, csrfToken } = await registerAsSalonManager(
-      `man-manager-${randomUUID()}@example.com`,
-      salon.id,
-    );
+    const {
+      agent,
+      userId: managerId,
+      csrfToken,
+    } = await registerAsSalonManager(`man-manager-${randomUUID()}@example.com`, salon.id);
     const customerEmail = `walkin-${randomUUID()}@example.com`;
     const res = await agent
       .post(`/salons/${salon.id}/reservations/manual`)
@@ -270,7 +281,11 @@ describe('POST /salons/:salonId/reservations/manual', () => {
   it('looks up an existing customer by email instead of creating a duplicate', async () => {
     const { salon, service, employee, agent, csrfToken } = await setup('man-existing-cust');
     const existing = await prisma.user.create({
-      data: { email: `existing-${randomUUID()}@example.com`, passwordHash: 'x', fullName: 'Existing' },
+      data: {
+        email: `existing-${randomUUID()}@example.com`,
+        passwordHash: 'x',
+        fullName: 'Existing',
+      },
     });
     const res = await agent
       .post(`/salons/${salon.id}/reservations/manual`)
@@ -290,12 +305,21 @@ describe('POST /salons/:salonId/reservations/manual', () => {
   it('requires customerFullName regardless of whether the account already exists (no existence oracle)', async () => {
     const { salon, service, employee, agent, csrfToken } = await setup('man-no-oracle');
     const existing = await prisma.user.create({
-      data: { email: `existing-${randomUUID()}@example.com`, passwordHash: 'x', fullName: 'Existing' },
+      data: {
+        email: `existing-${randomUUID()}@example.com`,
+        passwordHash: 'x',
+        fullName: 'Existing',
+      },
     });
     const resExisting = await agent
       .post(`/salons/${salon.id}/reservations/manual`)
       .set('x-csrf-token', csrfToken)
-      .send({ customerEmail: existing.email, serviceId: service.id, employeeId: employee.id, startAt: SLOT_START });
+      .send({
+        customerEmail: existing.email,
+        serviceId: service.id,
+        employeeId: employee.id,
+        startAt: SLOT_START,
+      });
     const resNew = await agent
       .post(`/salons/${salon.id}/reservations/manual`)
       .set('x-csrf-token', csrfToken)
@@ -330,7 +354,9 @@ describe('POST /salons/:salonId/reservations/manual', () => {
   it('denies manual booking into a suspended salon even for SUPERADMIN (bypasses RolesGuard, so the service itself must check)', async () => {
     const { salon, service, employee } = await setup('man-suspended-super');
     await prisma.salon.update({ where: { id: salon.id }, data: { status: 'SUSPENDED' } });
-    const { agent, userId, csrfToken } = await registerUser(`man-super-${randomUUID()}@example.com`);
+    const { agent, userId, csrfToken } = await registerUser(
+      `man-super-${randomUUID()}@example.com`,
+    );
     await prisma.user.update({ where: { id: userId }, data: { isSuperadmin: true } });
     const res = await agent
       .post(`/salons/${salon.id}/reservations/manual`)

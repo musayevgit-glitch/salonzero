@@ -6,14 +6,14 @@
 
 ## Key metrics to alert on
 
-| Metric | Threshold | Severity |
-|---|---|---|
-| API P95 response time | > 2000ms | warning |
-| API error rate (5xx) | > 1% over 5m | critical |
-| Database connection pool saturation | > 80% | warning |
-| Failed login rate | > 20/min per IP | critical (possible brute force) |
-| Reservation creation 409 conflict rate | > 10% of attempts | warning (slot contention) |
-| Storage upload failure rate | > 5% | warning |
+| Metric                                 | Threshold         | Severity                        |
+| -------------------------------------- | ----------------- | ------------------------------- |
+| API P95 response time                  | > 2000ms          | warning                         |
+| API error rate (5xx)                   | > 1% over 5m      | critical                        |
+| Database connection pool saturation    | > 80%             | warning                         |
+| Failed login rate                      | > 20/min per IP   | critical (possible brute force) |
+| Reservation creation 409 conflict rate | > 10% of attempts | warning (slot contention)       |
+| Storage upload failure rate            | > 5%              | warning                         |
 
 ## Audit log retention
 
@@ -43,6 +43,7 @@ Never log: passwords, `SESSION_SECRET`, `LOCAL_STORAGE_SIGNING_SECRET`, raw sess
 ## Error tracking
 
 Configure Sentry (or equivalent) with:
+
 - `tracesSampleRate: 0.1` (adjust per traffic)
 - `beforeSend` hook to strip PII from breadcrumbs
 - Separate DSNs for API, web, and dashboard so alerts are scoped

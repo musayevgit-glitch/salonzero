@@ -1,8 +1,16 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma, type ReservationStatus } from '@salonomia/database';
 import { AuditService } from '../audit/audit.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { isEmployeeSlotAvailable, type EmployeeAvailabilityInput } from './availability/availability';
+import {
+  isEmployeeSlotAvailable,
+  type EmployeeAvailabilityInput,
+} from './availability/availability';
 import type { ReservationDetail } from './reservations.service';
 
 const RESERVATION_SELECT = {
@@ -41,7 +49,11 @@ export class TransitionsService {
 
   // ---- staff transitions (salon-scoped) --------------------------------------------------
 
-  async confirm(salonId: string, reservationId: string, actorUserId: string): Promise<ReservationDetail> {
+  async confirm(
+    salonId: string,
+    reservationId: string,
+    actorUserId: string,
+  ): Promise<ReservationDetail> {
     const current = await this.findForStaff(salonId, reservationId);
     if (current.status === 'CONFIRMED') return current; // idempotent no-op
     if (current.status !== 'PENDING') {
@@ -82,7 +94,11 @@ export class TransitionsService {
     );
   }
 
-  async checkIn(salonId: string, reservationId: string, actorUserId: string): Promise<ReservationDetail> {
+  async checkIn(
+    salonId: string,
+    reservationId: string,
+    actorUserId: string,
+  ): Promise<ReservationDetail> {
     const current = await this.findForStaff(salonId, reservationId);
     if (current.status !== 'CONFIRMED') {
       throw new ConflictException('Only a confirmed reservation can be checked in.');
@@ -90,7 +106,11 @@ export class TransitionsService {
     return this.applyStatus(current, 'CHECKED_IN', actorUserId, 'reservation.checked_in');
   }
 
-  async complete(salonId: string, reservationId: string, actorUserId: string): Promise<ReservationDetail> {
+  async complete(
+    salonId: string,
+    reservationId: string,
+    actorUserId: string,
+  ): Promise<ReservationDetail> {
     const current = await this.findForStaff(salonId, reservationId);
     if (current.status !== 'CHECKED_IN') {
       throw new ConflictException('Only a checked-in reservation can be completed.');
@@ -100,13 +120,19 @@ export class TransitionsService {
     });
   }
 
-  async noShow(salonId: string, reservationId: string, actorUserId: string): Promise<ReservationDetail> {
+  async noShow(
+    salonId: string,
+    reservationId: string,
+    actorUserId: string,
+  ): Promise<ReservationDetail> {
     const current = await this.findForStaff(salonId, reservationId);
     if (current.status !== 'CONFIRMED') {
       throw new ConflictException('Only a confirmed reservation can be marked no-show.');
     }
     if (new Date().getTime() <= current.endAt.getTime()) {
-      throw new ConflictException('A reservation can only be marked no-show after its scheduled time.');
+      throw new ConflictException(
+        'A reservation can only be marked no-show after its scheduled time.',
+      );
     }
     return this.applyStatus(current, 'NO_SHOW', actorUserId, 'reservation.no_show');
   }
@@ -133,7 +159,9 @@ export class TransitionsService {
     const current = await this.findForCustomer(customerId, reservationId);
     this.assertCancellableOrReschedulable(current.status);
 
-    const policy = await this.prisma.bookingPolicy.findUnique({ where: { salonId: current.salonId } });
+    const policy = await this.prisma.bookingPolicy.findUnique({
+      where: { salonId: current.salonId },
+    });
     const windowHours = policy?.cancellationWindowHours ?? 24;
     const deadline = current.startAt.getTime() - windowHours * 60 * 60_000;
     if (Date.now() >= deadline) {
@@ -166,7 +194,9 @@ export class TransitionsService {
       throw new ConflictException('This salon is not accepting reservation changes.');
     }
 
-    const policy = await this.prisma.bookingPolicy.findUnique({ where: { salonId: current.salonId } });
+    const policy = await this.prisma.bookingPolicy.findUnique({
+      where: { salonId: current.salonId },
+    });
     const windowHours = policy?.rescheduleWindowHours ?? 24;
     const deadline = current.startAt.getTime() - windowHours * 60 * 60_000;
     if (Date.now() >= deadline) {
@@ -281,7 +311,9 @@ export class TransitionsService {
       where: { id: current.serviceId },
       select: { durationMinutes: true, bufferMinutes: true },
     });
-    const policy = await this.prisma.bookingPolicy.findUnique({ where: { salonId: current.salonId } });
+    const policy = await this.prisma.bookingPolicy.findUnique({
+      where: { salonId: current.salonId },
+    });
     if (!salon || !service || !policy) {
       throw new BadRequestException('This salon is not configured for booking.');
     }
@@ -323,9 +355,7 @@ export class TransitionsService {
     }
 
     const newEndAt = new Date(newStartAt.getTime() + service.durationMinutes * 60_000);
-    const newBlockedUntil = new Date(
-      newEndAt.getTime() + service.bufferMinutes * 60_000,
-    );
+    const newBlockedUntil = new Date(newEndAt.getTime() + service.bufferMinutes * 60_000);
 
     let updated: ReservationDetail;
     try {

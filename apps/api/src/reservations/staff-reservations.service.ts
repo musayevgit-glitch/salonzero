@@ -1,10 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import type { ListSalonReservationsQuery } from '@salonomia/validation';
 import { PrismaService } from '../prisma/prisma.service';
-import {
-  computeStaffAvailableActions,
-  type StaffReservationAction,
-} from './reservation-actions';
+import { computeStaffAvailableActions, type StaffReservationAction } from './reservation-actions';
 
 // SEC-002: guestName (manager-snapshotted) is returned instead of customer.fullName/id to prevent
 // cross-tenant account-existence enumeration. customer.email is still returned for operational use
@@ -96,10 +93,14 @@ export class StaffReservationsService {
   // name/duration/price for services, name only for employees). Deliberately not the full
   // employee/service management surface (bio, portfolio, categories, inactive records, edit) —
   // SALON_MANAGER may book on a customer's behalf but must not manage employees or services.
-  async getBookingOptions(
-    salonId: string,
-  ): Promise<{
-    services: { id: string; name: string; durationMinutes: number; priceAmount: number; currency: string }[];
+  async getBookingOptions(salonId: string): Promise<{
+    services: {
+      id: string;
+      name: string;
+      durationMinutes: number;
+      priceAmount: number;
+      currency: string;
+    }[];
     employees: { id: string; fullName: string }[];
   }> {
     const [services, employees] = await Promise.all([

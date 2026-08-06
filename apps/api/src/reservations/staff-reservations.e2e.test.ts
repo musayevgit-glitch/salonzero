@@ -36,7 +36,11 @@ async function registerUser(email: string) {
   return { agent, userId: res.body.id as string, csrfToken };
 }
 
-async function registerAsRole(email: string, salonId: string, role: 'SALON_ADMIN' | 'SALON_MANAGER') {
+async function registerAsRole(
+  email: string,
+  salonId: string,
+  role: 'SALON_ADMIN' | 'SALON_MANAGER',
+) {
   const { agent, userId, csrfToken } = await registerUser(email);
   await prisma.salonMembership.create({ data: { userId, salonId, role } });
   return { agent, userId, csrfToken };
@@ -44,16 +48,31 @@ async function registerAsRole(email: string, salonId: string, role: 'SALON_ADMIN
 
 async function setup(prefix: string) {
   const salon = await prisma.salon.create({
-    data: { slug: `${prefix}-${randomUUID()}`, name: prefix, timezone: 'UTC', bookingPolicy: { create: {} } },
+    data: {
+      slug: `${prefix}-${randomUUID()}`,
+      name: prefix,
+      timezone: 'UTC',
+      bookingPolicy: { create: {} },
+    },
   });
   const service = await prisma.service.create({
-    data: { salonId: salon.id, name: 'Haircut', priceAmount: 5000, currency: 'USD', durationMinutes: 60 },
+    data: {
+      salonId: salon.id,
+      name: 'Haircut',
+      priceAmount: 5000,
+      currency: 'USD',
+      durationMinutes: 60,
+    },
   });
   const employee = await prisma.employeeProfile.create({
     data: { salonId: salon.id, fullName: 'Stylist', isActive: true },
   });
   const customer = await prisma.user.create({
-    data: { email: `cust-${randomUUID()}@example.com`, passwordHash: 'x', fullName: 'Alice Customer' },
+    data: {
+      email: `cust-${randomUUID()}@example.com`,
+      passwordHash: 'x',
+      fullName: 'Alice Customer',
+    },
   });
   const { agent, csrfToken } = await registerAsRole(
     `${prefix}-admin-${randomUUID()}@example.com`,
@@ -143,13 +162,19 @@ describe('GET /salons/:salonId/reservations (staff list)', () => {
     expect(item.customer.email).toBeDefined();
     expect(item.customer.fullName).toBeUndefined();
     expect(item.customer.id).toBeUndefined();
-    expect(item.availableActions.sort()).toEqual(['cancel', 'confirm', 'reject', 'reschedule'].sort());
+    expect(item.availableActions.sort()).toEqual(
+      ['cancel', 'confirm', 'reject', 'reschedule'].sort(),
+    );
   });
 
   it('never leaks another salon’s reservations (cross-tenant scoping)', async () => {
     const { salon: salonA, service, employee, customer, agent } = await setup('list-crossA');
-    const { salon: salonB, service: serviceB, employee: employeeB, customer: customerB } =
-      await setup('list-crossB');
+    const {
+      salon: salonB,
+      service: serviceB,
+      employee: employeeB,
+      customer: customerB,
+    } = await setup('list-crossB');
     await createReservation(
       salonA.id,
       service.id,
@@ -204,7 +229,9 @@ describe('GET /salons/:salonId/reservations (staff list)', () => {
     expect(confirmedOnly.body.items).toHaveLength(1);
     expect(confirmedOnly.body.items[0].status).toBe('CONFIRMED');
 
-    const byEmployee = await agent.get(`/salons/${salon.id}/reservations?employeeId=${employee.id}`);
+    const byEmployee = await agent.get(
+      `/salons/${salon.id}/reservations?employeeId=${employee.id}`,
+    );
     expect(byEmployee.body.items).toHaveLength(2);
   });
 
@@ -319,7 +346,9 @@ describe('GET /salons/:salonId/reservations/:reservationId (staff detail)', () =
 describe('GET /salons/:salonId/reservations/booking-options', () => {
   it('rejects an unauthenticated request and a plain authenticated user', async () => {
     const { salon, agent } = await setup('bookopts-role');
-    const unauth = await request(app.getHttpServer()).get(`/salons/${salon.id}/reservations/booking-options`);
+    const unauth = await request(app.getHttpServer()).get(
+      `/salons/${salon.id}/reservations/booking-options`,
+    );
     expect(unauth.status).toBe(401);
 
     const { agent: plainAgent } = await registerUser(`bookopts-plain-${randomUUID()}@example.com`);
@@ -332,9 +361,18 @@ describe('GET /salons/:salonId/reservations/booking-options', () => {
   it('allows SALON_MANAGER and returns only active services/employees for this salon', async () => {
     const { salon } = await setup('bookopts-manager');
     await prisma.service.create({
-      data: { salonId: salon.id, name: 'Inactive Service', priceAmount: 100, currency: 'USD', durationMinutes: 30, isActive: false },
+      data: {
+        salonId: salon.id,
+        name: 'Inactive Service',
+        priceAmount: 100,
+        currency: 'USD',
+        durationMinutes: 30,
+        isActive: false,
+      },
     });
-    await prisma.employeeProfile.create({ data: { salonId: salon.id, fullName: 'Inactive Stylist', isActive: false } });
+    await prisma.employeeProfile.create({
+      data: { salonId: salon.id, fullName: 'Inactive Stylist', isActive: false },
+    });
     const { agent: managerAgent } = await registerAsRole(
       `bookopts-manager2-${randomUUID()}@example.com`,
       salon.id,

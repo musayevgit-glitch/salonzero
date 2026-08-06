@@ -37,11 +37,19 @@ export default function SuperadminAuditLogsPage() {
     if (actionFilter) params.set('action', actionFilter);
     if (targetTypeFilter) params.set('targetType', targetTypeFilter);
     apiFetch<AuditLogResponse>(`/superadmin/reports/audit-logs?${params}`)
-      .then((r) => { setData(r); setLoading(false); })
-      .catch((err) => { setError(err instanceof ApiError ? err.message : 'Failed to load.'); setLoading(false); });
+      .then((r) => {
+        setData(r);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err instanceof ApiError ? err.message : 'Failed to load.');
+        setLoading(false);
+      });
   }
 
-  useEffect(() => { load(page); }, [page]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    load(page);
+  }, [page]);
 
   const totalPages = data ? Math.ceil(data.total / data.pageSize) : 0;
 
@@ -50,15 +58,31 @@ export default function SuperadminAuditLogsPage() {
       <h1 className="text-xl font-semibold">Platform audit log</h1>
 
       <form
-        onSubmit={(e) => { e.preventDefault(); setPage(1); load(1); }}
+        onSubmit={(e) => {
+          e.preventDefault();
+          setPage(1);
+          load(1);
+        }}
         className="flex flex-wrap gap-2"
       >
-        <input type="text" value={actionFilter} onChange={(e) => setActionFilter(e.target.value)}
-          placeholder="Filter by action" className="rounded border border-input bg-background px-3 py-1.5 text-sm" />
-        <input type="text" value={targetTypeFilter} onChange={(e) => setTargetTypeFilter(e.target.value)}
-          placeholder="Target type (e.g. Reservation)" className="rounded border border-input bg-background px-3 py-1.5 text-sm" />
-        <button type="submit"
-          className="rounded bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground hover:opacity-90">
+        <input
+          type="text"
+          value={actionFilter}
+          onChange={(e) => setActionFilter(e.target.value)}
+          placeholder="Filter by action"
+          className="rounded border border-input bg-background px-3 py-1.5 text-sm"
+        />
+        <input
+          type="text"
+          value={targetTypeFilter}
+          onChange={(e) => setTargetTypeFilter(e.target.value)}
+          placeholder="Target type (e.g. Reservation)"
+          className="rounded border border-input bg-background px-3 py-1.5 text-sm"
+        />
+        <button
+          type="submit"
+          className="rounded bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground hover:opacity-90"
+        >
           Search
         </button>
       </form>
@@ -66,9 +90,11 @@ export default function SuperadminAuditLogsPage() {
       {error && <p className="text-sm text-destructive">{error}</p>}
 
       {loading && !data && (
-        <div className="space-y-2">{Array.from({ length: 10 }).map((_, i) => (
-          <div key={i} className="h-10 animate-pulse rounded bg-muted" />
-        ))}</div>
+        <div className="space-y-2">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <div key={i} className="h-10 animate-pulse rounded bg-muted" />
+          ))}
+        </div>
       )}
 
       {data && (
@@ -87,28 +113,46 @@ export default function SuperadminAuditLogsPage() {
               </thead>
               <tbody>
                 {data.items.length === 0 && (
-                  <tr><td colSpan={6} className="px-3 py-6 text-center text-muted-foreground">No events found.</td></tr>
+                  <tr>
+                    <td colSpan={6} className="px-3 py-6 text-center text-muted-foreground">
+                      No events found.
+                    </td>
+                  </tr>
                 )}
                 {data.items.map((log) => (
                   <>
                     <tr key={log.id} className="border-b hover:bg-muted/30">
                       <td className="px-3 py-2 text-xs text-muted-foreground">
-                        {new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit' }).format(new Date(log.createdAt))}
+                        {new Intl.DateTimeFormat(undefined, {
+                          month: 'short',
+                          day: 'numeric',
+                          hour: 'numeric',
+                          minute: '2-digit',
+                          second: '2-digit',
+                        }).format(new Date(log.createdAt))}
                       </td>
                       <td className="px-3 py-2 font-mono text-xs">{log.action}</td>
                       <td className="px-3 py-2 text-muted-foreground">
-                        {log.targetType} <span className="font-mono text-xs">{log.targetId.slice(0, 8)}…</span>
+                        {log.targetType}{' '}
+                        <span className="font-mono text-xs">{log.targetId.slice(0, 8)}…</span>
                       </td>
                       <td className="px-3 py-2">
-                        {log.actor ? <span title={log.actor.email}>{log.actor.fullName}</span> : <span className="text-muted-foreground">System</span>}
+                        {log.actor ? (
+                          <span title={log.actor.email}>{log.actor.fullName}</span>
+                        ) : (
+                          <span className="text-muted-foreground">System</span>
+                        )}
                       </td>
                       <td className="px-3 py-2 text-xs text-muted-foreground">
                         {log.salonId ? log.salonId.slice(0, 8) + '…' : '—'}
                       </td>
                       <td className="px-3 py-2">
                         {log.metadata && (
-                          <button type="button" onClick={() => setExpanded(expanded === log.id ? null : log.id)}
-                            className="text-xs text-primary underline">
+                          <button
+                            type="button"
+                            onClick={() => setExpanded(expanded === log.id ? null : log.id)}
+                            className="text-xs text-primary underline"
+                          >
                             {expanded === log.id ? 'hide' : 'meta'}
                           </button>
                         )}
@@ -117,7 +161,9 @@ export default function SuperadminAuditLogsPage() {
                     {expanded === log.id && log.metadata && (
                       <tr key={`${log.id}-meta`} className="border-b bg-muted/20">
                         <td colSpan={6} className="px-3 py-2">
-                          <pre className="overflow-x-auto text-xs">{JSON.stringify(log.metadata, null, 2)}</pre>
+                          <pre className="overflow-x-auto text-xs">
+                            {JSON.stringify(log.metadata, null, 2)}
+                          </pre>
                         </td>
                       </tr>
                     )}
@@ -129,11 +175,25 @@ export default function SuperadminAuditLogsPage() {
 
           {totalPages > 1 && (
             <div className="flex items-center justify-between text-sm">
-              <button type="button" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}
-                className="text-primary underline disabled:opacity-40">← Previous</button>
-              <span className="text-muted-foreground">Page {page} of {totalPages} · {data.total} events</span>
-              <button type="button" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages}
-                className="text-primary underline disabled:opacity-40">Next →</button>
+              <button
+                type="button"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1}
+                className="text-primary underline disabled:opacity-40"
+              >
+                ← Previous
+              </button>
+              <span className="text-muted-foreground">
+                Page {page} of {totalPages} · {data.total} events
+              </span>
+              <button
+                type="button"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+                className="text-primary underline disabled:opacity-40"
+              >
+                Next →
+              </button>
             </div>
           )}
         </>

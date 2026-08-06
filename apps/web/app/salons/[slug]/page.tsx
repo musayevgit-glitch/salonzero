@@ -47,7 +47,15 @@ const GENDER_FOCUS_LABEL: Record<string, string> = {
   UNISEX: 'Unisex',
 };
 
-const WEEKDAY_LABEL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const WEEKDAY_LABEL = [
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+];
 
 function formatMinuteOfDay(minutes: number): string {
   const hours24 = Math.floor(minutes / 60);
@@ -58,7 +66,9 @@ function formatMinuteOfDay(minutes: number): string {
 }
 
 function formatMoney(amountMinorUnits: number, currency: string): string {
-  return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(amountMinorUnits / 100);
+  return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(
+    amountMinorUnits / 100,
+  );
 }
 
 async function loadSalon(slug: string): Promise<SalonDetail | null> {
@@ -86,17 +96,21 @@ export async function generateMetadata({
 
 function ServiceRow({ service, slug }: { service: PublicService; slug: string }) {
   return (
-    <li className="flex items-center justify-between gap-4 py-2">
-      <div>
+    <li className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+      <div className="min-w-0">
         <p className="font-medium text-text-primary">{service.name}</p>
-        {service.description ? <p className="text-sm text-text-secondary">{service.description}</p> : null}
+        {service.description ? (
+          <p className="text-sm text-text-secondary">{service.description}</p>
+        ) : null}
         <p className="text-sm text-text-secondary">{service.durationMinutes} min</p>
       </div>
-      <div className="flex shrink-0 items-center gap-3">
-        <p className="font-medium text-text-primary">{formatMoney(service.priceAmount, service.currency)}</p>
+      <div className="flex shrink-0 items-center justify-between gap-3 sm:justify-end">
+        <p className="font-medium text-text-primary">
+          {formatMoney(service.priceAmount, service.currency)}
+        </p>
         <a
           href={`/salons/${slug}/book/service`}
-          className="rounded-[var(--radius-sm)] border border-accent px-3 py-1 text-xs font-medium text-accent hover:bg-accent/5"
+          className="inline-flex min-h-9 items-center rounded-[var(--radius-sm)] border border-accent px-3 text-xs font-medium text-accent hover:bg-accent/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
         >
           Book
         </a>
@@ -118,7 +132,9 @@ export default async function SalonDetailPage({ params }: { params: Promise<{ sl
       <PublicShell isAuthenticated={isAuthenticated}>
         <ErrorState
           title="Couldn't load this salon"
-          description={salonResult instanceof PublicApiError ? salonResult.message : 'Something went wrong.'}
+          description={
+            salonResult instanceof PublicApiError ? salonResult.message : 'Something went wrong.'
+          }
         />
       </PublicShell>
     );
@@ -139,7 +155,9 @@ export default async function SalonDetailPage({ params }: { params: Promise<{ sl
               <Badge>{GENDER_FOCUS_LABEL[salon.genderFocus] ?? salon.genderFocus}</Badge>
             ) : null}
           </div>
-          {salon.description ? <p className="mt-2 text-text-secondary">{salon.description}</p> : null}
+          {salon.description ? (
+            <p className="mt-2 text-text-secondary">{salon.description}</p>
+          ) : null}
         </div>
 
         <Card>
@@ -202,8 +220,8 @@ export default async function SalonDetailPage({ params }: { params: Promise<{ sl
                   : 'Reservations require salon confirmation before they are final.'}
               </li>
               <li>
-                Cancellations accepted up to {salon.bookingPolicySummary.cancellationWindowHours} hours
-                before the appointment.
+                Cancellations accepted up to {salon.bookingPolicySummary.cancellationWindowHours}{' '}
+                hours before the appointment.
               </li>
               <li>
                 Reschedules accepted up to {salon.bookingPolicySummary.rescheduleWindowHours} hours
@@ -252,7 +270,9 @@ export default async function SalonDetailPage({ params }: { params: Promise<{ sl
               {salon.employees.map((employee) => (
                 <div key={employee.id}>
                   <p className="font-medium text-text-primary">{employee.fullName}</p>
-                  {employee.bio ? <p className="text-sm text-text-secondary">{employee.bio}</p> : null}
+                  {employee.bio ? (
+                    <p className="text-sm text-text-secondary">{employee.bio}</p>
+                  ) : null}
                   {employee.portfolio.length > 0 ? (
                     <div className="mt-2 grid grid-cols-3 gap-2">
                       {employee.portfolio.map((item) => (
@@ -281,7 +301,7 @@ export default async function SalonDetailPage({ params }: { params: Promise<{ sl
         <div className="fixed inset-x-0 bottom-0 border-t border-border bg-surface-raised p-4 shadow-[var(--shadow-md)] lg:hidden">
           <a
             href={`/salons/${salon.slug}/book/service`}
-            className="flex min-h-11 w-full items-center justify-center rounded-[var(--radius-sm)] bg-accent px-4 text-sm font-medium text-white"
+            className="flex min-h-11 w-full items-center justify-center rounded-[var(--radius-sm)] bg-accent px-4 text-sm font-medium text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
           >
             Book now
           </a>
@@ -289,7 +309,7 @@ export default async function SalonDetailPage({ params }: { params: Promise<{ sl
         <div className="hidden lg:block">
           <a
             href={`/salons/${salon.slug}/book/service`}
-            className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-sm)] bg-accent px-6 text-sm font-medium text-white"
+            className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-sm)] bg-accent px-6 text-sm font-medium text-white hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring active:opacity-80"
           >
             Book now
           </a>

@@ -112,7 +112,8 @@ export default function SalonReservationsPage() {
       weekEnd.setDate(weekStart.getDate() + 7);
       return { from: weekStart, to: weekEnd };
     }
-    const dayStart = viewMode === 'today' ? startOfLocalDay(toLocalDateInput(new Date())) : reference;
+    const dayStart =
+      viewMode === 'today' ? startOfLocalDay(toLocalDateInput(new Date())) : reference;
     const dayEnd = new Date(dayStart);
     dayEnd.setDate(dayStart.getDate() + 1);
     return { from: dayStart, to: dayEnd };
@@ -171,10 +172,13 @@ export default function SalonReservationsPage() {
     setActionBusyId(reservationId);
     setBanner(null);
     try {
-      await apiFetch(`/salons/${salonId}/reservations/${reservationId}/${QUICK_ACTION[action].path}`, {
-        method: 'POST',
-        body: JSON.stringify({}),
-      });
+      await apiFetch(
+        `/salons/${salonId}/reservations/${reservationId}/${QUICK_ACTION[action].path}`,
+        {
+          method: 'POST',
+          body: JSON.stringify({}),
+        },
+      );
       load();
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
@@ -206,7 +210,8 @@ export default function SalonReservationsPage() {
 
   const items = state.kind === 'ready' ? state.data.items : [];
   const total = state.kind === 'ready' ? state.data.total : 0;
-  const pageCount = state.kind === 'ready' ? Math.max(1, Math.ceil(total / state.data.pageSize)) : 1;
+  const pageCount =
+    state.kind === 'ready' ? Math.max(1, Math.ceil(total / state.data.pageSize)) : 1;
 
   return (
     <main className="flex flex-col gap-6 p-8">
@@ -326,13 +331,23 @@ export default function SalonReservationsPage() {
                 header: 'Customer',
                 render: (r: ReservationListItem) => r.customer.fullName,
               },
-              { key: 'service', header: 'Service', render: (r: ReservationListItem) => r.service.name },
-              { key: 'stylist', header: 'Stylist', render: (r: ReservationListItem) => r.employee.fullName },
+              {
+                key: 'service',
+                header: 'Service',
+                render: (r: ReservationListItem) => r.service.name,
+              },
+              {
+                key: 'stylist',
+                header: 'Stylist',
+                render: (r: ReservationListItem) => r.employee.fullName,
+              },
               {
                 key: 'status',
                 header: 'Status',
                 render: (r: ReservationListItem) => (
-                  <Badge tone={STATUS_TONE[r.status] ?? 'neutral'}>{STATUS_LABEL[r.status] ?? r.status}</Badge>
+                  <Badge tone={STATUS_TONE[r.status] ?? 'neutral'}>
+                    {STATUS_LABEL[r.status] ?? r.status}
+                  </Badge>
                 ),
               },
               {

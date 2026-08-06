@@ -51,8 +51,7 @@ export default function StylistStep() {
 
         {selectedService && (
           <p className="mt-1 text-sm text-text-secondary">
-            For:{' '}
-            <span className="font-medium text-text-primary">{selectedService.name}</span>
+            For: <span className="font-medium text-text-primary">{selectedService.name}</span>
           </p>
         )}
 
@@ -86,9 +85,7 @@ export default function StylistStep() {
               }`}
             >
               <p className="font-medium text-text-primary">{employee.fullName}</p>
-              {employee.bio && (
-                <p className="mt-0.5 text-sm text-text-secondary">{employee.bio}</p>
-              )}
+              {employee.bio && <p className="mt-0.5 text-sm text-text-secondary">{employee.bio}</p>}
             </button>
           ))}
 

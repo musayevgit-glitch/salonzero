@@ -5,6 +5,7 @@
 ### Automated backups (managed Postgres)
 
 If using a managed service (Neon, Supabase, RDS, etc.), enable point-in-time recovery (PITR) with:
+
 - Continuous WAL archiving
 - Retention: 7 days minimum, 30 days recommended
 - Daily snapshot to separate region
@@ -37,6 +38,7 @@ pnpm --filter @salonomia/database exec prisma migrate deploy
 ### Restore test
 
 Perform a restore test monthly:
+
 1. Restore last backup to a staging DB.
 2. Run `pnpm --filter @salonomia/api test` against the restored DB.
 3. Verify row counts match production snapshot.

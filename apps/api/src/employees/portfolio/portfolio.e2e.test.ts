@@ -259,8 +259,7 @@ describe('employee portfolio upload/confirm', () => {
   });
 
   it('does not let an upload token overwrite an approved image after confirm', async () => {
-    const { salon, agent, csrfToken, employee } =
-      await createSalonAndAdminAndEmployee('pf-replay');
+    const { salon, agent, csrfToken, employee } = await createSalonAndAdminAndEmployee('pf-replay');
     const upload = await requestPortfolioUpload(agent, csrfToken, salon.id, employee.id);
 
     const putRes = await agent

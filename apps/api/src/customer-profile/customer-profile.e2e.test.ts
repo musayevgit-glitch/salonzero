@@ -59,7 +59,12 @@ describe('GET /customer/profile', () => {
     const { agent } = await registerUser(email);
     const res = await agent.get('/customer/profile');
     expect(res.status).toBe(200);
-    expect(res.body).toMatchObject({ email, fullName: 'Profile Test', phone: null, marketingConsent: false });
+    expect(res.body).toMatchObject({
+      email,
+      fullName: 'Profile Test',
+      phone: null,
+      marketingConsent: false,
+    });
     expect(res.body).not.toHaveProperty('passwordHash');
     expect(res.body).not.toHaveProperty('isSuperadmin');
   });
@@ -80,13 +85,19 @@ describe('PATCH /customer/profile', () => {
   });
 
   it('updates allowlisted fields and audits the change', async () => {
-    const { agent, csrfToken, userId } = await registerUser(`profile-update-${randomUUID()}@example.com`);
+    const { agent, csrfToken, userId } = await registerUser(
+      `profile-update-${randomUUID()}@example.com`,
+    );
     const res = await agent
       .patch('/customer/profile')
       .set('x-csrf-token', csrfToken)
       .send({ fullName: 'New Name', phone: '+1 555 0100', marketingConsent: true });
     expect(res.status).toBe(200);
-    expect(res.body).toMatchObject({ fullName: 'New Name', phone: '+1 555 0100', marketingConsent: true });
+    expect(res.body).toMatchObject({
+      fullName: 'New Name',
+      phone: '+1 555 0100',
+      marketingConsent: true,
+    });
 
     const stored = await prisma.user.findUnique({ where: { id: userId } });
     expect(stored?.fullName).toBe('New Name');
@@ -103,7 +114,10 @@ describe('PATCH /customer/profile', () => {
       .patch('/customer/profile')
       .set('x-csrf-token', csrfToken)
       .send({ phone: '+1 555 0100' });
-    const res = await agent.patch('/customer/profile').set('x-csrf-token', csrfToken).send({ phone: null });
+    const res = await agent
+      .patch('/customer/profile')
+      .set('x-csrf-token', csrfToken)
+      .send({ phone: null });
     expect(res.status).toBe(200);
     expect(res.body.phone).toBeNull();
   });

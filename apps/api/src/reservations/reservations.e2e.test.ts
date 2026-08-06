@@ -232,15 +232,12 @@ describe('POST /reservations (customer booking creation)', () => {
 
   it('resolves "any suitable stylist" when employeeId is omitted', async () => {
     const { salon, service, employee, agent, csrfToken } = await setup('res-any-stylist');
-    const res = await agent
-      .post('/reservations')
-      .set('x-csrf-token', csrfToken)
-      .send({
-        salonId: salon.id,
-        serviceId: service.id,
-        startAt: SLOT_START,
-        idempotencyKey: randomUUID(),
-      });
+    const res = await agent.post('/reservations').set('x-csrf-token', csrfToken).send({
+      salonId: salon.id,
+      serviceId: service.id,
+      startAt: SLOT_START,
+      idempotencyKey: randomUUID(),
+    });
     expect(res.status).toBe(201);
     expect(res.body.employeeId).toBe(employee.id);
   });
@@ -271,15 +268,12 @@ describe('POST /reservations (customer booking creation)', () => {
   it('rejects an inactive service', async () => {
     const { salon, service, agent, csrfToken } = await setup('res-inactivesvc');
     await prisma.service.update({ where: { id: service.id }, data: { isActive: false } });
-    const res = await agent
-      .post('/reservations')
-      .set('x-csrf-token', csrfToken)
-      .send({
-        salonId: salon.id,
-        serviceId: service.id,
-        startAt: SLOT_START,
-        idempotencyKey: randomUUID(),
-      });
+    const res = await agent.post('/reservations').set('x-csrf-token', csrfToken).send({
+      salonId: salon.id,
+      serviceId: service.id,
+      startAt: SLOT_START,
+      idempotencyKey: randomUUID(),
+    });
     expect(res.status).toBe(400);
   });
 
@@ -345,15 +339,12 @@ describe('POST /reservations (customer booking creation)', () => {
     const { agent, csrfToken } = await registerCustomer(
       `res-noone-cust-${randomUUID()}@example.com`,
     );
-    const res = await agent
-      .post('/reservations')
-      .set('x-csrf-token', csrfToken)
-      .send({
-        salonId: salon.id,
-        serviceId: service.id,
-        startAt: SLOT_START,
-        idempotencyKey: randomUUID(),
-      });
+    const res = await agent.post('/reservations').set('x-csrf-token', csrfToken).send({
+      salonId: salon.id,
+      serviceId: service.id,
+      startAt: SLOT_START,
+      idempotencyKey: randomUUID(),
+    });
     expect(res.status).toBe(400);
   });
 
@@ -411,15 +402,12 @@ describe('POST /reservations (customer booking creation)', () => {
 
   it('rejects malformed/boundary input', async () => {
     const { salon, service, agent, csrfToken } = await setup('res-malformed');
-    const badUuid = await agent
-      .post('/reservations')
-      .set('x-csrf-token', csrfToken)
-      .send({
-        salonId: 'not-a-uuid',
-        serviceId: service.id,
-        startAt: SLOT_START,
-        idempotencyKey: randomUUID(),
-      });
+    const badUuid = await agent.post('/reservations').set('x-csrf-token', csrfToken).send({
+      salonId: 'not-a-uuid',
+      serviceId: service.id,
+      startAt: SLOT_START,
+      idempotencyKey: randomUUID(),
+    });
     expect(badUuid.status).toBe(400);
 
     const missingIdempotency = await agent
@@ -428,15 +416,12 @@ describe('POST /reservations (customer booking creation)', () => {
       .send({ salonId: salon.id, serviceId: service.id, startAt: SLOT_START });
     expect(missingIdempotency.status).toBe(400);
 
-    const badDate = await agent
-      .post('/reservations')
-      .set('x-csrf-token', csrfToken)
-      .send({
-        salonId: salon.id,
-        serviceId: service.id,
-        startAt: 'not-a-date',
-        idempotencyKey: randomUUID(),
-      });
+    const badDate = await agent.post('/reservations').set('x-csrf-token', csrfToken).send({
+      salonId: salon.id,
+      serviceId: service.id,
+      startAt: 'not-a-date',
+      idempotencyKey: randomUUID(),
+    });
     expect(badDate.status).toBe(400);
   });
 

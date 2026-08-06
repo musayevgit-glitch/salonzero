@@ -56,7 +56,6 @@ export default function SalonReportsPage() {
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -65,11 +64,16 @@ export default function SalonReportsPage() {
 
       {/* Date range filter */}
       <form
-        onSubmit={(e) => { e.preventDefault(); load(); }}
+        onSubmit={(e) => {
+          e.preventDefault();
+          load();
+        }}
         className="flex flex-wrap items-end gap-3"
       >
         <div className="flex flex-col gap-1">
-          <label htmlFor="from" className="text-xs font-medium text-muted-foreground">From</label>
+          <label htmlFor="from" className="text-xs font-medium text-muted-foreground">
+            From
+          </label>
           <input
             id="from"
             type="date"
@@ -80,7 +84,9 @@ export default function SalonReportsPage() {
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label htmlFor="to" className="text-xs font-medium text-muted-foreground">To</label>
+          <label htmlFor="to" className="text-xs font-medium text-muted-foreground">
+            To
+          </label>
           <input
             id="to"
             type="date"
@@ -116,12 +122,13 @@ export default function SalonReportsPage() {
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             <KpiCard label="Total reservations" value={String(report.total)} />
             {Object.entries(report.revenue).map(([currency, amount]) => (
-              <KpiCard key={currency} label={`Revenue (${currency})`} value={formatMoney(amount, currency)} />
+              <KpiCard
+                key={currency}
+                label={`Revenue (${currency})`}
+                value={formatMoney(amount, currency)}
+              />
             ))}
-            <KpiCard
-              label="Completed"
-              value={String(report.byStatus['COMPLETED'] ?? 0)}
-            />
+            <KpiCard label="Completed" value={String(report.byStatus['COMPLETED'] ?? 0)} />
             <KpiCard
               label="Cancellations"
               value={String(
@@ -137,7 +144,9 @@ export default function SalonReportsPage() {
             <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {Object.entries(report.byStatus).map(([status, count]) => (
                 <div key={status} className="flex flex-col">
-                  <dt className="text-xs text-muted-foreground">{STATUS_LABEL[status] ?? status}</dt>
+                  <dt className="text-xs text-muted-foreground">
+                    {STATUS_LABEL[status] ?? status}
+                  </dt>
                   <dd className="text-lg font-semibold">{count}</dd>
                 </div>
               ))}

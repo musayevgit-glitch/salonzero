@@ -207,8 +207,13 @@ export default function ReservationDetailPage({
   if (error || !reservation) {
     return (
       <div>
-        <p className="text-sm text-red-600 dark:text-red-400">{error ?? 'Reservation not found.'}</p>
-        <Link href="/account/reservations" className="mt-3 inline-block text-sm text-accent underline">
+        <p className="text-sm text-red-600 dark:text-red-400">
+          {error ?? 'Reservation not found.'}
+        </p>
+        <Link
+          href="/account/reservations"
+          className="mt-3 inline-block text-sm text-accent underline"
+        >
           ← Back to reservations
         </Link>
       </div>
@@ -216,28 +221,28 @@ export default function ReservationDetailPage({
   }
 
   const dates = reservation.canReschedule
-    ? buildDates(
-        reservation.salon.timezone,
-        reservation.salon.bookingPolicy ? 90 : 30,
-      )
+    ? buildDates(reservation.salon.timezone, reservation.salon.bookingPolicy ? 90 : 30)
     : [];
 
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <Link href="/account/reservations" className="text-sm text-text-secondary hover:text-text-primary">
+        <Link
+          href="/account/reservations"
+          className="text-sm text-text-secondary hover:text-text-primary"
+        >
           ← My reservations
         </Link>
-        <h1 className="mt-2 text-xl font-semibold text-text-primary">
-          {reservation.service.name}
-        </h1>
+        <h1 className="mt-2 text-xl font-semibold text-text-primary">{reservation.service.name}</h1>
         <p className="text-sm text-text-secondary">{reservation.salon.name}</p>
       </div>
 
       <dl className="flex flex-col gap-3 rounded-[var(--radius-sm)] border border-border bg-surface-raised p-4 text-sm">
         <div className="flex justify-between gap-4">
           <dt className="text-text-secondary">Status</dt>
-          <dd className="font-medium text-text-primary">{STATUS_LABEL[reservation.status] ?? reservation.status}</dd>
+          <dd className="font-medium text-text-primary">
+            {STATUS_LABEL[reservation.status] ?? reservation.status}
+          </dd>
         </div>
         <div className="flex justify-between gap-4">
           <dt className="text-text-secondary">Date &amp; time</dt>

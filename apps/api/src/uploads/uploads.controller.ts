@@ -35,7 +35,12 @@ async function readRequestBodyWithLimit(
 }
 
 function safeInlineFilename(objectKey: string): string {
-  return objectKey.split('/').pop()?.replace(/[^a-zA-Z0-9._-]/g, '_') ?? 'image';
+  return (
+    objectKey
+      .split('/')
+      .pop()
+      ?.replace(/[^a-zA-Z0-9._-]/g, '_') ?? 'image'
+  );
 }
 
 // Serves as the "S3" endpoint for the local storage driver only (see ADR-0008) — real S3 uploads/

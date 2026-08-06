@@ -19,6 +19,11 @@ import { TransitionsService } from './transitions.service';
     CustomerTransitionsController,
     CustomerReservationsController,
   ],
-  providers: [ReservationsService, StaffReservationsService, TransitionsService, CustomerReservationsService],
+  providers: [
+    ReservationsService,
+    StaffReservationsService,
+    TransitionsService,
+    CustomerReservationsService,
+  ],
 })
 export class ReservationsModule {}

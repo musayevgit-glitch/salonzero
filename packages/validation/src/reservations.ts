@@ -61,7 +61,9 @@ export type RescheduleReservationInput = z.infer<typeof rescheduleReservationSch
 export const customerRescheduleReservationSchema = z
   .object({ startAt: z.string().datetime() })
   .strict();
-export type CustomerRescheduleReservationInput = z.infer<typeof customerRescheduleReservationSchema>;
+export type CustomerRescheduleReservationInput = z.infer<
+  typeof customerRescheduleReservationSchema
+>;
 
 const RESERVATION_STATUS_VALUES = [
   'PENDING',

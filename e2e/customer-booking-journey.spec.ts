@@ -31,14 +31,18 @@ test.describe('unauthenticated discovery and booking start', () => {
     await expect(page.getByRole('heading', { name: /choose a service/i })).toBeVisible();
   });
 
-  test('navigating directly to stylist step without a service redirects to service step', async ({ page }) => {
+  test('navigating directly to stylist step without a service redirects to service step', async ({
+    page,
+  }) => {
     // Clear session storage to simulate fresh visit
     await page.goto(`/salons/${SEED_SLUG}/book/stylist`);
     // Should redirect back to service
     await expect(page).toHaveURL(/\/book\/service$/);
   });
 
-  test('navigating directly to summary step without full draft redirects correctly', async ({ page }) => {
+  test('navigating directly to summary step without full draft redirects correctly', async ({
+    page,
+  }) => {
     await page.goto(`/salons/${SEED_SLUG}/book/summary`);
     // No draft in sessionStorage → redirects to service
     await expect(page).toHaveURL(/\/book\/(service|datetime)$/);
@@ -81,7 +85,10 @@ test.describe('full booking journey (authenticated customer)', () => {
     // Step 3 — Date & Time
     await expect(page).toHaveURL(/\/book\/datetime$/);
     // Pick the first available date tab
-    const dateBtn = page.locator('button[aria-label], button').filter({ hasText: /^[A-Z][a-z]{2}\s*\d+$/ }).first();
+    const dateBtn = page
+      .locator('button[aria-label], button')
+      .filter({ hasText: /^[A-Z][a-z]{2}\s*\d+$/ })
+      .first();
     await expect(dateBtn).toBeVisible({ timeout: 5000 });
     await dateBtn.click();
     // Wait for slots to appear and click the first one
@@ -94,7 +101,9 @@ test.describe('full booking journey (authenticated customer)', () => {
     await expect(page.getByRole('heading', { name: /review your booking/i })).toBeVisible();
     await expect(page.getByText(/haircut/i)).toBeVisible();
     // Not yet logged in → see Login CTA
-    await expect(page.getByRole('button', { name: /log in to confirm/i })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('button', { name: /log in to confirm/i })).toBeVisible({
+      timeout: 5000,
+    });
     await page.getByRole('button', { name: /log in to confirm/i }).click();
 
     // Step 5 — Login (with returnTo back to confirm)

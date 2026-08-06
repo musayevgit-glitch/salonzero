@@ -1,6 +1,15 @@
 'use client';
 
-import { Alert, Button, Card, Checkbox, ErrorState, FormField, Input, Skeleton } from '@salonomia/ui';
+import {
+  Alert,
+  Button,
+  Card,
+  Checkbox,
+  ErrorState,
+  FormField,
+  Input,
+  Skeleton,
+} from '@salonomia/ui';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { apiFetch, ApiError } from '../../lib/api-client';
@@ -70,7 +79,9 @@ export default function AccountProfilePage() {
         router.replace('/login?returnTo=/account');
         return;
       }
-      setSaveError(err instanceof ApiError ? err.message : 'Something went wrong. Please try again.');
+      setSaveError(
+        err instanceof ApiError ? err.message : 'Something went wrong. Please try again.',
+      );
     } finally {
       setSaving(false);
     }

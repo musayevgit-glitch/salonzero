@@ -22,7 +22,8 @@ export class StaffReservationsController {
   @Get()
   list(
     @CurrentSalonContext() ctx: SalonContext,
-    @Query(new ZodValidationPipe(listSalonReservationsQuerySchema)) query: ListSalonReservationsQuery,
+    @Query(new ZodValidationPipe(listSalonReservationsQuerySchema))
+    query: ListSalonReservationsQuery,
   ) {
     return this.reservationsService.list(ctx.salonId, query);
   }
