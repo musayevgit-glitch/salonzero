@@ -1258,6 +1258,67 @@ Findings: none. No fixes required.
 Next: Section 17 — Customer Public Website (not started; awaiting explicit instruction per this
 project's one-milestone-at-a-time discipline)
 
+## Section 17.1-17.3 — Customer Public Website (discovery, salon detail, profile shell)
+
+Status: done. First public (no-auth) surface in the product, plus the CUSTOMER account shell.
+Backend: `GET /public/salons` and `GET /public/salons/:slug` (new `PublicModule`, no guards at all —
+the one deliberately unauthenticated read surface), scoped to `status: 'ACTIVE'` salons/services/
+employees only, returning only fields docs/security/data-classification.md marks Public. List
+supports search (name/city), city, genderFocus, price-range filter (has an active service in range),
+and name/newest sort — "rating" and true price-sort/availability filters are deferred (no Review
+model exists, and per-salon real-time availability filtering is its own architecture decision), same
+pattern as prior schema-gap deferrals. Detail returns services grouped by category (+ uncategorized),
+active employees with resolved portfolio image URLs (reusing the existing signed-URL storage
+adapter), a booking-policy summary, and an *approximate* opening-hours computation (union of active
+employees' WorkingSchedule blocks per weekday — there's no dedicated salon-hours model, documented as
+an approximation, not authoritative). Also added `GET /auth/my-salons`-style self-service:
+`GET/PATCH /customer/profile` (new `CustomerProfileModule`) — field-allowlisted (`fullName`/`phone`/
+`marketingConsent`; email excluded, needs its own re-verification flow) update of the caller's own
+`User` row, identity always from the session.
+Frontend (`apps/web`): home page (`/`) is the discovery listing — Server Component, GET-based filter
+form (zero client JS for filtering/pagination, satisfying "minimal client JavaScript"), salon cards,
+loading/empty/error states (`loading.tsx` + inline `ErrorState`/`EmptyState`). Salon detail
+(`/salons/[slug]`) — Server Component with `generateMetadata` for SEO, contact/location, computed
+opening hours, booking-policy summary, service catalog, stylist catalog with portfolio grid (plain
+`<img loading="lazy">`, not `next/image`, since portfolio URLs are short-lived signed/presigned URLs
+that rotate every fetch — documented in code), sticky mobile "Book now" bar (anchors to the services
+section; the real booking flow is Section 18, not built yet). Account shell: new `/account/layout.tsx`
+(responsive account nav, ready for a "Reservations" tab in 18.6) wraps the rewritten `/account/page.tsx`
+(profile editing form — loading/error/success/session-expired states, disabled-while-saving).
+Commit: pending (this task).
+Tests: 9 new e2e tests (`public-salons.e2e.test.ts` — no-auth-required, ACTIVE-only, exact public
+field shape, city/genderFocus/price filters, sort, pagination, forbidden query params, suspended/
+nonexistent-slug 404, full detail shape incl. category grouping + resolved portfolio URLs + no
+employee-contact-data leakage) + 8 new e2e tests (`customer-profile.e2e.test.ts` — unauthenticated
+401 on both routes, own-profile-only fields, allowlisted update + audit row, explicit-null clears
+phone, empty-body rejected, mass-assignment rejected, cross-user isolation confirmed). 10 new schema
+tests across `public-salons.test.ts`/`customer-profile.test.ts`. `apps/api` total: 307 passing tests.
+Full repo gate (lint/typecheck/test) green; `apps/web` and `apps/dashboard` builds verified clean
+individually (the known concurrent-turbo-build `<Html>`/`_document` flake noted in Section 16.1 is
+unrelated and unchanged).
+Verification beyond the test suite: full real-browser walkthrough — seeded two real salons (with
+categorized/uncategorized services, an employee with a real portfolio image and working schedule) via
+the compiled API, browsed the discovery list, filtered by search, opened the detail page and confirmed
+computed opening hours/grouped services/stylist bio/sticky mobile CTA render correctly at both desktop
+and 375px, then registered a real customer account (redirects straight to the account profile shell),
+edited full name/phone/marketing-consent, confirmed the success state, and confirmed the change
+persisted across a reload — all against real Postgres, not mocked.
+Security/tenant checks: every public field is drawn from the explicit Public tier in
+docs/security/data-classification.md; suspended salons and inactive services/employees are excluded
+at the query level (never filtered client-side); the suspended-salon detail test confirms identical
+404 behavior to a nonexistent slug (no existence leakage); customer-profile mass assignment is
+blocked at the schema layer (`.strict()`) and updates are written field-by-field, never a body spread;
+cross-user profile isolation verified directly (one user's PATCH never touches another's row).
+Risks: (1) Approximate opening hours and the deferred rating/price-sort/availability filters are
+documented simplifications, not silent gaps — call out explicitly if a stakeholder expects true
+real-time availability filtering on the discovery list; that needs its own architecture decision (raw
+query or denormalized column, plus a cost/consistency tradeoff for running the availability engine
+per listed salon). (2) The sticky "Book now" CTA currently just anchors to the services section since
+Section 18 (the actual booking flow) doesn't exist yet — trivial to repoint once it does. (3) Section
+11.5 (domain/subdomain management) and salon-wide closures (open decision #6) remain deferred,
+unrelated to this slice.
+Next: Section 18 — Customer Booking UI (not started; awaiting explicit instruction)
+
 ## Blockers / environment notes
 
 - Docker is not installed in this environment; resolved by using the existing Postgres.app (PG 18)

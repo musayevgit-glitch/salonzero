@@ -10,3 +10,5 @@ export * from './reservations';
 export * from './portfolio';
 export * from './service-categories';
 export * from './services';
+export * from './public-salons';
+export * from './customer-profile';

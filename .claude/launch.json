@@ -6,6 +6,12 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "@salonomia/dashboard", "dev"],
       "port": 3001
+    },
+    {
+      "name": "web",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@salonomia/web", "dev"],
+      "port": 3000
     }
   ]
 }
