@@ -426,6 +426,37 @@ describe('POST /reservations (customer booking creation)', () => {
     expect(count).toBe(1);
   });
 
+  it('is idempotent under a real concurrent replay of the same key — never a raw 500, never two reservations', async () => {
+    const { salon, service, employee, agent, csrfToken } = await setup('res-idempotent-race');
+    const idempotencyKey = randomUUID();
+    const body = {
+      salonId: salon.id,
+      serviceId: service.id,
+      employeeId: employee.id,
+      startAt: SLOT_START,
+      idempotencyKey,
+    };
+
+    // The pre-transaction idempotency lookup runs before either request's transaction starts, so
+    // two truly concurrent replays (identical body — same slot, same key) can both pass it. The
+    // loser's insert then violates the DB's unique index on (customerId, idempotencyKey) — and,
+    // since a true replay targets the same employee/slot, very likely the overlap EXCLUDE
+    // constraint too. Whichever the DB reports, the loser must resolve to a clean 201/409, never
+    // an unhandled 500 (the regression this test guards against: a raw P2002 with no matching
+    // catch branch used to bubble up as an uncaught 500).
+    const [first, second] = await Promise.all([
+      agent.post('/reservations').set('x-csrf-token', csrfToken).send(body),
+      agent.post('/reservations').set('x-csrf-token', csrfToken).send(body),
+    ]);
+
+    const statuses = [first.status, second.status].sort();
+    expect(statuses[0]).toBe(201);
+    expect([201, 409]).toContain(statuses[1]);
+
+    const count = await prisma.reservation.count({ where: { employeeId: employee.id } });
+    expect(count).toBe(1);
+  });
+
   it('prevents double-booking under real concurrent requests — exactly one succeeds', async () => {
     const { salon, service, employee, agent, csrfToken } = await setup('res-concurrency');
     const { agent: otherAgent, csrfToken: otherCsrf } = await registerCustomer(

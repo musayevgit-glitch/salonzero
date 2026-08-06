@@ -28,11 +28,7 @@ function isMissingRecord(err: unknown): boolean {
 
 function isExclusionConstraintViolation(err: unknown): boolean {
   const message = err instanceof Error ? err.message : String(err);
-  return (
-    message.includes('reservation_no_overlap_per_employee') ||
-    message.includes('exclusion') ||
-    message.includes('23P01')
-  );
+  return message.includes('reservation_no_overlap_per_employee');
 }
 
 @Injectable()
@@ -74,8 +70,15 @@ export class TransitionsService {
     reason?: string,
   ): Promise<ReservationDetail> {
     const current = await this.findForStaff(salonId, reservationId);
-    this.assertNotTerminal(current.status);
-    return this.applyStatus(current, 'CANCELLED_BY_SALON', actorUserId, 'reservation.cancelled_by_salon', reason);
+    this.assertCancellableOrReschedulable(current.status);
+    return this.applyStatus(
+      current,
+      'CANCELLED_BY_SALON',
+      actorUserId,
+      'reservation.cancelled_by_salon',
+      reason,
+      { cancelledAt: new Date() },
+    );
   }
 
   async checkIn(salonId: string, reservationId: string, actorUserId: string): Promise<ReservationDetail> {
@@ -115,7 +118,7 @@ export class TransitionsService {
     newEmployeeId?: string,
   ): Promise<ReservationDetail> {
     const current = await this.findForStaff(salonId, reservationId);
-    this.assertNotTerminal(current.status);
+    this.assertCancellableOrReschedulable(current.status);
     return this.reschedule(current, newStartAt, newEmployeeId, actorUserId, null);
   }
 
@@ -127,7 +130,7 @@ export class TransitionsService {
     reason?: string,
   ): Promise<ReservationDetail> {
     const current = await this.findForCustomer(customerId, reservationId);
-    this.assertNotTerminal(current.status);
+    this.assertCancellableOrReschedulable(current.status);
 
     const policy = await this.prisma.bookingPolicy.findUnique({ where: { salonId: current.salonId } });
     const windowHours = policy?.cancellationWindowHours ?? 24;
@@ -136,7 +139,14 @@ export class TransitionsService {
       throw new ConflictException('This reservation can no longer be cancelled online.');
     }
 
-    return this.applyStatus(current, 'CANCELLED_BY_CUSTOMER', customerId, 'reservation.cancelled_by_customer', reason);
+    return this.applyStatus(
+      current,
+      'CANCELLED_BY_CUSTOMER',
+      customerId,
+      'reservation.cancelled_by_customer',
+      reason,
+      { cancelledAt: new Date() },
+    );
   }
 
   async rescheduleByCustomer(
@@ -145,7 +155,7 @@ export class TransitionsService {
     newStartAt: Date,
   ): Promise<ReservationDetail> {
     const current = await this.findForCustomer(customerId, reservationId);
-    this.assertNotTerminal(current.status);
+    this.assertCancellableOrReschedulable(current.status);
 
     const policy = await this.prisma.bookingPolicy.findUnique({ where: { salonId: current.salonId } });
     const windowHours = policy?.rescheduleWindowHours ?? 24;
@@ -159,10 +169,13 @@ export class TransitionsService {
 
   // ---- shared internals --------------------------------------------------------------------
 
-  private assertNotTerminal(status: string): void {
-    const terminal = ['REJECTED', 'CANCELLED_BY_CUSTOMER', 'CANCELLED_BY_SALON', 'COMPLETED', 'NO_SHOW'];
-    if (terminal.includes(status)) {
-      throw new ConflictException('This reservation has already reached a final state.');
+  // Cancellation and reschedule are only legal from PENDING/CONFIRMED per the state machine —
+  // CHECKED_IN is non-terminal but must not be cancellable/reschedulable (an in-progress
+  // appointment can only end via complete/no-show), so this is deliberately narrower than a
+  // generic "not terminal" check.
+  private assertCancellableOrReschedulable(status: ReservationStatus): void {
+    if (status !== 'PENDING' && status !== 'CONFIRMED') {
+      throw new ConflictException('This reservation can no longer be cancelled or rescheduled.');
     }
   }
 
@@ -170,6 +183,7 @@ export class TransitionsService {
     // salonId is the authorized SalonContext value — never trusted from the route param alone.
     const reservation = await this.prisma.reservation.findFirst({
       where: { id: reservationId, salonId },
+      select: RESERVATION_SELECT,
     });
     if (!reservation) throw new NotFoundException();
     return reservation;
@@ -178,6 +192,7 @@ export class TransitionsService {
   private async findForCustomer(customerId: string, reservationId: string) {
     const reservation = await this.prisma.reservation.findFirst({
       where: { id: reservationId, customerId },
+      select: RESERVATION_SELECT,
     });
     if (!reservation) throw new NotFoundException();
     return reservation;
@@ -189,7 +204,7 @@ export class TransitionsService {
     actorUserId: string,
     action: string,
     reason?: string,
-    extraData?: Record<string, unknown>,
+    extraData?: { completedAt?: Date; cancelledAt?: Date },
   ): Promise<ReservationDetail> {
     let updated: ReservationDetail;
     try {
@@ -198,7 +213,10 @@ export class TransitionsService {
         // transition on the same row will find zero matching rows and throw P2025, never silently
         // overwrite a state another request already moved past.
         const result = await tx.reservation.update({
-          where: { id: current.id, status: current.status },
+          // salonId is redundant today (it's immutable), but scoping the actual write by it too
+          // — not just the earlier findForStaff/findForCustomer lookup — matches CLAUDE.md's
+          // "never query by ID first and authorize after" rule and stays correct if that ever changes.
+          where: { id: current.id, status: current.status, salonId: current.salonId },
           data: { status: toStatus, ...extraData },
           select: RESERVATION_SELECT,
         });
@@ -316,7 +334,7 @@ export class TransitionsService {
         }
 
         const result = await tx.reservation.update({
-          where: { id: current.id, status: current.status },
+          where: { id: current.id, status: current.status, salonId: current.salonId },
           data: { employeeId: targetEmployeeId, startAt: newStartAt, endAt: newEndAt },
           select: RESERVATION_SELECT,
         });

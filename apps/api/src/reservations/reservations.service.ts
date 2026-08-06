@@ -5,6 +5,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Prisma } from '@salonomia/database';
 import type { CreateManualReservationInput, CreateReservationInput } from '@salonomia/validation';
 import { AuditService } from '../audit/audit.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -198,6 +199,17 @@ export class ReservationsService {
       if (isExclusionConstraintViolation(err)) {
         throw new ConflictException(SLOT_UNAVAILABLE_MESSAGE);
       }
+      if (isIdempotencyKeyConflict(err)) {
+        // Two concurrent replays of the same idempotencyKey: the loser lands here instead of
+        // the earlier findUnique-based check (which ran before either transaction started, so
+        // both requests could pass it). Return the original reservation instead of a raw 500,
+        // matching the idempotency guarantee in docs/architecture/reservation-state-machine.md.
+        const original = await this.prisma.reservation.findUnique({
+          where: { customerId_idempotencyKey: { customerId, idempotencyKey: input.idempotencyKey } },
+          select: RESERVATION_SELECT,
+        });
+        if (original) return original;
+      }
       throw err;
     }
 
@@ -227,8 +239,8 @@ export class ReservationsService {
     actorUserId: string,
     input: CreateManualReservationInput,
   ): Promise<ReservationDetail> {
-    const salon = await this.prisma.salon.findUnique({
-      where: { id: salonId },
+    const salon = await this.prisma.salon.findFirst({
+      where: { id: salonId, status: 'ACTIVE' },
       select: { id: true, timezone: true },
     });
     if (!salon) {
@@ -248,11 +260,11 @@ export class ReservationsService {
       throw new BadRequestException('This salon is not configured for booking.');
     }
 
+    // customerFullName is required by the schema unconditionally (even for an existing customer)
+    // so this lookup never has to branch its error on whether the account exists — that branch
+    // was a cross-tenant account-existence oracle. An existing customer's name is left untouched.
     let customer = await this.prisma.user.findUnique({ where: { email: input.customerEmail } });
     if (!customer) {
-      if (!input.customerFullName) {
-        throw new BadRequestException('customerFullName is required to create a new customer.');
-      }
       // Unusable random hash — this account has no password until the customer resets one.
       customer = await this.prisma.user.create({
         data: {
@@ -444,9 +456,14 @@ export class ReservationsService {
 
 function isExclusionConstraintViolation(err: unknown): boolean {
   const message = err instanceof Error ? err.message : String(err);
+  return message.includes('reservation_no_overlap_per_employee');
+}
+
+function isIdempotencyKeyConflict(err: unknown): boolean {
   return (
-    message.includes('reservation_no_overlap_per_employee') ||
-    message.includes('exclusion') ||
-    message.includes('23P01')
+    err instanceof Prisma.PrismaClientKnownRequestError &&
+    err.code === 'P2002' &&
+    Array.isArray(err.meta?.target) &&
+    (err.meta.target as string[]).includes('idempotencyKey')
   );
 }

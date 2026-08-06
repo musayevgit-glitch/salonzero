@@ -143,10 +143,74 @@ describe('POST /salons/:salonId/reservations/manual', () => {
     const res = await agent
       .post(`/salons/${salon.id}/reservations/manual`)
       .set('x-csrf-token', csrfToken)
-      .send({ customerEmail: existing.email, serviceId: service.id, employeeId: employee.id, startAt: SLOT_START });
+      .send({
+        customerEmail: existing.email,
+        customerFullName: 'Ignored Name',
+        serviceId: service.id,
+        employeeId: employee.id,
+        startAt: SLOT_START,
+      });
     expect(res.status).toBe(201);
     const stored = await prisma.reservation.findUnique({ where: { id: res.body.id } });
     expect(stored?.customerId).toBe(existing.id);
+  });
+
+  it('requires customerFullName regardless of whether the account already exists (no existence oracle)', async () => {
+    const { salon, service, employee, agent, csrfToken } = await setup('man-no-oracle');
+    const existing = await prisma.user.create({
+      data: { email: `existing-${randomUUID()}@example.com`, passwordHash: 'x', fullName: 'Existing' },
+    });
+    const resExisting = await agent
+      .post(`/salons/${salon.id}/reservations/manual`)
+      .set('x-csrf-token', csrfToken)
+      .send({ customerEmail: existing.email, serviceId: service.id, employeeId: employee.id, startAt: SLOT_START });
+    const resNew = await agent
+      .post(`/salons/${salon.id}/reservations/manual`)
+      .set('x-csrf-token', csrfToken)
+      .send({
+        customerEmail: `brandnew-${randomUUID()}@example.com`,
+        serviceId: service.id,
+        employeeId: employee.id,
+        startAt: SLOT_START,
+      });
+    // Both fail identically (schema-level 400 before the customer lookup ever runs) — the response
+    // shape must not reveal whether `existing.email` has an account on this platform.
+    expect(resExisting.status).toBe(400);
+    expect(resNew.status).toBe(400);
+  });
+
+  it('denies manual booking into a suspended salon for its own staff (via RolesGuard)', async () => {
+    const { salon, service, employee, agent, csrfToken } = await setup('man-suspended-staff');
+    await prisma.salon.update({ where: { id: salon.id }, data: { status: 'SUSPENDED' } });
+    const res = await agent
+      .post(`/salons/${salon.id}/reservations/manual`)
+      .set('x-csrf-token', csrfToken)
+      .send({
+        customerEmail: `walkin-${randomUUID()}@example.com`,
+        customerFullName: 'Walk In',
+        serviceId: service.id,
+        employeeId: employee.id,
+        startAt: SLOT_START,
+      });
+    expect(res.status).toBe(404);
+  });
+
+  it('denies manual booking into a suspended salon even for SUPERADMIN (bypasses RolesGuard, so the service itself must check)', async () => {
+    const { salon, service, employee } = await setup('man-suspended-super');
+    await prisma.salon.update({ where: { id: salon.id }, data: { status: 'SUSPENDED' } });
+    const { agent, userId, csrfToken } = await registerUser(`man-super-${randomUUID()}@example.com`);
+    await prisma.user.update({ where: { id: userId }, data: { isSuperadmin: true } });
+    const res = await agent
+      .post(`/salons/${salon.id}/reservations/manual`)
+      .set('x-csrf-token', csrfToken)
+      .send({
+        customerEmail: `walkin-${randomUUID()}@example.com`,
+        customerFullName: 'Walk In',
+        serviceId: service.id,
+        employeeId: employee.id,
+        startAt: SLOT_START,
+      });
+    expect(res.status).toBe(404);
   });
 
   it('cannot be used to book into a salon the caller does not administer (manager cannot choose another salon)', async () => {

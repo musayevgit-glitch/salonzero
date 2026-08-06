@@ -63,6 +63,7 @@ describe('createReservationSchema', () => {
 
 const VALID_MANUAL = {
   customerEmail: 'customer@example.com',
+  customerFullName: 'Jane Doe',
   serviceId: '22222222-2222-2222-2222-222222222222',
   startAt: '2026-08-10T09:00:00.000Z',
 };
@@ -72,10 +73,16 @@ describe('createManualReservationSchema', () => {
     expect(createManualReservationSchema.parse(VALID_MANUAL)).toEqual(VALID_MANUAL);
   });
 
-  it('accepts customerFullName, employeeId, and customerNote', () => {
+  it('lowercases the email, matching the shared auth email normalization', () => {
+    expect(
+      createManualReservationSchema.parse({ ...VALID_MANUAL, customerEmail: 'Customer@Example.com' })
+        .customerEmail,
+    ).toBe('customer@example.com');
+  });
+
+  it('accepts employeeId and customerNote', () => {
     const full = {
       ...VALID_MANUAL,
-      customerFullName: 'Jane Doe',
       employeeId: '44444444-4444-4444-4444-444444444444',
       customerNote: 'Regular customer',
     };
@@ -88,9 +95,12 @@ describe('createManualReservationSchema', () => {
     ).toThrow();
   });
 
-  it('rejects missing required fields', () => {
+  it('rejects missing required fields, including customerFullName (regardless of whether the account exists — no existence oracle)', () => {
     expect(() =>
       createManualReservationSchema.parse({ ...VALID_MANUAL, customerEmail: undefined }),
+    ).toThrow();
+    expect(() =>
+      createManualReservationSchema.parse({ ...VALID_MANUAL, customerFullName: undefined }),
     ).toThrow();
     expect(() =>
       createManualReservationSchema.parse({ ...VALID_MANUAL, serviceId: undefined }),

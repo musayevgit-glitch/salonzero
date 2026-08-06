@@ -3,7 +3,7 @@ import { z } from 'zod';
 // Shared between apps/api (server-side enforcement) and apps/web/apps/dashboard (client-side UX only —
 // the server copy is authoritative per CLAUDE.md).
 
-const emailSchema = z.string().trim().toLowerCase().email().max(254);
+export const emailSchema = z.string().trim().toLowerCase().email().max(254);
 // Length only here; strength/complexity is enforced by argon2 hashing cost, not a regex policy.
 const passwordSchema = z.string().min(8).max(200);
 

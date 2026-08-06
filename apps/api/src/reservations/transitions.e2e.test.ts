@@ -385,3 +385,53 @@ describe('check-in / completion / no-show', () => {
     expect(res.status).toBe(409);
   });
 });
+
+// Regression: cancel/reschedule must only be legal from PENDING/CONFIRMED, per
+// docs/architecture/reservation-state-machine.md. CHECKED_IN is non-terminal, so an earlier
+// "not terminal" check wrongly allowed cancelling/rescheduling an in-progress appointment —
+// it can now only end via complete or no-show.
+describe('CHECKED_IN cannot be cancelled or rescheduled', () => {
+  it('rejects salon-cancelling a checked-in reservation', async () => {
+    const { salon, reservation, adminAgent, adminCsrf } = await setup('tr-checkedin-salon-cancel', {
+      status: 'CHECKED_IN',
+    });
+    const res = await adminAgent
+      .post(`/salons/${salon.id}/reservations/${reservation.id}/cancel`)
+      .set('x-csrf-token', adminCsrf);
+    expect(res.status).toBe(409);
+  });
+
+  it('rejects salon-rescheduling a checked-in reservation', async () => {
+    const { salon, reservation, adminAgent, adminCsrf } = await setup('tr-checkedin-salon-reschedule', {
+      status: 'CHECKED_IN',
+    });
+    const res = await adminAgent
+      .post(`/salons/${salon.id}/reservations/${reservation.id}/reschedule`)
+      .set('x-csrf-token', adminCsrf)
+      .send({ startAt: '2026-08-10T14:00:00.000Z' });
+    expect(res.status).toBe(409);
+  });
+
+  it('rejects customer-cancelling a checked-in reservation even with a zero-hour cancellation window', async () => {
+    const { reservation, custAgent, custCsrf } = await setup('tr-checkedin-cust-cancel', {
+      status: 'CHECKED_IN',
+      cancellationWindowHours: 0,
+    });
+    const res = await custAgent
+      .post(`/reservations/${reservation.id}/cancel`)
+      .set('x-csrf-token', custCsrf);
+    expect(res.status).toBe(409);
+  });
+
+  it('rejects customer-rescheduling a checked-in reservation even with a zero-hour reschedule window', async () => {
+    const { reservation, custAgent, custCsrf } = await setup('tr-checkedin-cust-reschedule', {
+      status: 'CHECKED_IN',
+      rescheduleWindowHours: 0,
+    });
+    const res = await custAgent
+      .post(`/reservations/${reservation.id}/reschedule`)
+      .set('x-csrf-token', custCsrf)
+      .send({ startAt: '2026-08-10T14:00:00.000Z' });
+    expect(res.status).toBe(409);
+  });
+});

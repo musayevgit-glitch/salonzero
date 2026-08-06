@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { emailSchema } from './auth';
 
 // Customer-facing booking creation. salonId/serviceId/employeeId here are business inputs (which
 // salon/service/stylist the customer wants), not an authorization scope — the server still
@@ -23,10 +24,14 @@ export type CreateReservationInput = z.infer<typeof createReservationSchema>;
 
 // Manager/admin manual booking (Section 15.4) — no salonId (comes from the authorized route
 // context, never client-chosen), no price/duration/status fields at all.
+// customerFullName is always required (even when the customer already has an account) so the
+// service never has to branch its validation on whether the account exists — that branch was a
+// cross-tenant account-existence oracle (a manager could learn whether any email on the platform,
+// including another salon's customer, has an account, from the shape of the error alone).
 export const createManualReservationSchema = z
   .object({
-    customerEmail: z.string().trim().email(),
-    customerFullName: z.string().trim().min(1).max(200).optional(),
+    customerEmail: emailSchema,
+    customerFullName: z.string().trim().min(1).max(200),
     serviceId: z.string().uuid(),
     employeeId: z.string().uuid().nullable().optional(),
     startAt: z.string().datetime(),
@@ -47,3 +52,12 @@ export const rescheduleReservationSchema = z
   })
   .strict();
 export type RescheduleReservationInput = z.infer<typeof rescheduleReservationSchema>;
+
+// Customer-facing reschedule has no employeeId — a customer cannot change stylist, only time
+// (docs/architecture/reservation-state-machine.md). Omitting the field entirely (rather than
+// accepting-and-ignoring it) avoids a confusing 200 response that silently drops a customer's
+// attempt to also change stylist.
+export const customerRescheduleReservationSchema = z
+  .object({ startAt: z.string().datetime() })
+  .strict();
+export type CustomerRescheduleReservationInput = z.infer<typeof customerRescheduleReservationSchema>;

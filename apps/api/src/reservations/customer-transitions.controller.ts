@@ -1,9 +1,9 @@
 import { Body, Controller, HttpCode, Param, ParseUUIDPipe, Post, UseGuards } from '@nestjs/common';
 import {
+  customerRescheduleReservationSchema,
   reservationReasonSchema,
-  rescheduleReservationSchema,
+  type CustomerRescheduleReservationInput,
   type ReservationReasonInput,
-  type RescheduleReservationInput,
 } from '@salonomia/validation';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { AuthenticatedGuard } from '../auth/guards/authenticated.guard';
@@ -35,7 +35,8 @@ export class CustomerTransitionsController {
   @Post('reschedule')
   reschedule(
     @Param('reservationId', new ParseUUIDPipe({ errorHttpStatusCode: 404 })) reservationId: string,
-    @Body(new ZodValidationPipe(rescheduleReservationSchema)) body: RescheduleReservationInput,
+    @Body(new ZodValidationPipe(customerRescheduleReservationSchema))
+    body: CustomerRescheduleReservationInput,
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.transitions.rescheduleByCustomer(user.id, reservationId, new Date(body.startAt));

@@ -1039,6 +1039,99 @@ already exercise the main tenant/ownership/concurrency boundaries. (3) Section 1
 management) and salon-wide closures (open decision #6) remain deferred, unrelated to this slice.
 Next: Section 15.6 — Reservation security review (security-reviewer/database-reviewer read-only audit)
 
+## Section 15.6 — Reservation security review
+
+Status: done. Two read-only adversarial reviews run in parallel (`security-reviewer` on all 15.3-15.5
+controllers/services/schemas/RolesGuard against docs/architecture/reservation-state-machine.md;
+`database-reviewer` on the Reservation/ReservationStatusHistory schema, the EXCLUDE-constraint and
+idempotency-key migrations, and every write path). Both confirmed the class-level-`@Roles()` fix from
+15.5 is correct (all 12 routes have method-level `@Roles()`, RolesGuard still fails closed), mass
+assignment is genuinely blocked everywhere, the EXCLUDE constraint's `WHERE` clause exactly matches the
+state machine's active-status set, and every status-transition write already pairs a compare-and-swap
+update with its history row inside one transaction. Five real, concrete bugs were found and fixed (not
+just documented as risk):
+
+1. **Illegal `CHECKED_IN` transitions were reachable.** `cancelBySalon`/`rescheduleBySalon`/
+   `cancelByCustomer`/`rescheduleByCustomer` gated on "not terminal", but the state machine allows
+   cancel/reschedule only from `PENDING`/`CONFIRMED` — `CHECKED_IN` is non-terminal but should not be
+   cancellable/reschedulable (an in-progress appointment can only end via complete/no-show). Replaced
+   with an explicit `assertCancellableOrReschedulable()` restricted to those two source states.
+2. **Manual booking was a cross-tenant account-existence oracle, and could permanently squat an
+   email.** `createManual`'s error branched observably on whether `customerEmail` already had an
+   account (`customerFullName` was only required for a *new* customer) — any SALON_MANAGER could learn
+   whether an arbitrary email (another salon's customer, a SUPERADMIN) has a platform account, and
+   creating an unclaimed one for an existing but different email would have permanently blocked that
+   person's real registration (since `register()` 409s on an existing email). Fixed by making
+   `customerFullName` unconditionally required in the schema — the branch the oracle depended on no
+   longer exists; an existing customer's name is simply left untouched.
+3. **Manual-booking email wasn't normalized**, unlike every other email field in the app (`emailSchema`
+   in `packages/validation/src/auth.ts`, now exported and reused here) — `Foo@X.com` vs `foo@x.com`
+   would have silently created a second, unreachable `User` row and split a customer's history.
+4. **A concurrent replay of the same `idempotencyKey` could 500 instead of resolving to the original
+   reservation.** The idempotency lookup runs before either request's transaction starts, so two truly
+   concurrent replays can both pass it; the loser's insert then violates the DB's unique constraint
+   (`P2002`), which had no matching catch branch and re-threw as a raw 500 — directly contradicting the
+   documented idempotency guarantee. Fixed by catching `P2002` on the `idempotencyKey` unique
+   constraint and re-reading/returning the existing reservation.
+5. **The exclusion-constraint-violation matcher was overly broad and fragile.** It matched any error
+   message containing the bare substrings `'exclusion'` or `'23P01'`, risking misclassifying an
+   unrelated internal error as a clean "slot unavailable" 409 (masking a real fault) while giving false
+   confidence the `23P01` branch was doing anything (Prisma's wrapped error message isn't guaranteed to
+   contain the raw SQLSTATE code). Narrowed to match only the specific constraint name
+   (`reservation_no_overlap_per_employee`) in both `reservations.service.ts` and
+   `transitions.service.ts`.
+
+Two smaller hardening fixes applied alongside: (a) `createManual` now requires the salon to be
+`ACTIVE` (`findFirst` with `status: 'ACTIVE'`, was a plain `findUnique`) — closes a gap where a
+SUPERADMIN (whose RolesGuard bypass skips the suspended-salon check that already blocks the salon's own
+staff) could still create live bookings into a suspended salon; (b) `findForStaff`/`findForCustomer` in
+`transitions.service.ts` now use an explicit `select` (the narrow `RESERVATION_SELECT`, matching every
+other response shape) instead of a bare `findFirst`, so an idempotent no-op response (e.g.
+confirming an already-confirmed reservation) no longer returns extra fields like `idempotencyKey`; (c)
+every staff/customer status-transition `update()` now re-scopes its `where` by `salonId` in addition to
+`id`+`status`, matching CLAUDE.md's "never query by ID first and authorize after" rule (currently
+redundant since `salonId` is immutable, but correct defense-in-depth if that ever changes); (d) a
+dedicated `customerRescheduleReservationSchema` (no `employeeId` field) now backs the customer
+reschedule route, replacing the shared staff/customer schema that let a customer submit an `employeeId`
+the handler silently discarded (confusing 200-with-no-effect UX, not exploitable).
+Commit: pending (this task)
+Tests: 4 new regression tests for the `CHECKED_IN` escape hatch (salon-cancel, salon-reschedule,
+customer-cancel with a zero-hour window, customer-reschedule with a zero-hour window — all now 409),
+3 new manual-booking tests (existence-oracle regression — identical 400 whether or not the email has an
+account; suspended-salon denial for the salon's own staff via RolesGuard; suspended-salon denial for a
+SUPERADMIN specifically, since RolesGuard's bypass doesn't otherwise catch this), 1 new concurrent-
+idempotency-replay test (asserts no raw 500 and exactly one reservation, accepting either a clean
+`[201, 201]` or `[201, 409]` outcome depending on which DB constraint the race trips first — a genuine
+replay targets the identical slot, so the overlap `EXCLUDE` constraint and the idempotency-key unique
+constraint are both live candidates for the loser), 2 new/updated schema tests (`createManualReservation
+Schema` email lowercasing, unconditional `customerFullName` requirement). `apps/api` total: 273 passing
+tests (18 files). `packages/validation` total: 122 passing tests. Full repo gate re-run: lint/typecheck/
+test green across every workspace (`apps/web`'s typecheck transiently failed once on stale `.next`
+artifacts left by an earlier interrupted build — confirmed unrelated by deleting `.next` and re-running
+`tsc --noEmit` clean in isolation; not a reservations-related regression).
+Security/tenant checks: this section's fixes directly close the account-existence oracle (item 2 above),
+tighten write-path tenant re-scoping (item c above), and prevent state-machine violations (item 1) —
+exactly the class of finding this review exists to catch before the transition surface is considered
+production-ready.
+Risks carried forward, deliberately not fixed this session (documented, not silently dropped):
+(1) **Buffer minutes are not enforced under concurrency.** `isEmployeeSlotAvailable`'s pre-check
+includes `bufferMinutes` in the busy span, but the DB's `EXCLUDE USING gist` constraint only covers the
+unpadded `tstzrange(startAt, endAt)` — two concurrent bookings that respect each other's `[start, end)`
+but violate the buffer gap (e.g. back-to-back with a 15-minute buffer) can both pass their pre-checks
+and both commit. Closing this requires a schema/constraint-level change (a buffer-aware generated range
+or ADR-level redesign of the exclusion range), not a quick application-level fix — needs its own ADR
+before implementation. (2) No `@@index([salonId, status])` on `Reservation` yet — not exploited by any
+query today, but should land before a future staff-facing "pending reservations for this salon"
+dashboard/list endpoint is built. (3) No transitions currently emit a `Notification` row (only creation
+does) — the state machine doc calls for one on confirm/reject/cancel/complete/reschedule; deferred as a
+Section 23 (Notifications)-shaped feature, not a security gap. (4) The class-level-`@Roles()` mistake
+has recurred twice in this codebase — a lint rule or guard-level fail-build assertion would catch it
+structurally instead of relying on test coverage a third time; not implemented. (5) Section 11.5
+(domain/subdomain management) and salon-wide closures (open decision #6) remain deferred, unrelated to
+this review.
+Next: Section 16 — awaiting scope (Section 15, Reservation Engine, is now complete through its
+security review)
+
 ## Blockers / environment notes
 
 - Docker is not installed in this environment; resolved by using the existing Postgres.app (PG 18)
