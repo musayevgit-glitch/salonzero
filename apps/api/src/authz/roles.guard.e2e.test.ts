@@ -238,6 +238,12 @@ describe('RolesGuard denial matrix (docs/security/authorization.md)', () => {
     expect(res.status).toBe(200);
   });
 
+  it('returns 404 for a malformed (non-UUID) salonId — never 500', async () => {
+    const { agent } = await registerAndLogin(`authz-bad-uuid-${randomUUID()}@example.com`);
+    const res = await agent.get('/test-authz/salon-admin-only/not-a-uuid');
+    expect(res.status).toBe(404);
+  });
+
   it('ignores a forged salonId in the request body — only the route param is authoritative', async () => {
     const salon = await prisma.salon.create({
       data: { slug: `authz-forged-${randomUUID()}`, name: 'Forged Salon', timezone: 'UTC' },

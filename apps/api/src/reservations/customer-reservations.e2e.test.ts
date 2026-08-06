@@ -185,6 +185,12 @@ describe('GET /customer/reservations/:reservationId', () => {
     expect(res.status).toBe(404);
   });
 
+  it('returns 404 (not 500) for a non-UUID reservation ID', async () => {
+    const { agent } = await setup('non-uuid');
+    const res = await agent.get('/customer/reservations/not-a-uuid');
+    expect(res.status).toBe(404);
+  });
+
   it('returns 404 when accessing another customers reservation', async () => {
     const { reservationId } = await setup('cross-customer-owner');
     const { agent: otherAgent } = await registerCustomer(

@@ -45,6 +45,12 @@ export class RolesGuard implements CanActivate {
     const salonIdParam = request.params.salonId;
     const salonId = Array.isArray(salonIdParam) ? salonIdParam[0] : salonIdParam;
 
+    // Reject non-UUID salonId before touching the DB — avoids Prisma throwing a 500 on malformed
+    // input and prevents information leakage via error message differences.
+    if (salonId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(salonId)) {
+      throw new NotFoundException();
+    }
+
     // Platform-level SUPERADMIN routes (e.g. listing all salons) have no :salonId in the path at
     // all — there is no per-salon membership to resolve, so this is the only branch where a bare
     // isSuperadmin check is sufficient. Still denied for anyone else, still audited.

@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, ParseUUIDPipe, Query, UseGuards } from '@nestjs/common';
 import {
   listCustomerReservationsQuerySchema,
   type ListCustomerReservationsQuery,
@@ -30,7 +30,7 @@ export class CustomerReservationsController {
   @Roles('CUSTOMER')
   detail(
     @CurrentUser() user: AuthenticatedUser,
-    @Param('reservationId') reservationId: string,
+    @Param('reservationId', new ParseUUIDPipe({ errorHttpStatusCode: 404 })) reservationId: string,
   ) {
     return this.service.detail(user.id, reservationId);
   }
