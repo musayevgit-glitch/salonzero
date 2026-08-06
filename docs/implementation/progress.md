@@ -1483,8 +1483,29 @@ Tests: 334 passing (all API), dashboard and web TypeScript clean.
 
 ## Phase 12 — Complete Security Audit
 
-Status: in progress (background security-reviewer agent; will produce docs/security/final-audit.md).
+Status: done.
+Output: `docs/security/final-audit.md` with SEC-001 through SEC-024 findings.
 
 ## Phase 13 — Security Remediation
 
-Status: blocked on Phase 12 completion.
+Status: done.
+Completed remediations:
+- SEC-001/003: invitation ownership/session takeover and open redirect hardening.
+- SEC-002/004/005: PII oracle, password-reset session invalidation, trust-proxy config.
+- SEC-006/015: auth throttle env validation and invitation account/salon status checks.
+- SEC-007: session-bound CSRF tokens, login rotation, logout clearing, production `__Host-` cookie.
+- SEC-008/010: local portfolio upload/download content sniffing, single-use/overwrite protection,
+  safe content headers.
+- SEC-009/021: authenticated response `no-store`; logout callback error handling.
+- SEC-011/012/016/017: reservation buffer DB enforcement, idempotency payload hashing/expiry,
+  manual idempotency, suspended-salon reschedule block.
+- SEC-018/019/020: server fetch `no-store`, placeholder secret rejection, audit denial/context
+  capture and metadata redaction.
+- SEC-013/014: CUSTOMER self-scope context and SUPERADMIN salon existence validation.
+- SEC-022/023/024: production CORS assertions, production validation-error sanitization,
+  public availability rate-limit/documented occupancy trade-off.
+Tests: latest API gate `pnpm --filter @salonomia/api typecheck` and
+`pnpm --filter @salonomia/api test` passed (25 files, 366 tests).
+Commits: a97c837, e0bf368, ba85384, a599527, 3810fce, 36dcedd, d076414, b168402,
+68ecbe4, d18844d, 5c5b587, 517a3cf, 7eadf61, eedcdd9.
+Next: UI polish / production-readiness walkthrough.
