@@ -44,7 +44,22 @@ export class StaffReservationsService {
   async list(
     salonId: string,
     query: ListSalonReservationsQuery,
+    userId?: string,
+    role?: string,
   ): Promise<{ items: StaffReservationDetail[]; total: number; page: number; pageSize: number }> {
+    let filterEmployeeId = query.employeeId;
+
+    if (role === 'SALON_MANAGER' && userId) {
+      const employee = await this.prisma.employeeProfile.findFirst({
+        where: { salonId, userId },
+        select: { id: true },
+      });
+      if (!employee) {
+        return { items: [], total: 0, page: query.page, pageSize: query.pageSize };
+      }
+      filterEmployeeId = employee.id;
+    }
+
     const where = {
       salonId,
       ...(query.from || query.to
@@ -56,7 +71,7 @@ export class StaffReservationsService {
           }
         : {}),
       ...(query.status ? { status: query.status } : {}),
-      ...(query.employeeId ? { employeeId: query.employeeId } : {}),
+      ...(filterEmployeeId ? { employeeId: filterEmployeeId } : {}),
       ...(query.search
         ? {
             customer: {
@@ -118,9 +133,25 @@ export class StaffReservationsService {
     return { services, employees };
   }
 
-  async detail(salonId: string, reservationId: string): Promise<StaffReservationDetail> {
+  async detail(
+    salonId: string,
+    reservationId: string,
+    userId?: string,
+    role?: string,
+  ): Promise<StaffReservationDetail> {
+    const where: Record<string, unknown> = { id: reservationId, salonId };
+
+    if (role === 'SALON_MANAGER' && userId) {
+      const employee = await this.prisma.employeeProfile.findFirst({
+        where: { salonId, userId },
+        select: { id: true },
+      });
+      if (!employee) throw new NotFoundException();
+      where.employeeId = employee.id;
+    }
+
     const row = await this.prisma.reservation.findFirst({
-      where: { id: reservationId, salonId },
+      where,
       select: STAFF_RESERVATION_SELECT,
     });
     if (!row) throw new NotFoundException();

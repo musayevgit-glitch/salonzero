@@ -1,18 +1,10 @@
 'use client';
 
-import {
-  Alert,
-  Button,
-  Card,
-  Checkbox,
-  ErrorState,
-  FormField,
-  Input,
-  Skeleton,
-} from '@salonomia/ui';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { apiFetch, ApiError } from '../../lib/api-client';
+import { PageLayout } from '../_components/PageLayout';
+import Link from 'next/link';
 
 interface CustomerProfile {
   id: string;
@@ -20,6 +12,8 @@ interface CustomerProfile {
   fullName: string;
   phone: string | null;
   marketingConsent: boolean;
+  isSuperadmin?: boolean;
+  managedSalons?: { id: string; name: string }[];
 }
 
 type LoadState =
@@ -47,7 +41,6 @@ export default function AccountProfilePage() {
         setMarketingConsent(profile.marketingConsent);
       })
       .catch((err: unknown) => {
-        // Session-expired handling: bounce to login and remember where to come back to.
         if (err instanceof ApiError && err.status === 401) {
           router.replace('/login?returnTo=/account');
           return;
@@ -63,7 +56,7 @@ export default function AccountProfilePage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (saving) return; // duplicate-submit protection
+    if (saving) return;
     setSaving(true);
     setSaveError(null);
     setSavedAt(null);
@@ -96,62 +89,115 @@ export default function AccountProfilePage() {
     }
   }
 
+  function getInitials(name: string) {
+    return name
+      .split(' ')
+      .filter(Boolean)
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase();
+  }
+
   if (state.kind === 'loading') {
-    return <Skeleton className="h-64 w-full max-w-md" />;
+    return (
+      <PageLayout activeNav="account" isAuthenticated={true}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: 600, margin: '0 auto' }}>
+          <div style={{ height: 40, width: 150, background: '#ede5dc', borderRadius: 8, animation: 'pulse 1.5s infinite' }} />
+          <div style={{ height: 100, width: '100%', background: '#ede5dc', borderRadius: 16, animation: 'pulse 1.5s infinite' }} />
+          <div style={{ height: 60, width: '100%', background: '#ede5dc', borderRadius: 16, animation: 'pulse 1.5s infinite' }} />
+          <div style={{ height: 60, width: '100%', background: '#ede5dc', borderRadius: 16, animation: 'pulse 1.5s infinite' }} />
+        </div>
+      </PageLayout>
+    );
   }
 
   if (state.kind === 'error') {
-    return <ErrorState title="Couldn't load your profile" description={state.message} />;
+    return (
+      <PageLayout activeNav="account" isAuthenticated={true}>
+        <div style={{ maxWidth: 600, margin: '0 auto', textAlign: 'center', padding: '2rem' }}>
+          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.5rem', color: '#1a1208', marginBottom: '1rem' }}>Xəta baş verdi</h1>
+          <p style={{ color: '#9a8878' }}>{state.message}</p>
+        </div>
+      </PageLayout>
+    );
   }
 
+  const { profile } = state;
+
   return (
-    <Card className="max-w-md">
-      <h1 className="text-xl font-semibold text-text-primary">Your profile</h1>
-      <p className="text-sm text-text-secondary">{state.profile.email}</p>
+    <PageLayout activeNav="account" isAuthenticated={true}>
+      <div style={{ maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '2rem', color: '#1a1208', margin: 0 }}>Hesabım</h1>
+        
+        {/* User profile card */}
+        <div style={{ background: 'white', border: '1px solid #ede5dc', borderRadius: 16, padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#1a1208', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', fontWeight: 600 }}>
+            {getInitials(profile.fullName || profile.email)}
+          </div>
+          <div>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#1a1208', margin: 0 }}>{profile.fullName}</h2>
+            <p style={{ color: '#9a8878', margin: '0.25rem 0 0 0', fontSize: '0.9rem' }}>{profile.email}</p>
+          </div>
+        </div>
 
-      <form className="mt-6 flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
-        {saveError ? <Alert tone="danger" title={saveError} /> : null}
-        {savedAt ? <Alert tone="success" title="Profile updated" /> : null}
+        {/* Edit profile form */}
+        <form onSubmit={handleSubmit} style={{ background: 'white', border: '1px solid #ede5dc', borderRadius: 16, padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, color: '#1a1208' }}>Profil məlumatları</h3>
+          {saveError && <div style={{ color: '#dc2626', fontSize: '0.85rem' }}>{saveError}</div>}
+          {savedAt && <div style={{ color: '#16a34a', fontSize: '0.85rem' }}>Yadda saxlanıldı</div>}
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <label style={{ fontSize: '0.85rem', color: '#9a8878' }}>Ad və Soyad</label>
+            <input required value={fullName} onChange={e => setFullName(e.target.value)} disabled={saving} style={{ padding: '0.75rem', borderRadius: 8, border: '1px solid #ede5dc', fontSize: '0.95rem', outline: 'none' }} />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <label style={{ fontSize: '0.85rem', color: '#9a8878' }}>Telefon (opsional)</label>
+            <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} disabled={saving} style={{ padding: '0.75rem', borderRadius: 8, border: '1px solid #ede5dc', fontSize: '0.95rem', outline: 'none' }} />
+          </div>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#1a1208' }}>
+            <input type="checkbox" checked={marketingConsent} onChange={e => setMarketingConsent(e.target.checked)} disabled={saving} />
+            Marketinq e-poçtları almaq istəyirəm
+          </label>
+          <button type="submit" disabled={saving} style={{ background: '#1a1208', color: 'white', border: 'none', borderRadius: 8, padding: '0.75rem', fontSize: '0.95rem', fontWeight: 500, cursor: saving ? 'not-allowed' : 'pointer', marginTop: '0.5rem' }}>
+            {saving ? 'Yadda saxlanılır...' : 'Yadda saxla'}
+          </button>
+        </form>
 
-        <FormField label="Full name">
-          {(fieldProps) => (
-            <Input
-              {...fieldProps}
-              required
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              disabled={saving}
-            />
+        {/* Navigation links */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <Link href="/account/reservations" style={{ background: 'white', border: '1px solid #ede5dc', borderRadius: 16, padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', textDecoration: 'none', color: '#1a1208', fontWeight: 500 }}>
+            Rezervasiyalarım
+            <span style={{ color: '#c9a460' }}>→</span>
+          </Link>
+          
+          {profile.isSuperadmin && (
+            <Link href="/superadmin/salons" style={{ background: 'white', border: '1px solid #ede5dc', borderRadius: 16, padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', textDecoration: 'none', color: '#1a1208', fontWeight: 500 }}>
+              Platform idarəetmə
+              <span style={{ color: '#c9a460' }}>→</span>
+            </Link>
           )}
-        </FormField>
 
-        <FormField label="Phone" optional>
-          {(fieldProps) => (
-            <Input
-              {...fieldProps}
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              disabled={saving}
-            />
-          )}
-        </FormField>
+          {profile.managedSalons?.map(salon => (
+            <Link key={salon.id} href={`/salon/${salon.id}/reservations`} style={{ background: 'white', border: '1px solid #ede5dc', borderRadius: 16, padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', textDecoration: 'none', color: '#1a1208', fontWeight: 500 }}>
+              Salon İdarəetmə: {salon.name}
+              <span style={{ color: '#c9a460' }}>→</span>
+            </Link>
+          ))}
+        </div>
 
-        <Checkbox
-          label="I'd like to receive marketing emails"
-          checked={marketingConsent}
-          onCheckedChange={(checked) => setMarketingConsent(checked === true)}
-          disabled={saving}
-        />
+        {/* Logout */}
+        <button onClick={handleLogout} disabled={loggingOut} style={{ background: 'transparent', border: '1px solid #ede5dc', borderRadius: 16, padding: '1rem', color: '#9a8878', fontSize: '0.95rem', fontWeight: 500, cursor: 'pointer', marginTop: '0.5rem' }}>
+          {loggingOut ? 'Çıxış edilir...' : 'Çıxış et'}
+        </button>
 
-        <Button type="submit" loading={saving} disabled={saving}>
-          Save changes
-        </Button>
-      </form>
-
-      <Button variant="secondary" className="mt-4" onClick={handleLogout} loading={loggingOut}>
-        Log out
-      </Button>
-    </Card>
+      </div>
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: .5; }
+        }
+      `}</style>
+    </PageLayout>
   );
 }

@@ -1514,4 +1514,15 @@ Completed remediations:
   `pnpm --filter @salonomia/api test` passed (25 files, 366 tests).
   Commits: a97c837, e0bf368, ba85384, a599527, 3810fce, 36dcedd, d076414, b168402,
   68ecbe4, d18844d, 5c5b587, 517a3cf, 7eadf61, eedcdd9.
-  Next: UI polish / production-readiness walkthrough.
+
+## Staging Readiness & Staging Smoke Tests
+
+Status: done.
+
+- Final UI polish, Prettier formatting, and ESLint plugin warnings cleaned up.
+- Staging Readiness Verdict: `READY WITH NON-BLOCKING CONDITIONS` (documented in `docs/security/verdict.md` / `final_independent_review.md`).
+- Staging Smoke-Test Checklist written to `docs/operations/staging-smoke-test-checklist.md`.
+- Automated Playwright Smoke-Test Suite written to `e2e/staging-smoke-test.spec.ts`.
+- All 14/14 turbo quality gates (including 375 tests, linting, typechecks, next builds) are green and passing.
+
+Next: Staging environment deployment and manual execution of the smoke-test checklist.

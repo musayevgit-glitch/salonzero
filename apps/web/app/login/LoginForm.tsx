@@ -1,9 +1,8 @@
 'use client';
 
-import { Alert, Button, FormField, Input, Link, PublicShell } from '@salonomia/ui';
 import { isSafeRedirectPath } from '@salonomia/validation';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { apiFetch, ApiError } from '../../lib/api-client';
 
 export function LoginForm() {
@@ -17,12 +16,10 @@ export function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Also primes the CSRF cookie (any GET does) and skips the form entirely if already signed in —
-  // the booking draft (if any) is preserved because we only ever navigate forward, never clear state.
   useEffect(() => {
     apiFetch('/auth/me').then(
       () => router.replace(safeReturnTo),
-      () => undefined, // not authenticated — show the form
+      () => undefined,
     );
   }, [router, safeReturnTo]);
 
@@ -41,46 +38,58 @@ export function LoginForm() {
   }
 
   return (
-    <PublicShell>
-      <div className="mx-auto max-w-sm">
-        <h1 className="text-2xl font-semibold text-text-primary">Log in</h1>
-        <form className="mt-6 flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
-          {error ? <Alert tone="danger" title={error} /> : null}
-          <FormField label="Email">
-            {(fieldProps) => (
-              <Input
-                {...fieldProps}
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            )}
-          </FormField>
-          <FormField label="Password">
-            {(fieldProps) => (
-              <Input
-                {...fieldProps}
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            )}
-          </FormField>
-          <Button type="submit" loading={loading}>
-            Log in
-          </Button>
+    <div style={{ minHeight: '100vh', background: '#faf5f0', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+      <div style={{ background: 'white', borderRadius: 20, padding: '2rem', width: '100%', maxWidth: 400, boxShadow: '0 10px 40px rgba(26,18,8,0.05)' }}>
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <a href="/" style={{ textDecoration: 'none' }}>
+            <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.5rem', fontWeight: 700, letterSpacing: '0.05em', color: '#1a1208' }}>
+              SALONOMIA
+            </span>
+          </a>
+          <p style={{ color: '#c9a460', fontSize: '0.875rem', marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>Eksklüziv gözəllik təcrübəsi</p>
+        </div>
+        
+        <h1 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#1a1208', marginBottom: '1.5rem', textAlign: 'center', fontFamily: "'Playfair Display', Georgia, serif" }}>Daxil olun</h1>
+        
+        <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {error ? <div style={{ color: '#dc2626', fontSize: '0.875rem', background: '#fef2f2', padding: '0.75rem', borderRadius: 8 }}>{error}</div> : null}
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <label style={{ fontSize: '0.875rem', color: '#1a1208', fontWeight: 500 }}>E-poçt</label>
+            <input
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              style={{ border: '1px solid #ede5dc', borderRadius: 12, padding: '0.75rem 1rem', fontFamily: 'Inter, sans-serif', fontSize: '0.95rem', outline: 'none' }}
+            />
+          </div>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <label style={{ fontSize: '0.875rem', color: '#1a1208', fontWeight: 500 }}>Şifrə</label>
+            <input
+              type="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={{ border: '1px solid #ede5dc', borderRadius: 12, padding: '0.75rem 1rem', fontFamily: 'Inter, sans-serif', fontSize: '0.95rem', outline: 'none' }}
+            />
+          </div>
+          
+          <button type="submit" disabled={loading} style={{ background: '#1a1208', color: 'white', borderRadius: 12, padding: '0.875rem', fontSize: '1rem', fontWeight: 500, border: 'none', cursor: loading ? 'not-allowed' : 'pointer', marginTop: '0.5rem', opacity: loading ? 0.7 : 1 }}>
+            {loading ? 'Gözləyin...' : 'Daxil ol'}
+          </button>
         </form>
-        <div className="mt-4 flex flex-col gap-1 text-sm">
-          <Link href="/forgot-password">Forgot your password?</Link>
-          <p className="text-text-secondary">
-            No account yet? <Link href="/register">Create one</Link>
+        
+        <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center', fontSize: '0.875rem' }}>
+          <a href="/forgot-password" style={{ color: '#9a8878', textDecoration: 'none' }}>Şifrəni unutdunuz?</a>
+          <p style={{ color: '#9a8878', margin: 0 }}>
+            Hesabınız yoxdur? <a href="/register" style={{ color: '#1a1208', fontWeight: 500, textDecoration: 'none' }}>Qeydiyyat</a>
           </p>
         </div>
       </div>
-    </PublicShell>
+    </div>
   );
 }

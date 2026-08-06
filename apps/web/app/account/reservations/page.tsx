@@ -1,7 +1,7 @@
-import { notFound } from 'next/navigation';
-import { redirect } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { fetchApiServer, ApiServerError } from '../../../lib/fetch-api-server';
+import { PageLayout } from '../../_components/PageLayout';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,26 +24,26 @@ interface ReservationList {
   pageSize: number;
 }
 
-const STATUS_LABEL: Record<string, string> = {
-  PENDING: 'Pending',
-  CONFIRMED: 'Confirmed',
-  CANCELLED_BY_CUSTOMER: 'Cancelled',
-  CANCELLED_BY_SALON: 'Cancelled by salon',
-  REJECTED: 'Rejected',
-  CHECKED_IN: 'Checked in',
-  COMPLETED: 'Completed',
-  NO_SHOW: 'No show',
+const STATUS_MAP: Record<string, string> = {
+  PENDING: 'Gözləmədə',
+  CONFIRMED: 'Təsdiqlənmiş',
+  CANCELLED_BY_CUSTOMER: 'Ləğv edilmiş',
+  CANCELLED_BY_SALON: 'Salon tərəfindən ləğv',
+  REJECTED: 'İmtina edilib',
+  CHECKED_IN: 'Yoxlanılıb',
+  COMPLETED: 'Tamamlanmış',
+  NO_SHOW: 'Gəlməyib',
 };
 
-const STATUS_COLOR: Record<string, string> = {
-  PENDING: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200',
-  CONFIRMED: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200',
-  CANCELLED_BY_CUSTOMER: 'bg-gray-100 text-gray-600 dark:bg-gray-800/50 dark:text-gray-400',
-  CANCELLED_BY_SALON: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
-  REJECTED: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
-  CHECKED_IN: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200',
-  COMPLETED: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-200',
-  NO_SHOW: 'bg-gray-100 text-gray-600 dark:bg-gray-800/50 dark:text-gray-400',
+const BADGE_STYLE: Record<string, React.CSSProperties> = {
+  PENDING: { background: '#fef3c7', color: '#92400e' },
+  CONFIRMED: { background: '#dcfce7', color: '#166534' },
+  CANCELLED_BY_CUSTOMER: { background: '#f3f4f6', color: '#4b5563' },
+  CANCELLED_BY_SALON: { background: '#f3f4f6', color: '#4b5563' },
+  REJECTED: { background: '#fee2e2', color: '#b91c1c' },
+  CHECKED_IN: { background: '#dbeafe', color: '#1e40af' },
+  COMPLETED: { background: '#f3e8ff', color: '#6b21a8' },
+  NO_SHOW: { background: '#f3f4f6', color: '#4b5563' },
 };
 
 export default async function ReservationsListPage({
@@ -73,73 +73,120 @@ export default async function ReservationsListPage({
 
   const totalPages = Math.ceil(data.total / data.pageSize);
 
+  const statuses = ['Hamısı', ...Object.keys(STATUS_MAP)];
+
   return (
-    <div>
-      <h1 className="text-xl font-semibold text-text-primary">My reservations</h1>
+    <PageLayout activeNav="reservations" isAuthenticated={true}>
+      <div style={{ maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '2rem', color: '#1a1208', margin: 0 }}>Rezervasiyalarım</h1>
 
-      {data.items.length === 0 ? (
-        <div className="mt-8 text-center text-sm text-text-secondary">
-          <p>No reservations yet.</p>
-          <Link href="/salons" className="mt-2 inline-block text-accent underline">
-            Discover salons
-          </Link>
-        </div>
-      ) : (
-        <ul className="mt-4 flex flex-col gap-3">
-          {data.items.map((r) => (
-            <li key={r.id}>
-              <Link
-                href={`/account/reservations/${r.id}`}
-                className="flex flex-col gap-1 rounded-[var(--radius-sm)] border border-border bg-surface-raised p-4 no-underline transition-colors hover:border-accent"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-medium text-text-primary">{r.service.name}</span>
-                  <span
-                    className={[
-                      'rounded-full px-2 py-0.5 text-xs font-medium',
-                      STATUS_COLOR[r.status] ?? '',
-                    ].join(' ')}
-                  >
-                    {STATUS_LABEL[r.status] ?? r.status}
-                  </span>
-                </div>
-                <span className="text-sm text-text-secondary">{r.salon.name}</span>
-                <span className="text-sm text-text-secondary">
-                  {new Intl.DateTimeFormat(undefined, {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric',
-                    hour: 'numeric',
-                    minute: '2-digit',
-                  }).format(new Date(r.startAt))}
-                </span>
+        {/* Filter tabs */}
+        <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          {statuses.map(s => {
+            const isAll = s === 'Hamısı';
+            const isActive = isAll ? !status : status === s;
+            const href = isAll ? '?' : `?status=${s}`;
+            return (
+              <Link key={s} href={href} style={{
+                padding: '0.5rem 1rem',
+                borderRadius: 9999,
+                fontSize: '0.85rem',
+                fontWeight: 500,
+                textDecoration: 'none',
+                whiteSpace: 'nowrap',
+                background: isActive ? '#1a1208' : 'white',
+                color: isActive ? 'white' : '#1a1208',
+                border: isActive ? '1px solid #1a1208' : '1px solid #ede5dc',
+                transition: 'all 0.2s',
+              }}>
+                {isAll ? 'Hamısı' : STATUS_MAP[s]}
               </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {totalPages > 1 && (
-        <div className="mt-6 flex items-center justify-between text-sm">
-          {page > 1 ? (
-            <Link href={`?page=${page - 1}`} className="text-accent underline">
-              ← Previous
-            </Link>
-          ) : (
-            <span />
-          )}
-          <span className="text-text-secondary">
-            Page {page} of {totalPages}
-          </span>
-          {page < totalPages ? (
-            <Link href={`?page=${page + 1}`} className="text-accent underline">
-              Next →
-            </Link>
-          ) : (
-            <span />
-          )}
+            );
+          })}
         </div>
-      )}
-    </div>
+
+        {data.items.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '3rem 0' }}>
+            <p style={{ color: '#9a8878' }}>Heç bir rezervasiya yoxdur.</p>
+            <Link href="/salons" style={{ display: 'inline-block', marginTop: '1rem', color: '#c9a460', textDecoration: 'none', fontWeight: 500 }}>
+              Salonları kəşf et
+            </Link>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {data.items.map((r) => {
+              const bStyle = BADGE_STYLE[r.status] || { background: '#f3f4f6', color: '#4b5563' };
+              const dateStr = new Intl.DateTimeFormat('az-AZ', {
+                day: 'numeric', month: 'long', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+              }).format(new Date(r.startAt));
+              
+              return (
+                <div key={r.id} style={{
+                  background: 'white',
+                  border: '1px solid #ede5dc',
+                  borderRadius: 14,
+                  padding: '1.25rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.75rem'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                      <div style={{ fontWeight: 600, color: '#1a1208', fontSize: '1.05rem' }}>{r.salon.name}</div>
+                      <div style={{ color: '#6b5e4a', fontSize: '0.9rem', marginTop: '0.2rem' }}>{r.service.name}</div>
+                    </div>
+                    <span style={{
+                      padding: '0.25rem 0.75rem',
+                      borderRadius: 9999,
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      ...bStyle
+                    }}>
+                      {STATUS_MAP[r.status] || r.status}
+                    </span>
+                  </div>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '0.25rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ fontSize: '0.75rem', color: '#9a8878' }}>Tarix və Saat</span>
+                      <span style={{ fontSize: '0.85rem', color: '#1a1208', fontWeight: 500 }}>{dateStr}</span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ fontSize: '0.75rem', color: '#9a8878' }}>Usta</span>
+                      <span style={{ fontSize: '0.85rem', color: '#1a1208', fontWeight: 500 }}>{r.employee?.fullName || 'İstənilən'}</span>
+                    </div>
+                  </div>
+
+                  <div style={{ borderTop: '1px solid #ede5dc', margin: '0.5rem -1.25rem 0', padding: '1rem 1.25rem 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ fontSize: '1rem', fontWeight: 600, color: '#1a1208' }}>
+                      {(r.priceAmount / 100).toFixed(2)} {r.currency}
+                    </div>
+                    <Link href={`/account/reservations/${r.id}`} style={{ color: '#c9a460', fontSize: '0.9rem', fontWeight: 500, textDecoration: 'none' }}>
+                      Ətraflı bax →
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', fontSize: '0.9rem' }}>
+            {page > 1 ? (
+              <Link href={`?page=${page - 1}${status ? `&status=${status}` : ''}`} style={{ color: '#c9a460', textDecoration: 'none' }}>← Əvvəlki</Link>
+            ) : <span />}
+            <span style={{ color: '#9a8878' }}>Səhifə {page} / {totalPages}</span>
+            {page < totalPages ? (
+              <Link href={`?page=${page + 1}${status ? `&status=${status}` : ''}`} style={{ color: '#c9a460', textDecoration: 'none' }}>Növbəti →</Link>
+            ) : <span />}
+          </div>
+        )}
+      </div>
+      <style>{`
+        ::-webkit-scrollbar { display: none; }
+      `}</style>
+    </PageLayout>
   );
 }

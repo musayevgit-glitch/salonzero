@@ -1,8 +1,8 @@
-import { Badge, Card, ErrorState, PublicShell } from '@salonomia/ui';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getIsAuthenticated } from '../../../lib/fetch-api-server';
 import { fetchPublicApi, PublicApiError } from '../../../lib/public-api';
+import { PageLayout } from '../../_components/PageLayout';
 
 interface PublicService {
   id: string;
@@ -42,19 +42,19 @@ interface SalonDetail {
 }
 
 const GENDER_FOCUS_LABEL: Record<string, string> = {
-  WOMEN: 'Women',
-  MEN: 'Men',
-  UNISEX: 'Unisex',
+  WOMEN: 'Qadınlar',
+  MEN: 'Kişilər',
+  UNISEX: 'Uniseks',
 };
 
 const WEEKDAY_LABEL = [
-  'Sunday',
-  'Monday',
-  'Tuesday',
-  'Wednesday',
-  'Thursday',
-  'Friday',
-  'Saturday',
+  'Bazar',
+  'Bazar ertəsi',
+  'Çərşənbə axşamı',
+  'Çərşənbə',
+  'Cümə axşamı',
+  'Cümə',
+  'Şənbə',
 ];
 
 function formatMinuteOfDay(minutes: number): string {
@@ -94,31 +94,6 @@ export async function generateMetadata({
   };
 }
 
-function ServiceRow({ service, slug }: { service: PublicService; slug: string }) {
-  return (
-    <li className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-      <div className="min-w-0">
-        <p className="font-medium text-text-primary">{service.name}</p>
-        {service.description ? (
-          <p className="text-sm text-text-secondary">{service.description}</p>
-        ) : null}
-        <p className="text-sm text-text-secondary">{service.durationMinutes} min</p>
-      </div>
-      <div className="flex shrink-0 items-center justify-between gap-3 sm:justify-end">
-        <p className="font-medium text-text-primary">
-          {formatMoney(service.priceAmount, service.currency)}
-        </p>
-        <a
-          href={`/salons/${slug}/book/service`}
-          className="inline-flex min-h-9 items-center rounded-[var(--radius-sm)] border border-accent px-3 text-xs font-medium text-accent hover:bg-accent/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-        >
-          Book
-        </a>
-      </div>
-    </li>
-  );
-}
-
 export default async function SalonDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
@@ -129,14 +104,14 @@ export default async function SalonDetailPage({ params }: { params: Promise<{ sl
 
   if (salonResult instanceof Error) {
     return (
-      <PublicShell isAuthenticated={isAuthenticated}>
-        <ErrorState
-          title="Couldn't load this salon"
-          description={
-            salonResult instanceof PublicApiError ? salonResult.message : 'Something went wrong.'
-          }
-        />
-      </PublicShell>
+      <PageLayout isAuthenticated={isAuthenticated}>
+        <div style={{ textAlign: 'center', padding: '4rem 1rem' }}>
+          <h1 style={{ fontSize: '1.5rem', color: '#1a1208', marginBottom: '0.5rem' }}>Couldn't load this salon</h1>
+          <p style={{ color: '#9a8878' }}>
+            {salonResult instanceof PublicApiError ? salonResult.message : 'Something went wrong.'}
+          </p>
+        </div>
+      </PageLayout>
     );
   }
 
@@ -146,175 +121,170 @@ export default async function SalonDetailPage({ params }: { params: Promise<{ sl
   const hasServices = salon.serviceCategories.length > 0 || salon.uncategorizedServices.length > 0;
 
   return (
-    <PublicShell isAuthenticated={isAuthenticated}>
-      <div className="flex flex-col gap-8 pb-20 lg:pb-0">
-        <div>
-          <div className="flex flex-wrap items-start justify-between gap-2">
-            <h1 className="text-3xl font-semibold text-text-primary">{salon.name}</h1>
-            {salon.genderFocus ? (
-              <Badge>{GENDER_FOCUS_LABEL[salon.genderFocus] ?? salon.genderFocus}</Badge>
-            ) : null}
+    <PageLayout isAuthenticated={isAuthenticated} activeNav="salons">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        {/* Hero Section */}
+        <div style={{ 
+          position: 'relative', 
+          height: 280, 
+          overflow: 'hidden',
+        }} className="hero-container">
+          <img src="/images/salon-1.png" alt={salon.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(26,18,8,0.9), rgba(26,18,8,0.2))' }} />
+          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '2rem', fontWeight: 700, color: 'white', margin: 0 }}>
+              {salon.name}
+            </h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+              {salon.city && <span style={{ color: '#ede5dc', fontSize: '0.875rem' }}>{salon.city}</span>}
+              {salon.genderFocus && (
+                <span style={{ background: '#c9a460', color: '#1a1208', fontSize: '0.75rem', fontWeight: 600, padding: '0.2rem 0.6rem', borderRadius: 999 }}>
+                  {GENDER_FOCUS_LABEL[salon.genderFocus] ?? salon.genderFocus}
+                </span>
+              )}
+            </div>
           </div>
-          {salon.description ? (
-            <p className="mt-2 text-text-secondary">{salon.description}</p>
-          ) : null}
         </div>
 
-        <Card>
-          <h2 className="text-lg font-semibold text-text-primary">Contact &amp; location</h2>
-          <dl className="mt-3 flex flex-col gap-2 text-sm">
-            {salon.addressLine ? (
-              <div className="flex flex-wrap justify-between gap-x-3">
-                <dt className="text-text-secondary">Address</dt>
-                <dd>{salon.addressLine}</dd>
-              </div>
-            ) : null}
-            {salon.city ? (
-              <div className="flex flex-wrap justify-between gap-x-3">
-                <dt className="text-text-secondary">City</dt>
-                <dd>{salon.city}</dd>
-              </div>
-            ) : null}
-            {salon.phone ? (
-              <div className="flex flex-wrap justify-between gap-x-3">
-                <dt className="text-text-secondary">Phone</dt>
-                <dd>{salon.phone}</dd>
-              </div>
-            ) : null}
-            {salon.email ? (
-              <div className="flex flex-wrap justify-between gap-x-3">
-                <dt className="text-text-secondary">Email</dt>
-                <dd className="break-all">{salon.email}</dd>
-              </div>
-            ) : null}
-          </dl>
-        </Card>
+        {/* Content sections */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem' }} className="lg-grid">
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            {salon.description && (
+              <section style={{ background: 'white', borderRadius: 16, border: '1px solid #ede5dc', padding: '1.5rem' }}>
+                <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.25rem', color: '#1a1208', marginBottom: '1rem', fontWeight: 600, margin: '0 0 1rem 0' }}>Haqqında</h2>
+                <p style={{ color: '#6b5e4a', fontSize: '0.95rem', lineHeight: 1.6, margin: 0 }}>{salon.description}</p>
+              </section>
+            )}
 
-        {salon.approximateOpeningHours.length > 0 ? (
-          <Card>
-            <h2 className="text-lg font-semibold text-text-primary">Opening hours</h2>
-            <p className="mt-1 text-xs text-text-secondary">
-              Based on stylists&apos; working schedules — actual availability for a specific service
-              may vary.
-            </p>
-            <ul className="mt-3 flex flex-col gap-1 text-sm">
-              {salon.approximateOpeningHours.map((h) => (
-                <li key={h.weekday} className="flex justify-between">
-                  <span className="text-text-secondary">{WEEKDAY_LABEL[h.weekday]}</span>
-                  <span>
-                    {formatMinuteOfDay(h.startMinuteOfDay)} – {formatMinuteOfDay(h.endMinuteOfDay)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </Card>
-        ) : null}
-
-        {salon.bookingPolicySummary ? (
-          <Card>
-            <h2 className="text-lg font-semibold text-text-primary">Booking policy</h2>
-            <ul className="mt-3 flex flex-col gap-1 text-sm text-text-secondary">
-              <li>
-                {salon.bookingPolicySummary.autoConfirm
-                  ? 'Reservations are confirmed instantly.'
-                  : 'Reservations require salon confirmation before they are final.'}
-              </li>
-              <li>
-                Cancellations accepted up to {salon.bookingPolicySummary.cancellationWindowHours}{' '}
-                hours before the appointment.
-              </li>
-              <li>
-                Reschedules accepted up to {salon.bookingPolicySummary.rescheduleWindowHours} hours
-                before the appointment.
-              </li>
-            </ul>
-          </Card>
-        ) : null}
-
-        <Card id="services">
-          <h2 className="text-lg font-semibold text-text-primary">Services</h2>
-          {hasServices ? (
-            <div className="mt-3 flex flex-col gap-4">
-              {salon.serviceCategories.map((category) => (
-                <div key={category.id}>
-                  <h3 className="text-sm font-semibold text-text-secondary">{category.name}</h3>
-                  <ul className="divide-y divide-border">
-                    {category.services.map((s) => (
-                      <ServiceRow key={s.id} service={s} slug={salon.slug} />
-                    ))}
-                  </ul>
-                </div>
-              ))}
-              {salon.uncategorizedServices.length > 0 ? (
-                <div>
-                  {salon.serviceCategories.length > 0 ? (
-                    <h3 className="text-sm font-semibold text-text-secondary">Other services</h3>
-                  ) : null}
-                  <ul className="divide-y divide-border">
-                    {salon.uncategorizedServices.map((s) => (
-                      <ServiceRow key={s.id} service={s} slug={salon.slug} />
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
-            </div>
-          ) : (
-            <p className="mt-3 text-sm text-text-secondary">No services listed yet.</p>
-          )}
-        </Card>
-
-        <Card>
-          <h2 className="text-lg font-semibold text-text-primary">Stylists</h2>
-          {salon.employees.length > 0 ? (
-            <div className="mt-3 grid grid-cols-1 gap-6 sm:grid-cols-2">
-              {salon.employees.map((employee) => (
-                <div key={employee.id}>
-                  <p className="font-medium text-text-primary">{employee.fullName}</p>
-                  {employee.bio ? (
-                    <p className="text-sm text-text-secondary">{employee.bio}</p>
-                  ) : null}
-                  {employee.portfolio.length > 0 ? (
-                    <div className="mt-2 grid grid-cols-3 gap-2">
-                      {employee.portfolio.map((item) => (
-                        // Plain <img>, not next/image: portfolio URLs are short-lived signed URLs
-                        // (local-disk driver) or presigned S3 URLs (ADR-0008) that rotate on every
-                        // fetch — next/image's remote-pattern cache keying doesn't fit a URL that's
-                        // never the same twice, so native lazy-loading is the better fit here.
-                        <img
-                          key={item.id}
-                          src={item.imageUrl}
-                          alt={item.caption ?? `Portfolio work by ${employee.fullName}`}
-                          className="aspect-square w-full rounded-[var(--radius-sm)] object-cover"
-                          loading="lazy"
-                        />
-                      ))}
+            <section style={{ background: 'white', borderRadius: 16, border: '1px solid #ede5dc', padding: '1.5rem' }}>
+              <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.25rem', color: '#1a1208', marginBottom: '1rem', fontWeight: 600, margin: '0 0 1rem 0' }}>Xidmətlər</h2>
+              {hasServices ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                  {salon.serviceCategories.map((category) => (
+                    <div key={category.id}>
+                      <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#1a1208', margin: '0 0 0.5rem 0' }}>{category.name}</h3>
+                      <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column' }}>
+                        {category.services.map((s, idx) => (
+                          <li key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 0', borderBottom: idx < category.services.length - 1 ? '1px solid #ede5dc' : 'none' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                              <span style={{ color: '#1a1208', fontWeight: 500 }}>{s.name}</span>
+                              <span style={{ color: '#9a8878', fontSize: '0.85rem' }}>{s.durationMinutes} dəq</span>
+                            </div>
+                            <span style={{ color: '#1a1208', fontWeight: 600 }}>{formatMoney(s.priceAmount, s.currency)}</span>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
-                  ) : null}
+                  ))}
+                  {salon.uncategorizedServices.length > 0 && (
+                    <div>
+                      {salon.serviceCategories.length > 0 && <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#1a1208', margin: '0 0 0.5rem 0' }}>Digər xidmətlər</h3>}
+                      <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column' }}>
+                        {salon.uncategorizedServices.map((s, idx) => (
+                          <li key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 0', borderBottom: idx < salon.uncategorizedServices.length - 1 ? '1px solid #ede5dc' : 'none' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                              <span style={{ color: '#1a1208', fontWeight: 500 }}>{s.name}</span>
+                              <span style={{ color: '#9a8878', fontSize: '0.85rem' }}>{s.durationMinutes} dəq</span>
+                            </div>
+                            <span style={{ color: '#1a1208', fontWeight: 600 }}>{formatMoney(s.priceAmount, s.currency)}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
-          ) : (
-            <p className="mt-3 text-sm text-text-secondary">No stylists listed yet.</p>
-          )}
-        </Card>
+              ) : (
+                <p style={{ color: '#9a8878', fontSize: '0.95rem', margin: 0 }}>Hələ xidmət əlavə edilməyib.</p>
+              )}
+            </section>
 
-        <div className="fixed inset-x-0 bottom-0 border-t border-border bg-surface-raised p-4 shadow-[var(--shadow-md)] lg:hidden">
-          <a
-            href={`/salons/${salon.slug}/book/service`}
-            className="flex min-h-11 w-full items-center justify-center rounded-[var(--radius-sm)] bg-accent px-4 text-sm font-medium text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-          >
-            Book now
-          </a>
+            <section style={{ background: 'white', borderRadius: 16, border: '1px solid #ede5dc', padding: '1.5rem' }}>
+              <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.25rem', color: '#1a1208', marginBottom: '1rem', fontWeight: 600, margin: '0 0 1rem 0' }}>Ustalar</h2>
+              {salon.employees.length > 0 ? (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1.5rem' }}>
+                  {salon.employees.map(employee => (
+                    <div key={employee.id} style={{ border: '1px solid #ede5dc', borderRadius: 12, padding: '1rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                        <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#faf5f0', color: '#c9a460', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', fontWeight: 600, flexShrink: 0 }}>
+                          {employee.fullName.charAt(0)}
+                        </div>
+                        <div>
+                          <p style={{ margin: 0, fontWeight: 600, color: '#1a1208' }}>{employee.fullName}</p>
+                          {employee.bio && <p style={{ margin: 0, fontSize: '0.85rem', color: '#9a8878', marginTop: '0.25rem' }}>{employee.bio}</p>}
+                        </div>
+                      </div>
+                      {employee.portfolio.length > 0 && (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
+                          {employee.portfolio.map(item => (
+                            <img key={item.id} src={item.imageUrl} alt={item.caption ?? ''} style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', borderRadius: 8 }} loading="lazy" />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p style={{ color: '#9a8878', fontSize: '0.95rem', margin: 0 }}>Hələ usta əlavə edilməyib.</p>
+              )}
+            </section>
+
+            {salon.approximateOpeningHours.length > 0 && (
+              <section style={{ background: 'white', borderRadius: 16, border: '1px solid #ede5dc', padding: '1.5rem' }}>
+                <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.25rem', color: '#1a1208', marginBottom: '1rem', fontWeight: 600, margin: '0 0 1rem 0' }}>İş saatları</h2>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {salon.approximateOpeningHours.map(h => (
+                    <div key={h.weekday} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '0.75rem', borderBottom: '1px solid #f5f0eb' }}>
+                      <span style={{ color: '#6b5e4a', fontWeight: 500 }}>{WEEKDAY_LABEL[h.weekday]}</span>
+                      <span style={{ color: '#1a1208', fontWeight: 600 }}>{formatMinuteOfDay(h.startMinuteOfDay)} – {formatMinuteOfDay(h.endMinuteOfDay)}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {salon.bookingPolicySummary && (
+              <section style={{ background: 'white', borderRadius: 16, border: '1px solid #ede5dc', padding: '1.5rem' }}>
+                <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.25rem', color: '#1a1208', marginBottom: '1rem', fontWeight: 600, margin: '0 0 1rem 0' }}>Rezervasiya qaydaları</h2>
+                <ul style={{ margin: 0, paddingLeft: '1.25rem', color: '#6b5e4a', display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.95rem' }}>
+                  <li>{salon.bookingPolicySummary.autoConfirm ? 'Rezervasiyalar anında təsdiqlənir.' : 'Rezervasiyalar üçün salonun təsdiqi tələb olunur.'}</li>
+                  <li>Təyinatdan {salon.bookingPolicySummary.cancellationWindowHours} saat əvvələ qədər ləğv etmək mümkündür.</li>
+                  <li>Təyinatdan {salon.bookingPolicySummary.rescheduleWindowHours} saat əvvələ qədər vaxtı dəyişmək mümkündür.</li>
+                </ul>
+              </section>
+            )}
+
+          </div>
+
+          <div className="booking-sidebar" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div className="booking-card" style={{ background: 'white', borderRadius: 16, border: '1px solid #ede5dc', padding: '1.5rem', position: 'sticky', top: '5.5rem' }}>
+              <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.25rem', color: '#1a1208', margin: '0 0 0.5rem 0', fontWeight: 600 }}>Rezervasiya</h2>
+              <p style={{ color: '#6b5e4a', fontSize: '0.9rem', marginBottom: '1.5rem', marginTop: 0 }}>Uyğun vaxtı seçmək üçün davam edin.</p>
+              <a href={`/salons/${salon.slug}/book/service`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: 52, background: '#1a1208', color: 'white', borderRadius: 14, textDecoration: 'none', fontWeight: 500, fontSize: '1rem' }}>
+                Rezervasiya et
+              </a>
+            </div>
+          </div>
+
         </div>
-        <div className="hidden lg:block">
-          <a
-            href={`/salons/${salon.slug}/book/service`}
-            className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-sm)] bg-accent px-6 text-sm font-medium text-white hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring active:opacity-80"
-          >
-            Book now
+
+        {/* Mobile Sticky Button */}
+        <div className="mobile-book-btn" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, padding: '1rem', background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)', borderTop: '1px solid #ede5dc', zIndex: 100 }}>
+          <a href={`/salons/${salon.slug}/book/service`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: 52, background: '#1a1208', color: 'white', borderRadius: 14, textDecoration: 'none', fontWeight: 500, fontSize: '1rem' }}>
+            Rezervasiya et
           </a>
         </div>
       </div>
-    </PublicShell>
+      <style>{`
+        .hero-container { margin-left: -1.25rem; margin-right: -1.25rem; margin-top: -1.5rem; border-radius: 0 !important; }
+        .booking-card { display: none !important; }
+        @media(min-width: 1024px) {
+          .lg-grid { grid-template-columns: 1fr 320px !important; }
+          .hero-container { margin-left: 0; margin-right: 0; margin-top: 0; border-radius: 16px !important; }
+          .booking-card { display: block !important; }
+          .mobile-book-btn { display: none !important; }
+        }
+      `}</style>
+    </PageLayout>
   );
 }

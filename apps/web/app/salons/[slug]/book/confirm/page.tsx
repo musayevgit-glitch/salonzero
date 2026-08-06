@@ -1,16 +1,24 @@
 'use client';
 
-import { Button, PublicShell } from '@salonomia/ui';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { apiFetch, ApiError } from '../../../../../lib/api-client';
 import { useBookingContext } from '../_components/BookingContext';
-import { BookingStepper } from '../_components/BookingStepper';
+import { BookingCTAButton, BookingPageShell } from '../_components/BookingPageShell';
 
 interface CustomerProfile {
   fullName: string | null;
   phone: string | null;
   email: string;
+}
+
+function InfoIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+      <circle cx="7" cy="7" r="6" stroke="#6b5e4a" strokeWidth="1.3" />
+      <path d="M7 6.5v3.5M7 4.5v.5" stroke="#6b5e4a" strokeWidth="1.3" strokeLinecap="round" />
+    </svg>
+  );
 }
 
 export default function ConfirmStep() {
@@ -24,7 +32,6 @@ export default function ConfirmStep() {
   const [error, setError] = useState<string | null>(null);
   const profileLoaded = useRef(false);
 
-  // Guard: need a complete draft
   useEffect(() => {
     if (!draftLoaded) return;
     if (!draft.serviceId) {
@@ -73,94 +80,152 @@ export default function ConfirmStep() {
         setStartAt(undefined);
         router.replace(`/salons/${salon.slug}/book/datetime`);
       } else {
-        setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+        setError(err instanceof Error ? err.message : 'Bir xəta baş verdi. Yenidən cəhd edin.');
         setSubmitting(false);
       }
     }
   }
 
   return (
-    <PublicShell>
-      <div className="mx-auto max-w-xl">
-        <a
-          href={`/salons/${salon.slug}/book/summary`}
-          className="mb-6 inline-flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary"
-        >
-          ← Back to summary
-        </a>
-
-        <div className="mt-4">
-          <BookingStepper />
-        </div>
-
-        <h1 className="mt-6 text-2xl font-semibold text-text-primary">Confirm your booking</h1>
-
-        {!profile ? (
-          <div className="mt-6 animate-pulse space-y-3">
-            <div className="h-5 w-48 rounded bg-surface-raised" />
-            <div className="h-5 w-32 rounded bg-surface-raised" />
-          </div>
-        ) : (
-          <div className="mt-4 rounded-[var(--radius-sm)] border border-border bg-surface-raised p-4 text-sm">
-            <p className="font-medium text-text-primary">{profile.fullName ?? 'Guest'}</p>
-            <p className="text-text-secondary">{profile.email}</p>
-            {profile.phone && <p className="text-text-secondary">{profile.phone}</p>}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-5">
-          <div className="flex flex-col gap-1">
-            <label htmlFor="note" className="text-sm font-medium text-text-primary">
-              Note for the salon <span className="text-text-secondary font-normal">(optional)</span>
-            </label>
-            <textarea
-              id="note"
-              name="note"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              rows={3}
-              maxLength={1000}
-              placeholder="Any special requests or information..."
-              className="resize-none rounded-[var(--radius-sm)] border border-border bg-surface px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent"
-            />
-          </div>
-
-          <label className="flex cursor-pointer items-start gap-3">
+    <BookingPageShell
+      title="Təsdiq"
+      backHref={`/salons/${salon.slug}/book/summary`}
+      backLabel="Nəzərdən keçirməyə qayıt"
+      footer={
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+          {/* Terms */}
+          <label
+            style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '0.75rem',
+              cursor: 'pointer',
+              padding: '0.75rem',
+              borderRadius: 12,
+              background: termsAccepted ? '#fffbf2' : 'white',
+              border: `1px solid ${termsAccepted ? '#c9a460' : '#ede5dc'}`,
+              transition: 'all 0.15s',
+            }}
+          >
+            <div
+              style={{
+                width: 20, height: 20, borderRadius: 6,
+                border: `2px solid ${termsAccepted ? '#c9a460' : '#c5bbb2'}`,
+                background: termsAccepted ? '#c9a460' : 'white',
+                flexShrink: 0, marginTop: '0.05rem',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'all 0.15s',
+              }}
+            >
+              {termsAccepted && (
+                <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true">
+                  <path d="M2 5.5l2.5 2.5 4.5-4.5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              )}
+            </div>
             <input
               type="checkbox"
               checked={termsAccepted}
               onChange={(e) => setTermsAccepted(e.target.checked)}
-              className="mt-0.5 h-4 w-4 accent-accent"
+              style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }}
+              aria-label="Şərtlər və qaydaları qəbul edirəm"
             />
-            <span className="text-sm text-text-secondary">
-              I agree to the{' '}
-              <a
-                href="/terms"
-                className="text-accent underline"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                terms and conditions
-              </a>
-              . I understand that late cancellations may incur a fee.
+            <span style={{ fontSize: '0.78rem', color: '#6b5e4a', lineHeight: 1.5 }}>
+              Rezervasiya yaratmaqla{' '}
+              <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: '#c9a460', fontWeight: 600, textDecoration: 'none' }}>
+                şərtlər və qaydaları
+              </a>{' '}
+              qəbul etmiş olursunuz.
             </span>
           </label>
 
           {error && (
-            <p role="alert" className="text-sm text-red-600 dark:text-red-400">
+            <div style={{ background: '#fff5f5', border: '1px solid #fecaca', borderRadius: 10, padding: '0.75rem', fontSize: '0.82rem', color: '#9b1c1c' }}>
               {error}
-            </p>
+            </div>
           )}
 
-          <Button
+          <BookingCTAButton
+            label={submitting ? 'Rezervasiya edilir…' : 'Rezervasiyanı yarat'}
             type="submit"
-            disabled={!termsAccepted || submitting || !profile}
-            className="w-full"
-          >
-            {submitting ? 'Booking…' : 'Confirm booking'}
-          </Button>
+            disabled={!termsAccepted || !profile}
+            loading={submitting}
+          />
+          <p style={{ textAlign: 'center', fontSize: '0.68rem', color: '#b8a898' }}>
+            Rezervasiya yaratmaqla qaydaları qəbul etmiş olursunuz.
+          </p>
         </form>
+      }
+    >
+      <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#1a1208', marginBottom: '1rem' }}>
+        Məlumatlarınız
+      </h2>
+
+      {/* Profile card */}
+      {!profile ? (
+        <div style={{ background: 'white', border: '1px solid #ede5dc', borderRadius: 14, padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <div style={{ height: 16, width: '60%', borderRadius: 8, background: '#f0e8e0', animation: 'pulse 1.5s ease-in-out infinite' }} />
+          <div style={{ height: 14, width: '40%', borderRadius: 8, background: '#f0e8e0', animation: 'pulse 1.5s ease-in-out infinite' }} />
+        </div>
+      ) : (
+        <div
+          style={{
+            background: 'white',
+            border: '1px solid #ede5dc',
+            borderRadius: 14,
+            padding: '1rem 1.25rem',
+            boxShadow: '0 1px 4px rgba(26,18,8,0.05)',
+            marginBottom: '1rem',
+          }}
+        >
+          <p style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1a1208' }}>{profile.fullName ?? 'Qonaq'}</p>
+          <p style={{ fontSize: '0.8rem', color: '#9a8878', marginTop: '0.2rem' }}>{profile.email}</p>
+          {profile.phone && <p style={{ fontSize: '0.8rem', color: '#9a8878', marginTop: '0.1rem' }}>{profile.phone}</p>}
+        </div>
+      )}
+
+      {/* Note field */}
+      <div style={{ marginBottom: '0.75rem' }}>
+        <label
+          htmlFor="note"
+          style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#1a1208', marginBottom: '0.5rem' }}
+        >
+          Salon üçün qeyd{' '}
+          <span style={{ fontWeight: 400, color: '#9a8878' }}>(istəyə bağlı)</span>
+        </label>
+        <textarea
+          id="note"
+          name="note"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          rows={3}
+          maxLength={1000}
+          placeholder="Xüsusi istəkləriniz və ya məlumatlar..."
+          style={{
+            width: '100%',
+            padding: '0.75rem 1rem',
+            borderRadius: 12,
+            border: '1.5px solid #ede5dc',
+            background: 'white',
+            fontSize: '0.85rem',
+            color: '#1a1208',
+            resize: 'none',
+            outline: 'none',
+            fontFamily: 'inherit',
+            lineHeight: 1.6,
+            transition: 'border-color 0.15s',
+            boxSizing: 'border-box',
+          }}
+          onFocus={(e) => { (e.currentTarget as HTMLTextAreaElement).style.borderColor = '#c9a460'; }}
+          onBlur={(e) => { (e.currentTarget as HTMLTextAreaElement).style.borderColor = '#ede5dc'; }}
+        />
       </div>
-    </PublicShell>
+
+      {/* Payment info note */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0 0.25rem' }}>
+        <InfoIcon />
+        <p style={{ fontSize: '0.75rem', color: '#9a8878' }}>Ödəniş salon daxilində ediləcək.</p>
+      </div>
+    </BookingPageShell>
   );
 }

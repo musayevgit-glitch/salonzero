@@ -1,13 +1,38 @@
 'use client';
 
-import { PublicShell } from '@salonomia/ui';
 import { useRouter } from 'next/navigation';
 import { useBookingContext } from '../_components/BookingContext';
-import { BookingStepper } from '../_components/BookingStepper';
+import { BookingCTAButton, BookingPageShell } from '../_components/BookingPageShell';
 
 function formatMoney(amountMinorUnits: number, currency: string): string {
-  return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(
+  return new Intl.NumberFormat('az-AZ', { style: 'currency', currency }).format(
     amountMinorUnits / 100,
+  );
+}
+
+function LocationPinIcon() {
+  return (
+    <svg width="11" height="13" viewBox="0 0 12 14" fill="none" aria-hidden="true">
+      <path d="M6 1a4.5 4.5 0 0 1 4.5 4.5C10.5 9.5 6 13 6 13S1.5 9.5 1.5 5.5A4.5 4.5 0 0 1 6 1z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+      <circle cx="6" cy="5.5" r="1.5" fill="currentColor" />
+    </svg>
+  );
+}
+
+function StarIcon() {
+  return (
+    <svg width="11" height="11" viewBox="0 0 12 12" fill="#f59e0b" aria-hidden="true">
+      <path d="M6 1l1.4 2.8 3.1.45-2.25 2.2.53 3.1L6 8.1l-2.78 1.45.53-3.1L1.5 4.25l3.1-.45L6 1z" />
+    </svg>
+  );
+}
+
+function InfoIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+      <circle cx="7" cy="7" r="6" stroke="#c9a460" strokeWidth="1.3" />
+      <path d="M7 6.5v3.5M7 4.5v.5" stroke="#c9a460" strokeWidth="1.3" strokeLinecap="round" />
+    </svg>
   );
 }
 
@@ -15,121 +40,187 @@ export default function ServiceStep() {
   const { salon, draft, setService } = useBookingContext();
   const router = useRouter();
 
-  const hasServices = salon.serviceCategories.length > 0 || salon.uncategorizedServices.length > 0;
+  const allServices = [
+    ...salon.serviceCategories.flatMap((c) => c.services),
+    ...salon.uncategorizedServices,
+  ];
+
+  const selectedService = allServices.find((s) => s.id === draft.serviceId);
 
   function handleSelect(serviceId: string) {
     setService(serviceId);
-    router.push(`/salons/${salon.slug}/book/stylist`);
+    // Don't auto-navigate — let user press "Davam et"
   }
 
+  function handleContinue() {
+    if (draft.serviceId) {
+      router.push(`/salons/${salon.slug}/book/stylist`);
+    }
+  }
+
+  const hasServices = allServices.length > 0;
+
   return (
-    <PublicShell>
-      <div className="mx-auto max-w-xl">
-        <a
-          href={`/salons/${salon.slug}`}
-          className="mb-6 inline-flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary"
-        >
-          ← {salon.name}
-        </a>
-
-        <div className="mt-4">
-          <BookingStepper />
+    <BookingPageShell
+      title="Rezervasiya et"
+      backHref={`/salons/${salon.slug}`}
+      backLabel={`${salon.name} səhifəsinə qayıt`}
+      footer={
+        <BookingCTAButton
+          label="Davam et"
+          onClick={handleContinue}
+          disabled={!draft.serviceId}
+        />
+      }
+    >
+      {/* Salon card */}
+      <div
+        style={{
+          background: 'white',
+          borderRadius: 16,
+          overflow: 'hidden',
+          border: '1px solid #ede5dc',
+          marginBottom: '1.5rem',
+          display: 'flex',
+          gap: '0.875rem',
+          padding: '0.875rem',
+          boxShadow: '0 2px 8px rgba(26,18,8,0.06)',
+        }}
+      >
+        {/* Salon photo */}
+        <div style={{ width: 90, height: 90, borderRadius: 12, overflow: 'hidden', flexShrink: 0 }}>
+          <img
+            src="/images/salon-2.png"
+            alt={salon.name}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
         </div>
-
-        <h1 className="mt-6 text-2xl font-semibold text-text-primary">Choose a service</h1>
-
-        {!hasServices && (
-          <p className="mt-4 text-text-secondary">No services are available at this time.</p>
-        )}
-
-        <div className="mt-4 flex flex-col gap-6">
-          {salon.serviceCategories.map((category) => (
-            <div key={category.id}>
-              <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-secondary">
-                {category.name}
-              </h2>
-              <ul className="flex flex-col gap-2" role="listbox" aria-label={category.name}>
-                {category.services.map((service) => (
-                  <li key={service.id}>
-                    <button
-                      type="button"
-                      role="option"
-                      aria-selected={draft.serviceId === service.id}
-                      onClick={() => handleSelect(service.id)}
-                      className={`w-full rounded-[var(--radius-sm)] border p-4 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
-                        draft.serviceId === service.id
-                          ? 'border-accent bg-accent/5'
-                          : 'border-border bg-surface-raised hover:border-accent/50'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <p className="font-medium text-text-primary">{service.name}</p>
-                          {service.description && (
-                            <p className="mt-0.5 text-sm text-text-secondary">
-                              {service.description}
-                            </p>
-                          )}
-                          <p className="mt-1 text-sm text-text-secondary">
-                            {service.durationMinutes} min
-                          </p>
-                        </div>
-                        <p className="shrink-0 font-semibold text-text-primary">
-                          {formatMoney(service.priceAmount, service.currency)}
-                        </p>
-                      </div>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-
-          {salon.uncategorizedServices.length > 0 && (
-            <div>
-              {salon.serviceCategories.length > 0 && (
-                <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-secondary">
-                  Other services
-                </h2>
-              )}
-              <ul className="flex flex-col gap-2" role="listbox" aria-label="Services">
-                {salon.uncategorizedServices.map((service) => (
-                  <li key={service.id}>
-                    <button
-                      type="button"
-                      role="option"
-                      aria-selected={draft.serviceId === service.id}
-                      onClick={() => handleSelect(service.id)}
-                      className={`w-full rounded-[var(--radius-sm)] border p-4 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
-                        draft.serviceId === service.id
-                          ? 'border-accent bg-accent/5'
-                          : 'border-border bg-surface-raised hover:border-accent/50'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <p className="font-medium text-text-primary">{service.name}</p>
-                          {service.description && (
-                            <p className="mt-0.5 text-sm text-text-secondary">
-                              {service.description}
-                            </p>
-                          )}
-                          <p className="mt-1 text-sm text-text-secondary">
-                            {service.durationMinutes} min
-                          </p>
-                        </div>
-                        <p className="shrink-0 font-semibold text-text-primary">
-                          {formatMoney(service.priceAmount, service.currency)}
-                        </p>
-                      </div>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ fontWeight: 700, fontSize: '1rem', color: '#1a1208', marginBottom: '0.25rem' }}>
+            {salon.name}
+          </p>
+          <p style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', color: '#9a8878', marginBottom: '0.4rem' }}>
+            <span style={{ color: '#c9a460' }}><LocationPinIcon /></span>
+            Bakı, Azərbaycan
+          </p>
+          <p style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', color: '#1a1208', fontWeight: 600 }}>
+            <StarIcon /> 4.9 (128)
+          </p>
+          <a
+            href={`/salons/${salon.slug}`}
+            style={{
+              display: 'inline-block',
+              marginTop: '0.5rem',
+              padding: '0.25rem 0.75rem',
+              borderRadius: 8,
+              border: '1px solid #ede5dc',
+              fontSize: '0.72rem',
+              fontWeight: 500,
+              color: '#6b5e4a',
+              textDecoration: 'none',
+            }}
+          >
+            Salon profilinə bax
+          </a>
         </div>
       </div>
-    </PublicShell>
+
+      {!hasServices && (
+        <p style={{ color: '#9a8878', fontSize: '0.875rem', textAlign: 'center', marginTop: '2rem' }}>
+          Hal-hazırda heç bir xidmət mövcud deyil.
+        </p>
+      )}
+
+      {/* Xidmət header */}
+      {hasServices && (
+        <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#1a1208', marginBottom: '0.75rem' }}>
+          Xidmət
+        </h2>
+      )}
+
+      {/* Service list */}
+      <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', listStyle: 'none', padding: 0, margin: 0 }} role="listbox" aria-label="Xidmətlər">
+        {allServices.map((service) => {
+          const selected = draft.serviceId === service.id;
+          return (
+            <li key={service.id}>
+              <button
+                type="button"
+                role="option"
+                aria-selected={selected}
+                onClick={() => handleSelect(service.id)}
+                style={{
+                  width: '100%',
+                  textAlign: 'left',
+                  padding: '0.875rem 1rem',
+                  borderRadius: 14,
+                  border: selected ? '2px solid #c9a460' : '1.5px solid #ede5dc',
+                  background: selected ? '#fffbf5' : 'white',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.875rem',
+                  transition: 'border-color 0.15s, background 0.15s',
+                  boxShadow: selected ? '0 0 0 3px rgba(201,164,96,0.12)' : '0 1px 3px rgba(26,18,8,0.05)',
+                }}
+              >
+                {/* Thumbnail */}
+                <div style={{ width: 52, height: 52, borderRadius: 10, overflow: 'hidden', flexShrink: 0, background: '#f5ece4' }}>
+                  <img
+                    src="/images/salon-1.png"
+                    alt=""
+                    aria-hidden="true"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                </div>
+
+                {/* Info */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontWeight: 600, fontSize: '0.9rem', color: '#1a1208' }}>{service.name}</p>
+                  <p style={{ fontSize: '0.8rem', fontWeight: 700, color: '#c9a460', marginTop: '0.15rem' }}>
+                    {formatMoney(service.priceAmount, service.currency)}
+                  </p>
+                  <p style={{ fontSize: '0.72rem', color: '#9a8878', marginTop: '0.1rem' }}>
+                    {service.durationMinutes} dəq
+                  </p>
+                </div>
+
+                {/* Radio */}
+                <span
+                  style={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: '50%',
+                    border: selected ? '6px solid #c9a460' : '2px solid #c5bbb2',
+                    flexShrink: 0,
+                    transition: 'border 0.15s',
+                  }}
+                  aria-hidden="true"
+                />
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+
+      {/* Info note */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: '0.5rem',
+          marginTop: '1rem',
+          padding: '0.75rem',
+          borderRadius: 12,
+          background: '#fffbf2',
+          border: '1px solid #f0e4c0',
+        }}
+      >
+        <span style={{ flexShrink: 0, marginTop: '0.05rem' }}><InfoIcon /></span>
+        <p style={{ fontSize: '0.75rem', color: '#8a7355', lineHeight: 1.5 }}>
+          Qiymətlər ustaya görə dəyişə bilər.
+        </p>
+      </div>
+    </BookingPageShell>
   );
 }

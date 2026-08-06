@@ -73,6 +73,7 @@ model User {
   statusChanges       ReservationStatusHistory[]
   notifications       Notification[]
   passwordResetTokens PasswordResetToken[]
+  employeeProfile     EmployeeProfile?
 
   @@index([status])
 }
@@ -110,13 +111,14 @@ model SalonInvitation {
 }
 
 model SalonMembership {
-  id        String           @id @default(uuid())
-  userId    String
-  salonId   String
-  role      SalonRole
-  status    MembershipStatus @default(ACTIVE)
-  createdAt DateTime         @default(now()) @db.Timestamptz(3)
-  updatedAt DateTime         @updatedAt @db.Timestamptz(3)
+  id                      String           @id @default(uuid())
+  userId                  String
+  salonId                 String
+  role                    SalonRole
+  status                  MembershipStatus @default(ACTIVE)
+  allowManageReservations Boolean          @default(false)
+  createdAt               DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt               DateTime         @updatedAt @db.Timestamptz(3)
 
   user  User  @relation(fields: [userId], references: [id], onDelete: Restrict)
   salon Salon @relation(fields: [salonId], references: [id], onDelete: Restrict)
@@ -226,8 +228,10 @@ model EmployeeProfile {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  userId    String?  @unique
 
   salon            Salon                   @relation(fields: [salonId], references: [id], onDelete: Restrict)
+  user             User?                   @relation(fields: [userId], references: [id], onDelete: SetNull)
   portfolio        EmployeePortfolioItem[]
   eligibleServices EmployeeService[]
   workingSchedules WorkingSchedule[]

@@ -3,7 +3,9 @@ import {
   listSalonReservationsQuerySchema,
   type ListSalonReservationsQuery,
 } from '@salonomia/validation';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { AuthenticatedGuard } from '../auth/guards/authenticated.guard';
+import type { AuthenticatedUser } from '../auth/types';
 import { CurrentSalonContext, type SalonContext } from '../authz/salon-context';
 import { Roles } from '../authz/roles.decorator';
 import { RolesGuard } from '../authz/roles.guard';
@@ -22,10 +24,11 @@ export class StaffReservationsController {
   @Get()
   list(
     @CurrentSalonContext() ctx: SalonContext,
+    @CurrentUser() user: AuthenticatedUser,
     @Query(new ZodValidationPipe(listSalonReservationsQuerySchema))
     query: ListSalonReservationsQuery,
   ) {
-    return this.reservationsService.list(ctx.salonId, query);
+    return this.reservationsService.list(ctx.salonId, query, user.id, ctx.role);
   }
 
   @Roles('SUPERADMIN', 'SALON_ADMIN', 'SALON_MANAGER')
@@ -38,8 +41,9 @@ export class StaffReservationsController {
   @Get(':reservationId')
   detail(
     @CurrentSalonContext() ctx: SalonContext,
+    @CurrentUser() user: AuthenticatedUser,
     @Param('reservationId', new ParseUUIDPipe({ errorHttpStatusCode: 404 })) reservationId: string,
   ) {
-    return this.reservationsService.detail(ctx.salonId, reservationId);
+    return this.reservationsService.detail(ctx.salonId, reservationId, user.id, ctx.role);
   }
 }

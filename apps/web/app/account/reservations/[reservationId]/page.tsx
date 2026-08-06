@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { apiFetch, ApiError } from '../../../../lib/api-client';
 import Link from 'next/link';
+import { PageLayout } from '../../../_components/PageLayout';
 
 interface ReservationDetail {
   id: string;
@@ -33,30 +34,46 @@ interface AvailabilitySlot {
   endAt: string;
 }
 
-const STATUS_LABEL: Record<string, string> = {
-  PENDING: 'Pending',
-  CONFIRMED: 'Confirmed',
-  CANCELLED_BY_CUSTOMER: 'Cancelled',
-  CANCELLED_BY_SALON: 'Cancelled by salon',
-  REJECTED: 'Rejected',
-  CHECKED_IN: 'Checked in',
-  COMPLETED: 'Completed',
-  NO_SHOW: 'No show',
+const STATUS_MAP: Record<string, string> = {
+  PENDING: 'Gözləmədə',
+  CONFIRMED: 'Təsdiqlənmiş',
+  CANCELLED_BY_CUSTOMER: 'Ləğv edilmiş',
+  CANCELLED_BY_SALON: 'Salon tərəfindən ləğv',
+  REJECTED: 'İmtina edilib',
+  CHECKED_IN: 'Yoxlanılıb',
+  COMPLETED: 'Tamamlanmış',
+  NO_SHOW: 'Gəlməyib',
+};
+
+const BADGE_STYLE: Record<string, React.CSSProperties> = {
+  PENDING: { background: '#fef3c7', color: '#92400e' },
+  CONFIRMED: { background: '#dcfce7', color: '#166534' },
+  CANCELLED_BY_CUSTOMER: { background: '#f3f4f6', color: '#4b5563' },
+  CANCELLED_BY_SALON: { background: '#f3f4f6', color: '#4b5563' },
+  REJECTED: { background: '#fee2e2', color: '#b91c1c' },
+  CHECKED_IN: { background: '#dbeafe', color: '#1e40af' },
+  COMPLETED: { background: '#f3e8ff', color: '#6b21a8' },
+  NO_SHOW: { background: '#f3f4f6', color: '#4b5563' },
 };
 
 function formatMoney(amount: number, currency: string) {
-  return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(amount / 100);
+  return new Intl.NumberFormat('az-AZ', { style: 'currency', currency }).format(amount / 100);
 }
 
-function formatDateTime(iso: string, timezone: string) {
-  return new Intl.DateTimeFormat(undefined, {
+function formatDateAZ(iso: string, timezone: string) {
+  return new Intl.DateTimeFormat('az-AZ', {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
-    hour: 'numeric',
+    timeZone: timezone,
+  }).format(new Date(iso));
+}
+
+function formatTimeAZ(iso: string, timezone: string) {
+  return new Intl.DateTimeFormat('az-AZ', {
+    hour: '2-digit',
     minute: '2-digit',
     timeZone: timezone,
-    timeZoneName: 'short',
   }).format(new Date(iso));
 }
 
@@ -197,26 +214,24 @@ export default function ReservationDetailPage({
 
   if (loading) {
     return (
-      <div className="animate-pulse space-y-4">
-        <div className="h-6 w-48 rounded bg-surface-raised" />
-        <div className="h-40 rounded bg-surface-raised" />
-      </div>
+      <PageLayout activeNav="reservations" isAuthenticated={true}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: 600, margin: '0 auto' }}>
+          <div style={{ height: 40, width: 250, background: '#ede5dc', borderRadius: 8, animation: 'pulse 1.5s infinite' }} />
+          <div style={{ height: 300, width: '100%', background: '#ede5dc', borderRadius: 16, animation: 'pulse 1.5s infinite' }} />
+        </div>
+        <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }`}</style>
+      </PageLayout>
     );
   }
 
   if (error || !reservation) {
     return (
-      <div>
-        <p className="text-sm text-red-600 dark:text-red-400">
-          {error ?? 'Reservation not found.'}
-        </p>
-        <Link
-          href="/account/reservations"
-          className="mt-3 inline-block text-sm text-accent underline"
-        >
-          ← Back to reservations
-        </Link>
-      </div>
+      <PageLayout activeNav="reservations" isAuthenticated={true}>
+        <div style={{ maxWidth: 600, margin: '0 auto', textAlign: 'center', padding: '2rem' }}>
+          <p style={{ color: '#dc2626', marginBottom: '1rem' }}>{error ?? 'Reservation not found.'}</p>
+          <Link href="/account/reservations" style={{ color: '#c9a460', textDecoration: 'none' }}>← Rezervasiyalara qayıt</Link>
+        </div>
+      </PageLayout>
     );
   }
 
@@ -224,215 +239,235 @@ export default function ReservationDetailPage({
     ? buildDates(reservation.salon.timezone, reservation.salon.bookingPolicy ? 90 : 30)
     : [];
 
+  const shortId = reservation.id.slice(-6).toUpperCase();
+  const statusBadgeStyle = BADGE_STYLE[reservation.status] || { background: '#f3f4f6', color: '#4b5563' };
+
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <Link
-          href="/account/reservations"
-          className="text-sm text-text-secondary hover:text-text-primary"
-        >
-          ← My reservations
-        </Link>
-        <h1 className="mt-2 text-xl font-semibold text-text-primary">{reservation.service.name}</h1>
-        <p className="text-sm text-text-secondary">{reservation.salon.name}</p>
-      </div>
-
-      <dl className="flex flex-col gap-3 rounded-[var(--radius-sm)] border border-border bg-surface-raised p-4 text-sm">
-        <div className="flex justify-between gap-4">
-          <dt className="text-text-secondary">Status</dt>
-          <dd className="font-medium text-text-primary">
-            {STATUS_LABEL[reservation.status] ?? reservation.status}
-          </dd>
-        </div>
-        <div className="flex justify-between gap-4">
-          <dt className="text-text-secondary">Date &amp; time</dt>
-          <dd className="text-right text-text-primary">
-            {formatDateTime(reservation.startAt, reservation.salon.timezone)}
-          </dd>
-        </div>
-        <div className="flex justify-between gap-4">
-          <dt className="text-text-secondary">Duration</dt>
-          <dd className="text-text-primary">{reservation.service.durationMinutes} min</dd>
-        </div>
-        <div className="flex justify-between gap-4">
-          <dt className="text-text-secondary">Stylist</dt>
-          <dd className="text-text-primary">
-            {reservation.employee?.fullName ?? 'Any available stylist'}
-          </dd>
-        </div>
-        <div className="flex justify-between gap-4">
-          <dt className="text-text-secondary">Price</dt>
-          <dd className="font-semibold text-text-primary">
-            {formatMoney(reservation.priceAmount, reservation.currency)}
-          </dd>
-        </div>
-        {reservation.customerNote && (
-          <div className="flex flex-col gap-1">
-            <dt className="text-text-secondary">Your note</dt>
-            <dd className="text-text-primary">{reservation.customerNote}</dd>
-          </div>
-        )}
-      </dl>
-
-      {/* Cancel */}
-      {reservation.canCancel && (
+    <PageLayout activeNav="reservations" isAuthenticated={true}>
+      <div style={{ maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         <div>
-          {!showCancelConfirm ? (
-            <button
-              type="button"
-              onClick={() => setShowCancelConfirm(true)}
-              className="text-sm text-red-600 underline hover:text-red-700 dark:text-red-400"
-            >
-              Cancel this booking
-            </button>
-          ) : (
-            <div className="flex flex-col gap-3 rounded-[var(--radius-sm)] border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950/30">
-              <p className="text-sm font-medium text-red-700 dark:text-red-300">
-                Cancel this booking?
-              </p>
-              <div className="flex flex-col gap-1">
-                <label htmlFor="cancel-reason" className="text-xs text-text-secondary">
-                  Reason (optional)
-                </label>
-                <input
-                  id="cancel-reason"
-                  type="text"
-                  value={cancelReason}
-                  onChange={(e) => setCancelReason(e.target.value)}
-                  maxLength={500}
-                  className="rounded border border-border bg-surface px-3 py-1.5 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-red-400"
-                />
-              </div>
-              {cancelError && (
-                <p role="alert" className="text-xs text-red-600 dark:text-red-400">
-                  {cancelError}
-                </p>
-              )}
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={handleCancel}
-                  disabled={cancelling}
-                  className="rounded bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-60"
-                >
-                  {cancelling ? 'Cancelling…' : 'Yes, cancel'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowCancelConfirm(false)}
-                  className="text-sm text-text-secondary underline hover:text-text-primary"
-                >
-                  Keep booking
-                </button>
-              </div>
+          <Link href="/account/reservations" style={{ textDecoration: 'none', color: '#9a8878', fontSize: '0.9rem', display: 'inline-block', marginBottom: '1rem' }}>
+            ← Geri qayıt
+          </Link>
+          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '2rem', color: '#1a1208', margin: 0 }}>
+            Rezervasiya #{shortId}
+          </h1>
+          <div style={{ marginTop: '0.75rem' }}>
+            <span style={{
+              display: 'inline-block',
+              padding: '0.35rem 1rem',
+              borderRadius: 9999,
+              fontSize: '0.85rem',
+              fontWeight: 600,
+              ...statusBadgeStyle
+            }}>
+              {STATUS_MAP[reservation.status] || reservation.status}
+            </span>
+          </div>
+        </div>
+
+        <div style={{ background: 'white', border: '1px solid #ede5dc', borderRadius: 16, padding: '0 1.25rem' }}>
+          <div style={{ padding: '1rem 0', borderBottom: '1px solid #ede5dc', display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ color: '#9a8878' }}>Salon</span>
+            <span style={{ color: '#1a1208', fontWeight: 500 }}>{reservation.salon.name}</span>
+          </div>
+          <div style={{ padding: '1rem 0', borderBottom: '1px solid #ede5dc', display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ color: '#9a8878' }}>Xidmət</span>
+            <span style={{ color: '#1a1208', fontWeight: 500 }}>{reservation.service.name}</span>
+          </div>
+          <div style={{ padding: '1rem 0', borderBottom: '1px solid #ede5dc', display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ color: '#9a8878' }}>Usta</span>
+            <span style={{ color: '#1a1208', fontWeight: 500 }}>{reservation.employee?.fullName ?? 'İstənilən'}</span>
+          </div>
+          <div style={{ padding: '1rem 0', borderBottom: '1px solid #ede5dc', display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ color: '#9a8878' }}>Tarix</span>
+            <span style={{ color: '#1a1208', fontWeight: 500, textAlign: 'right' }}>{formatDateAZ(reservation.startAt, reservation.salon.timezone)}</span>
+          </div>
+          <div style={{ padding: '1rem 0', borderBottom: '1px solid #ede5dc', display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ color: '#9a8878' }}>Saat</span>
+            <span style={{ color: '#1a1208', fontWeight: 500 }}>{formatTimeAZ(reservation.startAt, reservation.salon.timezone)}</span>
+          </div>
+          <div style={{ padding: '1rem 0', borderBottom: '1px solid #ede5dc', display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ color: '#9a8878' }}>Müddət</span>
+            <span style={{ color: '#1a1208', fontWeight: 500 }}>{reservation.service.durationMinutes} dəq</span>
+          </div>
+          <div style={{ padding: '1rem 0', display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ color: '#9a8878' }}>Qiymət</span>
+            <span style={{ color: '#1a1208', fontWeight: 600 }}>{formatMoney(reservation.priceAmount, reservation.currency)}</span>
+          </div>
+          {reservation.customerNote && (
+            <div style={{ padding: '1rem 0', borderTop: '1px solid #ede5dc', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <span style={{ color: '#9a8878' }}>Qeydiniz</span>
+              <span style={{ color: '#1a1208', fontWeight: 500 }}>{reservation.customerNote}</span>
             </div>
           )}
         </div>
-      )}
 
-      {/* Reschedule */}
-      {reservation.canReschedule && (
-        <div>
-          {!showReschedule ? (
-            <button
-              type="button"
-              onClick={() => setShowReschedule(true)}
-              className="text-sm text-accent underline hover:opacity-80"
-            >
-              Reschedule
-            </button>
-          ) : (
-            <div className="flex flex-col gap-4 rounded-[var(--radius-sm)] border border-border bg-surface-raised p-4">
-              <p className="text-sm font-medium text-text-primary">Select a new date &amp; time</p>
-
-              {/* Date strip */}
-              <div className="flex gap-2 overflow-x-auto pb-1">
-                {dates.map((d) => {
-                  const ds = toLocalDate(d, reservation.salon.timezone);
-                  const active = ds === rescheduleDate;
-                  return (
-                    <button
-                      key={ds}
-                      type="button"
-                      onClick={() => setRescheduleDate(ds)}
-                      className={[
-                        'flex min-w-[3.5rem] flex-col items-center rounded-[var(--radius-sm)] border px-2 py-1.5 text-xs',
-                        active
-                          ? 'border-accent bg-accent text-white'
-                          : 'border-border text-text-secondary hover:border-accent hover:text-text-primary',
-                      ].join(' ')}
-                    >
-                      <span className="font-medium">
-                        {new Intl.DateTimeFormat(undefined, {
-                          day: 'numeric',
-                          timeZone: reservation.salon.timezone,
-                        }).format(d)}
-                      </span>
-                      <span>
-                        {new Intl.DateTimeFormat(undefined, {
-                          weekday: 'short',
-                          timeZone: reservation.salon.timezone,
-                        }).format(d)}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Slots */}
-              {!rescheduleDate && (
-                <p className="text-sm text-text-secondary">Select a date to see available slots.</p>
-              )}
-              {rescheduleDate && slotsLoading && (
-                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                  {Array.from({ length: 8 }).map((_, i) => (
-                    <div key={i} className="h-10 animate-pulse rounded bg-surface" />
-                  ))}
-                </div>
-              )}
-              {rescheduleDate && !slotsLoading && slotsError && (
-                <p className="text-sm text-red-600 dark:text-red-400">{slotsError}</p>
-              )}
-              {rescheduleDate && !slotsLoading && !slotsError && slots.length === 0 && (
-                <p className="text-sm text-text-secondary">No slots available on this day.</p>
-              )}
-              {rescheduleDate && !slotsLoading && slots.length > 0 && (
-                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                  {slots.map((slot) => (
-                    <button
-                      key={slot.startAt}
-                      type="button"
-                      disabled={rescheduling}
-                      onClick={() => handleReschedule(slot.startAt)}
-                      className="rounded-[var(--radius-sm)] border border-border px-2 py-2.5 text-sm font-medium text-text-primary hover:border-accent hover:text-accent disabled:opacity-60"
-                    >
-                      {new Intl.DateTimeFormat(undefined, {
-                        hour: 'numeric',
-                        minute: '2-digit',
-                        timeZone: reservation.salon.timezone,
-                      }).format(new Date(slot.startAt))}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {rescheduleError && (
-                <p role="alert" className="text-sm text-red-600 dark:text-red-400">
-                  {rescheduleError}
-                </p>
-              )}
-
+        {/* Reschedule */}
+        {reservation.canReschedule && (
+          <div style={{ marginTop: '0.5rem' }}>
+            {!showReschedule ? (
               <button
                 type="button"
-                onClick={() => setShowReschedule(false)}
-                className="self-start text-sm text-text-secondary underline hover:text-text-primary"
+                onClick={() => setShowReschedule(true)}
+                style={{ background: '#1a1208', color: 'white', border: 'none', borderRadius: 8, padding: '0.75rem 1.5rem', fontSize: '0.95rem', fontWeight: 500, cursor: 'pointer', width: '100%' }}
               >
-                Cancel
+                Vaxtı dəyişdir
               </button>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
+            ) : (
+              <div style={{ background: 'white', border: '1px solid #ede5dc', borderRadius: 16, padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <p style={{ margin: 0, fontWeight: 600, color: '#1a1208' }}>Yeni vaxt seçin</p>
+
+                <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                  {dates.map((d) => {
+                    const ds = toLocalDate(d, reservation.salon.timezone);
+                    const active = ds === rescheduleDate;
+                    return (
+                      <button
+                        key={ds}
+                        type="button"
+                        onClick={() => setRescheduleDate(ds)}
+                        style={{
+                          flex: '0 0 auto',
+                          minWidth: '3.5rem',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          borderRadius: 8,
+                          padding: '0.5rem 0.25rem',
+                          border: active ? '1px solid #c9a460' : '1px solid #ede5dc',
+                          background: active ? '#c9a460' : 'white',
+                          color: active ? 'white' : '#1a1208',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <span style={{ fontWeight: 600, fontSize: '1rem' }}>
+                          {new Intl.DateTimeFormat('az-AZ', { day: 'numeric', timeZone: reservation.salon.timezone }).format(d)}
+                        </span>
+                        <span style={{ fontSize: '0.75rem', marginTop: '0.2rem' }}>
+                          {new Intl.DateTimeFormat('az-AZ', { weekday: 'short', timeZone: reservation.salon.timezone }).format(d)}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {!rescheduleDate && (
+                  <p style={{ color: '#9a8878', fontSize: '0.9rem', margin: 0 }}>Uyğun saatları görmək üçün gün seçin.</p>
+                )}
+                
+                {rescheduleDate && slotsLoading && (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem' }}>
+                    {Array.from({ length: 8 }).map((_, i) => (
+                      <div key={i} style={{ height: 40, background: '#ede5dc', borderRadius: 8, animation: 'pulse 1.5s infinite' }} />
+                    ))}
+                  </div>
+                )}
+                
+                {rescheduleDate && !slotsLoading && slotsError && (
+                  <p style={{ color: '#dc2626', fontSize: '0.9rem', margin: 0 }}>{slotsError}</p>
+                )}
+                
+                {rescheduleDate && !slotsLoading && !slotsError && slots.length === 0 && (
+                  <p style={{ color: '#9a8878', fontSize: '0.9rem', margin: 0 }}>Bu gün üçün boş vaxt yoxdur.</p>
+                )}
+                
+                {rescheduleDate && !slotsLoading && slots.length > 0 && (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem' }}>
+                    {slots.map((slot) => (
+                      <button
+                        key={slot.startAt}
+                        type="button"
+                        disabled={rescheduling}
+                        onClick={() => handleReschedule(slot.startAt)}
+                        style={{
+                          background: 'white',
+                          border: '1px solid #ede5dc',
+                          borderRadius: 8,
+                          padding: '0.5rem',
+                          color: '#1a1208',
+                          fontSize: '0.9rem',
+                          fontWeight: 500,
+                          cursor: rescheduling ? 'not-allowed' : 'pointer',
+                          opacity: rescheduling ? 0.6 : 1,
+                        }}
+                      >
+                        {formatTimeAZ(slot.startAt, reservation.salon.timezone)}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {rescheduleError && (
+                  <p style={{ color: '#dc2626', fontSize: '0.9rem', margin: 0 }}>{rescheduleError}</p>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setShowReschedule(false)}
+                  style={{ alignSelf: 'flex-start', background: 'none', border: 'none', color: '#9a8878', textDecoration: 'underline', cursor: 'pointer', padding: 0 }}
+                >
+                  Ləğv et
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Cancel */}
+        {reservation.canCancel && (
+          <div style={{ marginTop: showReschedule ? 0 : '0.5rem' }}>
+            {!showCancelConfirm ? (
+              <button
+                type="button"
+                onClick={() => setShowCancelConfirm(true)}
+                style={{ background: 'white', color: '#dc2626', border: '1px solid #dc2626', borderRadius: 8, padding: '0.75rem 1.5rem', fontSize: '0.95rem', fontWeight: 500, cursor: 'pointer', width: '100%' }}
+              >
+                Rezervasiyanı ləğv et
+              </button>
+            ) : (
+              <div style={{ background: '#fef2f2', border: '1px solid #f87171', borderRadius: 16, padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <p style={{ margin: 0, fontWeight: 600, color: '#991b1b' }}>Bu rezervasiyanı ləğv etmək istədiyinizə əminsiniz?</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                  <label htmlFor="cancel-reason" style={{ fontSize: '0.8rem', color: '#991b1b' }}>Səbəb (opsional)</label>
+                  <input
+                    id="cancel-reason"
+                    type="text"
+                    value={cancelReason}
+                    onChange={(e) => setCancelReason(e.target.value)}
+                    maxLength={500}
+                    style={{ padding: '0.6rem', borderRadius: 8, border: '1px solid #fca5a5', outline: 'none' }}
+                  />
+                </div>
+                {cancelError && (
+                  <p style={{ color: '#dc2626', fontSize: '0.9rem', margin: 0 }}>{cancelError}</p>
+                )}
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                  <button
+                    type="button"
+                    onClick={handleCancel}
+                    disabled={cancelling}
+                    style={{ background: '#dc2626', color: 'white', border: 'none', borderRadius: 8, padding: '0.6rem 1rem', fontWeight: 500, cursor: cancelling ? 'not-allowed' : 'pointer', opacity: cancelling ? 0.7 : 1 }}
+                  >
+                    {cancelling ? 'Ləğv edilir...' : 'Bəli, ləğv et'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowCancelConfirm(false)}
+                    style={{ background: 'none', border: 'none', color: '#991b1b', textDecoration: 'underline', cursor: 'pointer' }}
+                  >
+                    Saxla
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+      <style>{`
+        ::-webkit-scrollbar { display: none; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+      `}</style>
+    </PageLayout>
   );
 }

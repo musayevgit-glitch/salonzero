@@ -5,9 +5,9 @@ import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const NAV_ITEMS = [
-  { label: 'Salons', href: '/superadmin/salons' },
-  { label: 'Reports', href: '/superadmin/reports' },
-  { label: 'Audit Log', href: '/superadmin/audit-logs' },
+  { label: 'Salons', href: '/superadmin/salons', section: 'Management' },
+  { label: 'Reports', href: '/superadmin/reports', section: 'Analytics' },
+  { label: 'Audit Log', href: '/superadmin/audit-logs', section: 'Analytics' },
 ];
 
 export function SuperadminShell({ children }: { children: React.ReactNode }) {
@@ -20,16 +20,12 @@ export function SuperadminShell({ children }: { children: React.ReactNode }) {
     <DashboardShell
       navItems={NAV_ITEMS}
       activeHref={activeHref}
+      contextLabel="Platform Admin"
       renderLink={(item, isActive) => (
         <NextLink
           key={item.href}
           href={item.href}
-          className={[
-            'block rounded-md px-3 py-2 text-sm transition-colors',
-            isActive
-              ? 'bg-accent/10 font-medium text-accent'
-              : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary',
-          ].join(' ')}
+          className={`dash-nav-link${isActive ? ' active' : ''}`}
           aria-current={isActive ? 'page' : undefined}
         >
           {item.label}

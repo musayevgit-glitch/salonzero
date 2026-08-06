@@ -115,6 +115,15 @@ export class RolesGuard implements CanActivate {
       throw new NotFoundException();
     }
 
+    if (
+      membership.role === 'SALON_MANAGER' &&
+      request.method !== 'GET' &&
+      !membership.allowManageReservations
+    ) {
+      await this.recordDenied(request, salonId, requiredRoles, 'manager_denied_state_change');
+      throw new NotFoundException();
+    }
+
     const salonContext: SalonContext = {
       salonId,
       role: membership.role,

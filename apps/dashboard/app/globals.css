@@ -1,9 +1,67 @@
 @import 'tailwindcss';
 @import '@salonomia/ui/src/tokens.css';
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@400;600&display=swap');
 
 @source '../../../packages/ui/src';
+
+html {
+  scroll-behavior: smooth;
+}
 
 body {
   color: var(--color-text-primary);
   background-color: var(--color-surface);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background-color: var(--color-accent-muted);
+  color: var(--color-accent);
+}
+
+/* Dashboard sidebar nav link hover */
+.dash-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
+}
+
+.dash-nav-link:hover {
+  background-color: var(--color-surface-subtle);
+  color: var(--color-text-primary);
+}
+
+.dash-nav-link.active {
+  background-color: var(--color-accent-muted);
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+.dash-nav-section {
+  padding: 0.5rem 0.75rem 0.25rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  opacity: 0.7;
+  margin-top: 0.75rem;
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .dash-nav-link {
+    transition: none;
+  }
 }

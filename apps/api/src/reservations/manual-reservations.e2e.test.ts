@@ -44,7 +44,9 @@ async function registerAsSalonAdmin(email: string, salonId: string) {
 
 async function registerAsSalonManager(email: string, salonId: string) {
   const { agent, userId, csrfToken } = await registerUser(email);
-  await prisma.salonMembership.create({ data: { userId, salonId, role: 'SALON_MANAGER' } });
+  await prisma.salonMembership.create({
+    data: { userId, salonId, role: 'SALON_MANAGER', allowManageReservations: true },
+  });
   return { agent, userId, csrfToken };
 }
 

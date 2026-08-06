@@ -2,49 +2,111 @@
 
 import { usePathname } from 'next/navigation';
 
-const STEPS = [
-  { label: 'Service', segment: 'service' },
-  { label: 'Stylist', segment: 'stylist' },
-  { label: 'Date & time', segment: 'datetime' },
-  { label: 'Summary', segment: 'summary' },
-  { label: 'Confirm', segment: 'confirm' },
+/* 3-step visual stepper matching the design */
+const VISUAL_STEPS = [
+  { label: 'Xidmət', segments: ['service', 'stylist'] },
+  { label: 'Tarix və saat', segments: ['datetime'] },
+  { label: 'Təsdiq', segments: ['summary', 'confirm'] },
 ];
+
+function CheckIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+      <path
+        d="M2.5 6.5l3 3 5-5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 export function BookingStepper() {
   const pathname = usePathname();
-  const currentIndex = STEPS.findIndex((s) => pathname.endsWith(`/book/${s.segment}`));
+  const segment = pathname.split('/').pop() ?? '';
+
+  const currentStep = VISUAL_STEPS.findIndex((s) => s.segments.includes(segment));
 
   return (
-    <nav aria-label="Booking steps" className="py-1">
-      <ol className="grid grid-cols-5 items-start gap-1">
-        {STEPS.map((step, i) => {
-          const done = i < currentIndex;
-          const active = i === currentIndex;
+    <nav aria-label="Rezervasiya addımları" style={{ width: '100%', padding: '0.5rem 0 1rem' }}>
+      <ol
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          position: 'relative',
+        }}
+      >
+        {VISUAL_STEPS.map((step, i) => {
+          const done = i < currentStep;
+          const active = i === currentStep;
+
           return (
-            <li key={step.segment} className="relative flex min-w-0 justify-center">
+            <li
+              key={step.label}
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}
+            >
+              {/* Connector line */}
               {i > 0 && (
-                <span aria-hidden className="absolute left-[-50%] top-3 h-px w-full bg-border" />
+                <span
+                  aria-hidden="true"
+                  style={{
+                    position: 'absolute',
+                    left: '-50%',
+                    top: '14px',
+                    width: '100%',
+                    height: '2px',
+                    background: done || active ? '#c9a460' : '#e5ddd5',
+                    transition: 'background 0.3s ease',
+                  }}
+                />
               )}
+
+              {/* Bubble */}
               <span
-                className={`flex flex-col items-center gap-0.5 ${!done && !active ? 'opacity-40' : ''}`}
+                aria-current={active ? 'step' : undefined}
+                style={{
+                  position: 'relative',
+                  zIndex: 1,
+                  width: 28,
+                  height: 28,
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  background: done
+                    ? '#c9a460'
+                    : active
+                      ? '#1a1208'
+                      : 'transparent',
+                  border: done
+                    ? '2px solid #c9a460'
+                    : active
+                      ? '2px solid #1a1208'
+                      : '2px solid #c5bbb2',
+                  color: done || active ? '#fff' : '#9a8878',
+                  transition: 'all 0.2s ease',
+                }}
               >
-                <span
-                  className={`relative z-10 flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold ${
-                    active
-                      ? 'bg-accent text-white'
-                      : done
-                        ? 'bg-accent/20 text-accent'
-                        : 'bg-border text-text-secondary'
-                  }`}
-                  aria-current={active ? 'step' : undefined}
-                >
-                  {done ? '✓' : i + 1}
-                </span>
-                <span
-                  className={`max-w-16 text-center text-[11px] leading-tight sm:max-w-none sm:text-xs ${active ? 'font-medium text-text-primary' : 'text-text-secondary'}`}
-                >
-                  {step.label}
-                </span>
+                {done ? <CheckIcon /> : i + 1}
+              </span>
+
+              {/* Label */}
+              <span
+                style={{
+                  marginTop: '0.35rem',
+                  fontSize: '0.65rem',
+                  fontWeight: active ? 600 : 400,
+                  color: active ? '#1a1208' : done ? '#c9a460' : '#9a8878',
+                  textAlign: 'center',
+                  transition: 'color 0.2s ease',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {step.label}
               </span>
             </li>
           );
