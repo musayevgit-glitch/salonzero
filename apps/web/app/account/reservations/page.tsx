@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { fetchApiServer, ApiServerError } from '../../../lib/fetch-api-server';
 
+export const dynamic = 'force-dynamic';
+
 interface ReservationListItem {
   id: string;
   status: string;

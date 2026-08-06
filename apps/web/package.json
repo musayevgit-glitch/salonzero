@@ -8,7 +8,7 @@
     "start": "next start --port 3000",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "echo \"no unit tests yet: pages land in Phase 10\" && exit 0"
+    "test": "vitest run"
   },
   "dependencies": {
     "@salonomia/ui": "workspace:*",
@@ -22,6 +22,7 @@
     "@types/node": "^22.10.2",
     "@types/react": "^18.3.17",
     "@types/react-dom": "^18.3.5",
-    "tailwindcss": "^4.0.0"
+    "tailwindcss": "^4.0.0",
+    "vitest": "^2.1.8"
   }
 }

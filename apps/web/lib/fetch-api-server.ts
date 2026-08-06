@@ -11,6 +11,21 @@ export class ApiServerError extends Error {
   }
 }
 
+export function buildApiServerFetchInit(
+  init?: RequestInit,
+  sessionCookie?: { name: string; value: string },
+): RequestInit {
+  return {
+    ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(sessionCookie ? { Cookie: `${sessionCookie.name}=${sessionCookie.value}` } : {}),
+      ...init?.headers,
+    },
+    cache: 'no-store',
+  };
+}
+
 /**
  * Server-side fetch helper that forwards the session cookie so the API can
  * identify the logged-in user. Use only in Server Components (RSC) and Route Handlers.
@@ -19,14 +34,7 @@ export class ApiServerError extends Error {
 export async function fetchApiServer<T>(path: string, init?: RequestInit): Promise<T> {
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get('connect.sid');
-  const res = await fetch(`${API_URL}${path}`, {
-    ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(sessionCookie ? { Cookie: `${sessionCookie.name}=${sessionCookie.value}` } : {}),
-      ...init?.headers,
-    },
-  });
+  const res = await fetch(`${API_URL}${path}`, buildApiServerFetchInit(init, sessionCookie));
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({ message: 'Something went wrong.' }));
