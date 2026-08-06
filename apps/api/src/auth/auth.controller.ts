@@ -88,6 +88,14 @@ export class AuthController {
     return req.user;
   }
 
+  // Lets the dashboard show "which salons can I get to" without a superadmin-only /salons call —
+  // scoped to the caller's own memberships, never another user's.
+  @Get('my-salons')
+  @UseGuards(AuthenticatedGuard)
+  mySalons(@CurrentUser() user: AuthenticatedUser) {
+    return this.authService.getMySalonMemberships(user.id);
+  }
+
   @Throttle(AUTH_THROTTLE)
   @HttpCode(200)
   @Post('forgot-password')

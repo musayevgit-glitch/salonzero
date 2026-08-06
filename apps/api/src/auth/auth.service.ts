@@ -199,4 +199,14 @@ export class AuthService {
     if (!user || user.status !== 'ACTIVE') return null;
     return toAuthenticatedUser(user);
   }
+
+  async getMySalonMemberships(
+    userId: string,
+  ): Promise<{ salonId: string; salonName: string; role: string }[]> {
+    const memberships = await this.prisma.salonMembership.findMany({
+      where: { userId, status: 'ACTIVE', salon: { status: 'ACTIVE' } },
+      select: { role: true, salon: { select: { id: true, name: true } } },
+    });
+    return memberships.map((m) => ({ salonId: m.salon.id, salonName: m.salon.name, role: m.role }));
+  }
 }

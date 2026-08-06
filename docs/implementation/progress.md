@@ -1132,6 +1132,132 @@ this review.
 Next: Section 16 — awaiting scope (Section 15, Reservation Engine, is now complete through its
 security review)
 
+## Section 16.1 — Salon Manager: reservation operations dashboard
+
+Status: done. First real read (list/detail) surface for the reservation engine, plus the
+manager-facing UI on top of Sections 15.3-15.5's write endpoints. Backend additions needed first
+since no staff-facing reservation list/detail existed yet:
+- `apps/api/src/reservations/reservation-actions.ts` — `computeStaffAvailableActions(status, endAt,
+  now)`, server-computed per docs/architecture/reservation-state-machine.md (PENDING → confirm/
+  reject/reschedule/cancel; CONFIRMED → reschedule/cancel/checkIn, +noShow once `now > endAt`;
+  CHECKED_IN → complete only; terminal → none). The dashboard never re-derives legality from status
+  alone — this is the "contextual actions based on server-provided capabilities" the prompt requires.
+- `apps/api/src/reservations/staff-reservations.service.ts` + `.controller.ts` — new
+  `GET /salons/:salonId/reservations` (list: `from`/`to`/`status`/`employeeId`/`search` filters +
+  pagination, joins service/employee/customer names, search matches customer name/email only),
+  `GET /salons/:salonId/reservations/:reservationId` (detail), and
+  `GET /salons/:salonId/reservations/booking-options` (active services + active employees only —
+  name/duration/price for services, name only for employees; deliberately not the full employee/
+  service management surface, since SALON_MANAGER may book on a customer's behalf but must not
+  manage employees or services). All three `@Roles('SUPERADMIN','SALON_ADMIN','SALON_MANAGER')` —
+  this is the first reservation-read route SALON_MANAGER can reach. `booking-options` is registered
+  before the `:reservationId` param route to avoid a literal/param route-matching ambiguity.
+- `apps/api/src/auth/auth.controller.ts` → new `GET /auth/my-salons` (scoped to the caller's own
+  ACTIVE memberships in ACTIVE salons) — added because the dashboard home page had no way for a
+  salon-scoped user to discover their own salon's URL at all (previously flagged as a known gap in
+  Section 12.1's progress entry, and hit again live by the user testing 15.x). Additive, does not
+  change `/auth/me`'s existing contract.
+Frontend: `apps/dashboard/app/salon/[salonId]/reservations/{page.tsx,[reservationId]/page.tsx,
+new/page.tsx}` — Today/Day/Week view toggle (client-computed local-day/week bounds passed as
+`from`/`to`), search + status + stylist filters, Table+MobileRecordList pairing with a contextual
+quick-action button per row (Confirm/Check in/Complete — the three no-input progressions), full
+detail page with every other action (Reject/Cancel via a reason dialog, Reschedule via a datetime+
+stylist dialog, No-show via `ConfirmDialog`), and a manual-booking form. Every action call handles a
+409 by showing a message and reloading (stale-data/conflict handling); Reschedule/reason dialogs use
+the shared `Dialog`/`FormField` render-prop pattern already established elsewhere in the dashboard.
+`apps/dashboard/app/page.tsx` now fetches `/auth/my-salons` and links each membership to
+`/salon/:id/reservations` — the first real navigation entry point into the salon-scoped dashboard
+for non-superadmin users (previously only reachable by typing the URL directly).
+Per the prompt's explicit exclusion list, this slice does **not** expose employee, service, role,
+salon-settings, or financial-management screens to the manager — `booking-options` is intentionally
+the narrowest read surface that makes manual booking possible, not a path into employee/service CRUD.
+Commit: pending (this task)
+Tests: 15 new e2e tests (`staff-reservations.e2e.test.ts`) — unauthenticated→401, SALON_MANAGER
+allowed/plain-user denied on list, joined service/employee/customer fields + `availableActions`
+verified for PENDING, cross-tenant list scoping, date-range/status/employeeId filters, customer
+name/email search, forbidden-query-param→400, detail `availableActions` correctness for CHECKED_IN
+(complete-only) and a terminal status (none), no-show only appearing once `now > endAt`, cross-tenant
+detail 404 (IDOR), malformed/nonexistent id→404, `booking-options` role/tenant/active-only checks. 2
+new tests in `auth.e2e.test.ts` for `/auth/my-salons` (401 unauthenticated; returns only the caller's
+own ACTIVE memberships in ACTIVE salons, never another user's, never a suspended salon's). `apps/api`
+total: 290 passing tests. Full repo gate (lint/typecheck/test across every workspace) green; `apps/web`
+and `apps/dashboard`'s Next.js builds each pass cleanly in isolation but intermittently both throw a
+"`<Html>` should not be imported outside of `pages/_document`" prerender error on `/404` when built
+*concurrently* via `pnpm turbo run build` — reproduced twice, confirmed NOT caused by any change in
+this slice (same error, same `/404` page, in both unrelated Next.js apps) by deleting `.next` and
+rebuilding each app alone, which passed both times; appears to be a Next.js webpack-worker race
+condition under parallel builds in this environment, not a code defect — documented here as a known
+build-tooling flake, not fixed (would be an unrelated infrastructure investigation).
+`e2e/salon-manager-reservations.spec.ts` written (5 journeys: today's list + quick actions, list-level
+confirm, detail reschedule→check-in, manual booking, permission-denied for a non-member) targeting
+both the existing `mobile` (375px-equivalent) and `desktop` (1440px) Playwright projects — not
+executed, consistent with every prior phase in this build (Playwright browsers were never installed
+in this environment).
+Verification beyond the test suite: full real-browser walkthrough via the Claude Browser tool against
+the compiled dashboard + a running `node dist/main.js` API, using a freshly seeded SALON_MANAGER
+account — logged in, followed the new `/auth/my-salons` link, confirmed a seeded PENDING reservation
+from the Today list (quick-action button, no page navigation needed), opened its detail page,
+rescheduled it (dialog pre-filled with the current time/stylist, re-validated server-side, toast
+confirmation), checked it in (action set correctly narrowed to "Complete" only, matching the 15.6
+CHECKED_IN fix), completed it (terminal, zero actions shown), created a brand-new walk-in manual
+reservation through the `/reservations/new` form (new customer auto-created), and confirmed the Week
+view correctly aggregates both reservations across the 7-day range. Verified the mobile (375px) list
+renders via `MobileRecordList` with no horizontal overflow and the same contextual quick action, and
+the 1440px desktop `Table` view renders all columns correctly.
+Security/tenant checks: every new route re-derives `salonId` from `SalonContext`, never the raw route
+param; `booking-options` only returns active services/employees (no bio/portfolio/inactive records —
+not the management surface); search only matches customer name/email, never internal fields;
+`/auth/my-salons` is scoped to the caller's own `userId` and filters out suspended salons/inactive
+memberships (verified: another user's memberships never leak, a suspended salon's membership is
+excluded). No new mass-assignment surface — the manual-booking form still goes through 15.4's
+existing `.strict()` schema.
+Risks: (1) The Today/Day/Week date-range boundaries are computed client-side using the browser's
+local timezone, not the salon's configured timezone — acceptable UX simplification for this slice
+(the actual conflict-safety and every write-path validation is entirely server-side and
+timezone-correct per Section 15.2; this only affects which reservations happen to show up in "today"
+at a timezone boundary), but worth a proper salon-timezone-aware client calculation if this becomes a
+real complaint. (2) The intermittent concurrent-Next.js-build flake noted above should be watched —
+if it starts appearing in real CI (not just this local turbo run), it needs its own investigation
+(likely a `--no-cache`/serialized build step or a Next.js version bump), separate from this feature.
+(3) Section 11.5 (domain/subdomain management) and salon-wide closures (open decision #6) remain
+deferred, unrelated to this slice.
+Next: Section 16.2 — Manager permission review (read-only audit)
+
+## Section 16.2 — Manager permission review
+
+Status: done. Read-only audit per the prompt (no code changes made as part of the audit itself —
+16.1's implementation already had the correct restrictions by construction, verified here rather than
+retrofitted). Checked every requirement:
+- **Edit salon**: `salons.controller.ts` is `@Roles('SUPERADMIN')` on every route (create/update/
+  suspend/restore) — SALON_MANAGER (and even SALON_ADMIN) has zero access. Clean.
+- **Manage employees**: `employees.controller.ts`, `.../portfolio`, `.../services`,
+  `.../working-schedule`, `.../breaks`, `.../time-off` are all `@Roles('SUPERADMIN','SALON_ADMIN')` —
+  SALON_MANAGER excluded from every one. Clean.
+- **Manage services**: `services.controller.ts` and `service-categories.controller.ts` are both
+  `@Roles('SUPERADMIN','SALON_ADMIN')`. Clean.
+- **Invite users**: no salon-level invitation-*creation* endpoint exists anywhere yet for any role
+  (only Section 11.2's superadmin-initiated initial-admin invitation and Section 9's
+  accept-invitation flow exist) — SALON_MANAGER trivially cannot invite anyone because the feature
+  doesn't exist yet for anyone below SUPERADMIN. Not a gap introduced by this slice.
+- **View protected reports / export full customer data**: no reports or export feature exists yet
+  (Section 21) — not reachable by any role, including SALON_MANAGER. Not a gap introduced by this
+  slice.
+- **Access another salon**: enforced by `RolesGuard`'s DB-backed membership lookup (unchanged) and
+  directly verified by 16.1's own cross-tenant e2e tests (list/detail/booking-options all 404 for a
+  salon the manager doesn't belong to).
+- **Dashboard UI surface**: the manager's only new UI entry point (`/auth/my-salons` link on the
+  dashboard home) leads to the reservations dashboard only — no links anywhere in the new pages point
+  at `/salon/:id/employees`, `/services`, `/service-categories`, or salon edit/settings routes.
+  `booking-options` (the one new read endpoint the manager needs for the manual-booking form)
+  returns only `{id, name, durationMinutes, priceAmount, currency}` for services and `{id, fullName}`
+  for employees — no bio, portfolio, categories, or inactive records, and no path from that data back
+  into an edit screen.
+Commit: pending (this task, bundled with 16.1 since no violations were found requiring a separate
+fix-and-commit cycle).
+Findings: none. No fixes required.
+Next: Section 17 — Customer Public Website (not started; awaiting explicit instruction per this
+project's one-milestone-at-a-time discipline)
+
 ## Blockers / environment notes
 
 - Docker is not installed in this environment; resolved by using the existing Postgres.app (PG 18)

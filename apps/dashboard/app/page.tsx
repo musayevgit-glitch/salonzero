@@ -12,15 +12,26 @@ interface CurrentUser {
   isSuperadmin: boolean;
 }
 
+interface SalonMembership {
+  salonId: string;
+  salonName: string;
+  role: string;
+}
+
 export default function DashboardHomePage() {
   const router = useRouter();
   const [user, setUser] = useState<CurrentUser | null>(null);
+  const [memberships, setMemberships] = useState<SalonMembership[]>([]);
   const [loading, setLoading] = useState(true);
   const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
     apiFetch<CurrentUser>('/auth/me')
-      .then(setUser)
+      .then((currentUser) => {
+        setUser(currentUser);
+        return apiFetch<SalonMembership[]>('/auth/my-salons');
+      })
+      .then(setMemberships)
       .catch((err) => {
         if (err instanceof ApiError && err.status === 401) {
           router.replace('/login');
@@ -57,11 +68,20 @@ export default function DashboardHomePage() {
           <p className="mt-4 text-sm">
             <Link href="/superadmin/salons">Manage salons →</Link>
           </p>
-        ) : (
+        ) : null}
+        {memberships.length > 0 ? (
+          <ul className="mt-4 flex flex-col gap-2">
+            {memberships.map((m) => (
+              <li key={m.salonId} className="text-sm">
+                <Link href={`/salon/${m.salonId}/reservations`}>{m.salonName} — Reservations →</Link>
+              </li>
+            ))}
+          </ul>
+        ) : !user.isSuperadmin ? (
           <p className="mt-2 text-sm text-text-secondary">
-            Salon management screens land in later phases (salon admin/manager dashboards).
+            You are not a member of any salon yet.
           </p>
-        )}
+        ) : null}
         <Button variant="secondary" className="mt-4" onClick={handleLogout} loading={loggingOut}>
           Log out
         </Button>

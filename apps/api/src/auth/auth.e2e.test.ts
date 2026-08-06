@@ -239,3 +239,49 @@ describe('POST /auth/reset-password', () => {
     expect(res.status).toBe(401);
   });
 });
+
+describe('GET /auth/my-salons', () => {
+  it('rejects an unauthenticated request', async () => {
+    const res = await request(app.getHttpServer()).get('/auth/my-salons');
+    expect(res.status).toBe(401);
+  });
+
+  it("returns only the caller's own active memberships in active salons, never another user's", async () => {
+    const salon = await prisma.salon.create({
+      data: { slug: `my-salons-${randomUUID()}`, name: 'My Salon', timezone: 'UTC' },
+    });
+    const suspendedSalon = await prisma.salon.create({
+      data: {
+        slug: `my-salons-suspended-${randomUUID()}`,
+        name: 'Suspended Salon',
+        timezone: 'UTC',
+        status: 'SUSPENDED',
+      },
+    });
+
+    const { agent, csrfToken } = await newAgentWithCsrf();
+    const registerRes = await agent
+      .post('/auth/register')
+      .set('x-csrf-token', csrfToken)
+      .send({ email: `my-salons-${randomUUID()}@example.com`, password: 'longenoughpassword', fullName: 'Member' });
+    const userId = registerRes.body.id as string;
+
+    await prisma.salonMembership.create({ data: { userId, salonId: salon.id, role: 'SALON_MANAGER' } });
+    await prisma.salonMembership.create({
+      data: { userId, salonId: suspendedSalon.id, role: 'SALON_ADMIN' },
+    });
+
+    const res = await agent.get('/auth/my-salons');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([{ salonId: salon.id, salonName: 'My Salon', role: 'SALON_MANAGER' }]);
+
+    const other = await newAgentWithCsrf();
+    const otherRegisterRes = await other.agent
+      .post('/auth/register')
+      .set('x-csrf-token', other.csrfToken)
+      .send({ email: `my-salons-other-${randomUUID()}@example.com`, password: 'longenoughpassword', fullName: 'Other' });
+    void otherRegisterRes;
+    const otherRes = await other.agent.get('/auth/my-salons');
+    expect(otherRes.body).toEqual([]);
+  });
+});

@@ -61,3 +61,37 @@ export const customerRescheduleReservationSchema = z
   .object({ startAt: z.string().datetime() })
   .strict();
 export type CustomerRescheduleReservationInput = z.infer<typeof customerRescheduleReservationSchema>;
+
+const RESERVATION_STATUS_VALUES = [
+  'PENDING',
+  'CONFIRMED',
+  'REJECTED',
+  'CANCELLED_BY_CUSTOMER',
+  'CANCELLED_BY_SALON',
+  'CHECKED_IN',
+  'COMPLETED',
+  'NO_SHOW',
+] as const;
+
+// Staff-facing reservation list (dashboard: today/day/week views, filters, search). `from`/`to`
+// bound the query by `startAt`; both optional so "today" can be expressed by the caller computing
+// the salon-local day bounds and passing them explicitly (the server has no opinion on "today"
+// without a client-supplied reference point — this schema only validates shape/bounds).
+export const listSalonReservationsQuerySchema = z
+  .object({
+    page: z.coerce.number().int().min(1).default(1),
+    pageSize: z.coerce.number().int().min(1).max(200).default(50),
+    from: z.string().datetime().optional(),
+    to: z.string().datetime().optional(),
+    status: z.enum(RESERVATION_STATUS_VALUES).optional(),
+    employeeId: z.string().uuid().optional(),
+    // Matches against the customer's name/email — never against internal fields.
+    search: z
+      .string()
+      .trim()
+      .max(200)
+      .optional()
+      .transform((v) => (v ? v : undefined)),
+  })
+  .strict();
+export type ListSalonReservationsQuery = z.infer<typeof listSalonReservationsQuerySchema>;
