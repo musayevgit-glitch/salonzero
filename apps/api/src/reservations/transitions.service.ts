@@ -16,6 +16,7 @@ const RESERVATION_SELECT = {
   priceAmount: true,
   currency: true,
   customerNote: true,
+  guestName: true,
   createdAt: true,
 } as const;
 

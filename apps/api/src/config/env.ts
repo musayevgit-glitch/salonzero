@@ -30,3 +30,7 @@ export type ApiEnv = z.infer<typeof apiEnvSchema>;
 export function validateApiEnv(raw: NodeJS.ProcessEnv): ApiEnv {
   return apiEnvSchema.parse(raw);
 }
+
+export function validateAuthThrottleLimit(raw: NodeJS.ProcessEnv): ApiEnv['AUTH_THROTTLE_LIMIT'] {
+  return apiEnvSchema.shape.AUTH_THROTTLE_LIMIT.parse(raw.AUTH_THROTTLE_LIMIT);
+}

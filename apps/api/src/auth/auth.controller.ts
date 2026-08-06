@@ -26,17 +26,17 @@ import {
 } from '@salonomia/validation';
 import { ZodBodyGuard } from '../common/zod-body.guard';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
+import { validateAuthThrottleLimit } from '../config/env';
 import { AuthService } from './auth.service';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { AuthenticatedGuard } from './guards/authenticated.guard';
 import type { AuthenticatedUser } from './types';
 
-// SEC-006: parsed via validateApiEnv at startup; any non-numeric value fails startup rather than
-// silently disabling rate limiting. The controller reads from process.env after that gate has
-// already run, so the value is guaranteed to coerce to a valid integer.
+// SEC-006: keep Nest's decorator-friendly module-load constant, but parse through the same env
+// schema as startup validation so typos fail closed instead of silently weakening throttling.
 const AUTH_THROTTLE = {
   default: {
-    limit: Math.max(1, Number.isFinite(Number(process.env.AUTH_THROTTLE_LIMIT)) ? Number(process.env.AUTH_THROTTLE_LIMIT) : 10),
+    limit: validateAuthThrottleLimit(process.env),
     ttl: 60_000,
   },
 };
@@ -74,13 +74,14 @@ export class AuthController {
   @Post('logout')
   async logout(@CurrentUser() user: AuthenticatedUser, @Req() req: Request, @Res() res: Response) {
     await this.authService.recordLogout(user.id);
-    req.logout((err) => {
-      if (err) throw err;
-      req.session.destroy(() => {
-        res.clearCookie('connect.sid');
-        res.status(200).json({ ok: true });
-      });
-    });
+    // SEC-021: `throw` inside an Express callback escapes Nest's exception filter and becomes an
+    // uncaughtException — reject the promise instead and let Nest produce a 500 JSON response.
+    await new Promise<void>((resolve, reject) =>
+      req.logout((err) => (err ? reject(err) : resolve())),
+    );
+    await new Promise<void>((resolve) => req.session.destroy(() => resolve()));
+    res.clearCookie('connect.sid');
+    return res.status(200).json({ ok: true });
   }
 
   @Get('me')

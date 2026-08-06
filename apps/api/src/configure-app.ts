@@ -1,5 +1,6 @@
 import type { INestApplication } from '@nestjs/common';
 import connectPgSimple from 'connect-pg-simple';
+import { NoStoreInterceptor } from './common/no-store.interceptor';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import helmet from 'helmet';
@@ -56,4 +57,5 @@ export function configureApp(app: INestApplication, env: ApiEnv): void {
 
   app.use(csrfCookieMiddleware);
   app.useGlobalGuards(new CsrfGuard());
+  app.useGlobalInterceptors(new NoStoreInterceptor());
 }
