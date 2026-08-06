@@ -16,6 +16,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { apiFetch, ApiError } from '../../../../../lib/api-client';
 import { PortfolioGallery } from './portfolio-gallery';
+import { ServiceAssignment } from './service-assignment';
 
 interface EmployeeDetail {
   id: string;
@@ -140,6 +141,13 @@ export default function EmployeeDetailPage() {
         <h2 className="text-lg font-semibold text-text-primary">Portfolio</h2>
         <div className="mt-4">
           <PortfolioGallery salonId={salonId} employeeId={employee.id} />
+        </div>
+      </Card>
+
+      <Card className="max-w-lg">
+        <h2 className="text-lg font-semibold text-text-primary">Eligible services</h2>
+        <div className="mt-4">
+          <ServiceAssignment salonId={salonId} employeeId={employee.id} />
         </div>
       </Card>
 

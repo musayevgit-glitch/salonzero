@@ -604,6 +604,49 @@ at read time; isActive is unreachable from create/update bodies.
 Risks: none new. Section 11.5 (domain/subdomain management) remains deferred.
 Next: Section 13.3 — Salon Admin: Employee-service assignment
 
+## Section 13.3 — Salon Admin: employee-service assignment
+
+Status: done. `packages/validation/src/employee-services.ts` → `assignEmployeeServiceSchema`
+(`serviceId` only, `.strict()`). Backend: `apps/api/src/employees/services/*` nested at
+`salons/:salonId/employees/:employeeId/services`, `@Roles('SUPERADMIN','SALON_ADMIN')` per method,
+wired into `EmployeesModule` (same pattern as the portfolio submodule in Section 12.3).
+`EmployeeService.assign()` re-derives both sides from the authorized salonId rather than trusting the
+client-supplied `serviceId` on its own: it re-fetches the employee by `id`+`salonId` (404 if not found
+or wrong salon), re-fetches the service by `id`+`salonId` (400 if not found/wrong salon — this is input
+validation, not route authorization, so it's a 400 not a 404, matching the categoryId-on-service pattern
+from 13.2), and enforces Prompt 13.3's "must be active" rule on **both** sides (400 if the employee is
+inactive, 400 if the service is inactive) before ever touching `EmployeeService`. Duplicate assignment
+is pre-checked for a friendly 409 (the DB's own `@@unique([employeeId, serviceId])` is the actual
+backstop). `unassign()` re-verifies the employee belongs to the salon and the service belongs to the
+salon before deleting, so this route can't be used to probe whether a given serviceId exists anywhere
+in the system. Every write is audited on the employee (`employee_service.assigned` /
+`employee_service.unassigned`, with the `serviceId` in metadata).
+Commit: pending (this task)
+Tests: 17 new e2e tests — unauthenticated→401, SALON_MANAGER/no-membership→404 on list/assign/unassign,
+cross-salon employeeId→404 on list, list returns assigned service details, assign + audit, duplicate
+assignment→409, assign an inactive service→400, assign to an inactive employee→400, cross-salon
+serviceId on assign→400, cross-salon employeeId on assign→404, malformed serviceId→400, unassign +
+audit, unassign a non-existent assignment→404, cross-salon serviceId on unassign→404, cross-salon
+employeeId on unassign→404. 4 new schema tests in `packages/validation`. `apps/api` total: 141 passing
+tests (84 in `packages/validation`). Full repo gate (14/14) passed.
+UI: `apps/dashboard/.../employees/[employeeId]/service-assignment.tsx` — a small widget on the employee
+detail page: a `Select` populated from the salon's active services (filtered to exclude already-
+assigned ones) + an Assign button, a list of currently-assigned services, and an unassign `IconButton`
+behind a `ConfirmDialog`.
+Browser walkthrough: attempting to assign with the seeded employee still `Inactive` correctly showed no
+services eligible to fail against (had to activate the employee first, confirming the active-employee
+rule is real and not just a docstring); activated the employee and the previously-deactivated "Haircut"
+service via the API, reloaded, assigned "Haircut" through the live dropdown, confirmed it appeared in
+the assigned list and disappeared from the dropdown, then unassigned it via the `ConfirmDialog` and
+confirmed it returned to "No services assigned yet."
+Security/tenant checks: assignment can never link an employee and a service from different salons —
+both sides are independently re-verified against the same authorized salonId; the unassign route is
+existence-checked on the service+salon pairing before the assignment lookup, so it can't be used as a
+service-ID oracle across salons.
+Risks: none new. Section 11.5 (domain/subdomain management) remains deferred. This completes Section 13
+(Salon Admin — Services) in full.
+Next: Section 14 — Salon Admin: Scheduling (weekly working schedule, breaks, time off/closures)
+
 ## Blockers / environment notes
 
 - Docker is not installed in this environment; resolved by using the existing Postgres.app (PG 18)
