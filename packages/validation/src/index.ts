@@ -6,6 +6,7 @@ export * from './employee-services';
 export * from './working-schedule';
 export * from './breaks';
 export * from './time-off';
+export * from './reservations';
 export * from './portfolio';
 export * from './service-categories';
 export * from './services';

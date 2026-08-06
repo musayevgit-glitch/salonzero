@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   computeAnyStylistAvailability,
   computeAvailability,
+  isEmployeeSlotAvailable,
   type ComputeAvailabilityInput,
   type EmployeeAvailabilityInput,
 } from './availability';
@@ -292,5 +293,117 @@ describe('computeAvailability — timezone and DST', () => {
     });
     const slots = computeAvailability(input).map((s) => s.startAt.toISOString());
     expect(slots[0]).toBe('2026-11-01T14:00:00.000Z'); // 09:00 EST = 14:00 UTC
+  });
+});
+
+describe('isEmployeeSlotAvailable — single-instant re-check', () => {
+  const baseSingleCheck = {
+    salonTimezone: 'UTC',
+    now: new Date('2026-06-01T00:00:00.000Z'),
+    serviceDurationMinutes: 60,
+    bufferMinutes: 0,
+    minNoticeMinutes: 0,
+    maxAdvanceDays: 30,
+  };
+
+  it('accepts an exact instant that falls within a working block, off the 15min grid', () => {
+    const employee = baseEmployee({
+      workingSchedule: [{ weekday: 1, startMinuteOfDay: 9 * 60, endMinuteOfDay: 11 * 60 }],
+    });
+    const available = isEmployeeSlotAvailable({
+      ...baseSingleCheck,
+      employee,
+      candidateStart: new Date('2026-06-01T09:07:00.000Z'), // not on a 15min grid boundary
+    });
+    expect(available).toBe(true);
+  });
+
+  it('rejects an instant outside any working block', () => {
+    const employee = baseEmployee({
+      workingSchedule: [{ weekday: 1, startMinuteOfDay: 9 * 60, endMinuteOfDay: 11 * 60 }],
+    });
+    const available = isEmployeeSlotAvailable({
+      ...baseSingleCheck,
+      employee,
+      candidateStart: new Date('2026-06-01T11:30:00.000Z'), // after the block ends
+    });
+    expect(available).toBe(false);
+  });
+
+  it('rejects an instant overlapping a blocking reservation', () => {
+    const employee = baseEmployee({
+      workingSchedule: [{ weekday: 1, startMinuteOfDay: 9 * 60, endMinuteOfDay: 11 * 60 }],
+      blockingReservations: [
+        {
+          startAt: new Date('2026-06-01T09:30:00.000Z'),
+          endAt: new Date('2026-06-01T10:00:00.000Z'),
+        },
+      ],
+    });
+    const available = isEmployeeSlotAvailable({
+      ...baseSingleCheck,
+      employee,
+      candidateStart: new Date('2026-06-01T09:00:00.000Z'), // 09:00-10:00 overlaps 09:30-10:00
+    });
+    expect(available).toBe(false);
+  });
+
+  it('rejects an inactive or ineligible employee regardless of schedule', () => {
+    const workingSchedule = [{ weekday: 1, startMinuteOfDay: 9 * 60, endMinuteOfDay: 11 * 60 }];
+    const candidateStart = new Date('2026-06-01T09:00:00.000Z');
+
+    expect(
+      isEmployeeSlotAvailable({
+        ...baseSingleCheck,
+        employee: baseEmployee({ isActive: false, workingSchedule }),
+        candidateStart,
+      }),
+    ).toBe(false);
+    expect(
+      isEmployeeSlotAvailable({
+        ...baseSingleCheck,
+        employee: baseEmployee({ isEligibleForService: false, workingSchedule }),
+        candidateStart,
+      }),
+    ).toBe(false);
+  });
+
+  it('rejects an instant before the minimum notice window', () => {
+    const employee = baseEmployee({
+      workingSchedule: [{ weekday: 1, startMinuteOfDay: 9 * 60, endMinuteOfDay: 11 * 60 }],
+    });
+    const available = isEmployeeSlotAvailable({
+      ...baseSingleCheck,
+      employee,
+      minNoticeMinutes: 600, // earliest bookable is 10:00 (now=00:00 + 10h)
+      candidateStart: new Date('2026-06-01T09:00:00.000Z'),
+    });
+    expect(available).toBe(false);
+  });
+
+  it('rejects an instant beyond the maximum advance horizon', () => {
+    const employee = baseEmployee({
+      workingSchedule: [{ weekday: 1, startMinuteOfDay: 9 * 60, endMinuteOfDay: 11 * 60 }],
+    });
+    const available = isEmployeeSlotAvailable({
+      ...baseSingleCheck,
+      employee,
+      maxAdvanceDays: 1,
+      candidateStart: new Date('2026-06-05T09:00:00.000Z'),
+    });
+    expect(available).toBe(false);
+  });
+
+  it('correctly interprets the candidate instant in the salon timezone', () => {
+    const employee = baseEmployee({
+      workingSchedule: [{ weekday: 1, startMinuteOfDay: 9 * 60, endMinuteOfDay: 11 * 60 }],
+    });
+    const available = isEmployeeSlotAvailable({
+      ...baseSingleCheck,
+      salonTimezone: 'America/New_York',
+      employee,
+      candidateStart: new Date('2026-06-01T13:00:00.000Z'), // 09:00 EDT
+    });
+    expect(available).toBe(true);
   });
 });

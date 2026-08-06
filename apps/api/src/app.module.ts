@@ -7,6 +7,7 @@ import { AuthzModule } from './authz/authz.module';
 import { EmployeesModule } from './employees/employees.module';
 import { HealthController } from './health/health.controller';
 import { PrismaModule } from './prisma/prisma.module';
+import { ReservationsModule } from './reservations/reservations.module';
 import { SalonsModule } from './salons/salons.module';
 import { ServiceCategoriesModule } from './service-categories/service-categories.module';
 import { ServicesModule } from './services/services.module';
@@ -25,6 +26,7 @@ import { UploadsModule } from './uploads/uploads.module';
     EmployeesModule,
     ServiceCategoriesModule,
     ServicesModule,
+    ReservationsModule,
     UploadsModule,
   ],
   controllers: [HealthController],

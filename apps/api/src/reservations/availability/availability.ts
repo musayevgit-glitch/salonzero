@@ -2,6 +2,7 @@ import {
   addLocalDays,
   compareLocalDateParts,
   getLocalDateParts,
+  getLocalWeekday,
   localWallTimeToUtc,
   type LocalDateParts,
 } from './timezone';
@@ -188,6 +189,71 @@ export function computeAvailability(input: ComputeAvailabilityInput): AvailableS
     (a, b) => a.startAt.getTime() - b.startAt.getTime() || a.employeeId.localeCompare(b.employeeId),
   );
   return results;
+}
+
+export interface SingleSlotCheckInput {
+  employee: EmployeeAvailabilityInput;
+  salonTimezone: string;
+  /** The current instant — same determinism contract as ComputeAvailabilityInput.now. */
+  now: Date;
+  candidateStart: Date;
+  serviceDurationMinutes: number;
+  bufferMinutes: number;
+  minNoticeMinutes: number;
+  maxAdvanceDays: number;
+}
+
+/**
+ * Re-verifies one exact candidate instant (as opposed to `computeAvailability`'s grid-generated
+ * list) — this is what Section 15.3's booking transaction calls to re-check the specific slot a
+ * customer requested, since an arbitrary requested `startAt` may not land on the slot-interval grid
+ * a listing call would have used.
+ */
+export function isEmployeeSlotAvailable(input: SingleSlotCheckInput): boolean {
+  const { employee, salonTimezone, now, candidateStart, serviceDurationMinutes, bufferMinutes } =
+    input;
+
+  if (!employee.isActive || !employee.isEligibleForService) return false;
+
+  const earliestBookable = now.getTime() + input.minNoticeMinutes * 60_000;
+  const latestBookable = now.getTime() + input.maxAdvanceDays * 24 * 60 * 60_000;
+  if (candidateStart.getTime() < earliestBookable || candidateStart.getTime() >= latestBookable) {
+    return false;
+  }
+
+  const weekday = getLocalWeekday(candidateStart, salonTimezone);
+  const localDate = getLocalDateParts(candidateStart, salonTimezone);
+  const candidateEnd = new Date(candidateStart.getTime() + serviceDurationMinutes * 60_000);
+  const candidateBusyEnd = new Date(
+    candidateStart.getTime() + (serviceDurationMinutes + bufferMinutes) * 60_000,
+  );
+
+  const withinWorkingBlock = employee.workingSchedule.some((block) => {
+    if (block.weekday !== weekday) return false;
+    const blockStart = localWallTimeToUtc(localDate, block.startMinuteOfDay, salonTimezone);
+    const blockEnd = localWallTimeToUtc(localDate, block.endMinuteOfDay, salonTimezone);
+    return (
+      candidateStart.getTime() >= blockStart.getTime() &&
+      candidateEnd.getTime() <= blockEnd.getTime()
+    );
+  });
+  if (!withinWorkingBlock) return false;
+
+  const breakConflict = employee.breaks.some((b) => {
+    if (b.weekday !== weekday) return false;
+    const breakStart = localWallTimeToUtc(localDate, b.startMinuteOfDay, salonTimezone);
+    const breakEnd = localWallTimeToUtc(localDate, b.endMinuteOfDay, salonTimezone);
+    return overlaps(candidateStart, candidateBusyEnd, breakStart, breakEnd);
+  });
+  if (breakConflict) return false;
+
+  const busySpans: Array<{ start: Date; end: Date }> = [
+    ...employee.timeOff.map((t) => ({ start: t.startAt, end: t.endAt })),
+    ...employee.blockingReservations.map((r) => ({ start: r.startAt, end: r.endAt })),
+  ];
+  return !busySpans.some((span) =>
+    overlaps(candidateStart, candidateBusyEnd, span.start, span.end),
+  );
 }
 
 /** Convenience helper for the "any suitable stylist" flow — same slots, employee identity dropped. */

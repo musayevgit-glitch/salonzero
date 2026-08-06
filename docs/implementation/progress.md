@@ -847,12 +847,12 @@ ambiguous local time.
 (no I/O) taking every input as plain data: salon timezone, current instant (`now`, passed in — never
 `Date.now()` inside the engine), search range, service duration/buffer, booking notice/horizon, and
 per-employee working schedule/breaks/time-off/blocking-reservations/eligibility/active-status. Iterates
-by *local calendar day* (not fixed 24h steps) in the salon's timezone — the detail that makes DST
+by _local calendar day_ (not fixed 24h steps) in the salon's timezone — the detail that makes DST
 handled correctly, since a "day" can be 23 or 25 real hours but is always exactly one calendar date.
 Generates candidate starts on a configurable grid (default 15min) within each working block, filtering
 out any candidate whose `[start, start + duration + buffer)` span overlaps a break, time-off period, or
 blocking reservation. Buffer design decision (documented in code): buffer is trailing padding that must
-not collide with the *next* commitment, but is not required to fit before the working day's own closing
+not collide with the _next_ commitment, but is not required to fit before the working day's own closing
 time — kept deliberately simple rather than special-casing end-of-day. `computeAnyStylistAvailability()`
 wraps this for the "any suitable stylist" flow, deduping identical start times across employees.
 Salon-wide closures are out of scope here too, consistent with the 14.3 decision (no such input exists
@@ -866,7 +866,7 @@ employees produce no slots, break/blocking-reservation/time-off exclusion — in
 trailing padding" case — booking-notice and booking-horizon boundaries, multiple employees, "any
 stylist" deduping, and full end-to-end DST-crossing slot generation in `America/New_York`). Two of my
 own first-draft test assertions were themselves wrong (a 60-minute appointment window fully containing
-a 30-minute break/reservation does *not* leave two slots free, only the touching one; 9am on the
+a 30-minute break/reservation does _not_ leave two slots free, only the touching one; 9am on the
 US fall-back date is already standard time, not daylight time, since the transition happens at 2am that
 same day) — caught by actually running the suite rather than assuming the math, then fixed. `apps/api`
 total: 214 passing tests. Full repo gate (14/14) passed.
@@ -879,6 +879,73 @@ and endpoint authorization) — this slice is intentionally inert (no DB, no rou
 runtime risk on its own.
 Next: Section 15.3 — Customer booking transaction (the first endpoint in this area; separate session
 per the playbook)
+
+## Section 15.3 — Customer booking transaction
+
+Status: done. First real endpoint in the reservation engine — `POST /reservations`, customer-facing,
+no `:salonId` route param (RolesGuard's existing `CUSTOMER`-only branch treats any authenticated user
+as a customer here; salonId/serviceId/employeeId are business inputs verified against the database
+inside the service, not an authorization scope, since a customer isn't tenant-scoped the way staff are).
+Schema addition: `Reservation.idempotencyKey` (nullable, `@@unique([customerId, idempotencyKey])`) —
+anticipated in the 15.1 state-machine doc, added via the same manual-migration workflow used since
+Section 13.1 (dev DB has expected drift from the runtime-created `session` table). Extended the 15.2
+availability engine with `isEmployeeSlotAvailable()` — a single-instant re-check (as opposed to
+`computeAvailability`'s grid-generated list), since an arbitrary customer-requested `startAt` may not
+land on the listing grid.
+`packages/validation/src/reservations.ts` → `createReservationSchema` (salonId/serviceId required,
+employeeId nullable/optional for "any suitable stylist", startAt, optional customerNote capped at
+1000 chars, required idempotencyKey — `.strict()` blocks customerId/price/status/duration entirely).
+`apps/api/src/reservations/reservations.service.ts` — the full sequence from the reservation-flow
+doc: idempotency check first (replay returns the original reservation, never a duplicate) → salon
+must exist and be ACTIVE (404) → service must belong to that salon and be active (400) → resolve
+candidate employee(s) (specific, tenant/eligibility/active-verified, or all eligible+active employees
+for "any suitable stylist") → load each candidate's real schedule/breaks/time-off/blocking-reservations
+from the DB and re-check with `isEmployeeSlotAvailable` against the real `BookingPolicy` (never a
+client-supplied notice/horizon) → transactional creation: an in-transaction conflict re-count as a fast
+clean-conflict path, with the DB's `reservation_no_overlap_per_employee` EXCLUDE constraint (ADR-0005)
+as the actual concurrency guarantee, caught and mapped to the same generic conflict response → status
+history row → a `Notification` row for the customer → audit event, recorded only after the transaction
+actually succeeds (a first draft of this code audited unconditionally in a `finally` block, which would
+have logged "reservation.created" even for a conflict/failure — caught and fixed before it shipped).
+Every conflict path (slot taken, outside notice window, past the horizon, DB-level race) returns the
+same generic message — never which reservation/customer holds the conflicting slot.
+Commit: pending (this task)
+Tests: 18 new e2e tests — unauthenticated→401 (with the now-familiar CSRF-priming fix, since
+`CsrfGuard` runs before `AuthenticatedGuard`), PENDING creation under manual-approval policy with
+audit+history+notification verified, CONFIRMED creation under auto-confirm policy, "any suitable
+stylist" resolution, nonexistent/inactive salon→404, serviceId not in that salon→400, inactive
+service→400, employeeId not in that salon→400, employeeId not eligible for the service→400, inactive
+employee→400, no eligible employee at all→400, slot outside working hours→409, booking inside an
+extreme minimum-notice window→409 with no policy detail leaked in the message, overlapping an existing
+reservation→409 with no customer/user detail leaked, malformed/boundary input→400, forbidden-field
+mass-assignment→400, idempotent replay returns the same reservation, and — the one explicitly required
+by the prompt — **a real concurrent test firing two simultaneous requests at the exact same
+employee+slot, asserting exactly one 201 and one 409, and that exactly one active reservation exists
+afterward**. It passed on the first run. 9 new schema tests in `packages/validation`. 7 new
+`isEmployeeSlotAvailable` unit tests added to the 15.2 availability suite (one of my own test's minute
+math was wrong on the first attempt — fixed after actually running it, same discipline as 15.2).
+`apps/api` total: 239 passing tests (110 in `packages/validation`). Full repo gate (14/14) passed.
+Verification beyond the test suite: also smoke-tested against the real compiled server
+(`node dist/main.js`, not just the in-process Nest test module) — registered a real customer, seeded a
+real salon/service/employee/schedule via a direct Prisma script, created a real reservation over HTTP
+(201, correct price/duration/status from the DB), then repeated the exact same request and confirmed
+the real 409 with the generic message. No customer UI yet, per the prompt's explicit scope — this is
+backend-only.
+Security/tenant checks: customerId always comes from the session, never the body (schema rejects it
+outright, and the e2e suite confirms the stored row's customerId matches the session user); price and
+duration always come from `Service`, never the client; the conflict response is privacy-safe (verified
+by asserting the message text contains no customer/policy-detail leakage, not just checking the status
+code); the audit-on-failure bug above is exactly the kind of thing 15.6's dedicated security review
+exists to catch, and it was caught here first instead.
+Risks: (1) Notification is customer-facing only — no staff-side "pending_salon" fan-out yet, since that
+requires enumerating salon staff and is arguably Section 23 (Notifications)'s job, not this transaction
+endpoint's; documented, not silently skipped. (2) "Any suitable stylist" picks the first eligible
+available candidate and does not retry a different stylist if that specific one loses a race at the DB
+level — a customer would need to resubmit; acceptable for this slice's scope, not required by the
+prompt. (3) Section 11.5 (domain/subdomain management) and salon-wide closures (open decision #6)
+remain deferred, unrelated to this slice.
+Next: Section 15.4 — Manager manual booking (SALON_MANAGER/SALON_ADMIN creating a reservation on a
+customer's behalf, inside their own salon only)
 
 ## Blockers / environment notes
 

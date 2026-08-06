@@ -315,10 +315,15 @@ model Reservation {
   priceAmount  Int
   currency     String
   customerNote String?
-  createdAt    DateTime          @default(now()) @db.Timestamptz(3)
-  updatedAt    DateTime          @updatedAt @db.Timestamptz(3)
-  cancelledAt  DateTime?         @db.Timestamptz(3)
-  completedAt  DateTime?         @db.Timestamptz(3)
+  // Client-generated key for double-submit protection (Section 15.1's idempotency requirement).
+  // Nullable: only customer-initiated creation (15.3) sets it; manual staff bookings (15.4) may
+  // not need one. Multiple NULLs are not considered duplicates under a Postgres unique index, so
+  // this never blocks non-idempotent-key writes.
+  idempotencyKey String?
+  createdAt      DateTime          @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime          @updatedAt @db.Timestamptz(3)
+  cancelledAt    DateTime?         @db.Timestamptz(3)
+  completedAt    DateTime?         @db.Timestamptz(3)
 
   salon    Salon           @relation(fields: [salonId], references: [id], onDelete: Restrict)
   service  Service         @relation(fields: [serviceId], references: [id], onDelete: Restrict)
@@ -327,6 +332,7 @@ model Reservation {
 
   statusHistory ReservationStatusHistory[]
 
+  @@unique([customerId, idempotencyKey])
   @@index([salonId, startAt])
   @@index([employeeId, startAt])
   @@index([customerId, startAt])
