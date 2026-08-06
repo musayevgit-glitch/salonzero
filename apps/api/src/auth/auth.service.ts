@@ -134,13 +134,23 @@ export class AuthService {
 
     const passwordHash = await this.password.hash(newPassword);
 
-    await this.prisma.$transaction([
-      this.prisma.user.update({ where: { id: record.userId }, data: { passwordHash } }),
-      this.prisma.passwordResetToken.update({
-        where: { id: record.id },
+    await this.prisma.$transaction(async (tx) => {
+      await tx.user.update({ where: { id: record.userId }, data: { passwordHash } });
+      // SEC-004: invalidate ALL unused reset tokens for this user so an attacker who triggered a
+      // parallel reset cannot redeem the other token after the password is changed.
+      await tx.passwordResetToken.updateMany({
+        where: { userId: record.userId, usedAt: null },
         data: { usedAt: new Date() },
-      }),
-    ]);
+      });
+    });
+
+    // SEC-004: delete all active sessions for this user so a stolen session cookie cannot survive
+    // the victim's own password-reset remediation. connect-pg-simple stores userId in the JSONB
+    // `sess` column at path passport.user.
+    await this.prisma.$executeRaw`
+      DELETE FROM session
+      WHERE sess->'passport'->>'user' = ${record.userId}
+    `;
 
     await this.audit.record({
       actorUserId: record.userId,

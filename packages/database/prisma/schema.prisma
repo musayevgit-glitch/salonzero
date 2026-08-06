@@ -320,6 +320,10 @@ model Reservation {
   // not need one. Multiple NULLs are not considered duplicates under a Postgres unique index, so
   // this never blocks non-idempotent-key writes.
   idempotencyKey String?
+  // Manager-supplied name snapshot for manual bookings (SEC-002): prevents cross-tenant
+  // account-existence enumeration by ensuring staff always see what they typed, never
+  // the global User.fullName of a pre-existing account at another salon.
+  guestName      String?
   createdAt      DateTime          @default(now()) @db.Timestamptz(3)
   updatedAt      DateTime          @updatedAt @db.Timestamptz(3)
   cancelledAt    DateTime?         @db.Timestamptz(3)

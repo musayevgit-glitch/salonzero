@@ -14,6 +14,15 @@ import type { ApiEnv } from './config/env';
 export function configureApp(app: INestApplication, env: ApiEnv): void {
   const isProduction = env.NODE_ENV === 'production';
 
+  // SEC-005: trust exactly the configured number of proxy hops. This makes req.ip resolve to the
+  // real client IP (fixing per-IP rate limiting) and allows express-session's `secure: true` to
+  // detect HTTPS correctly behind a TLS-terminating LB. Never pass `true` — that accepts any
+  // X-Forwarded-For value the client sends, which an attacker can spoof.
+  const httpAdapter = app.getHttpAdapter().getInstance() as import('express').Application;
+  if (env.TRUST_PROXY_HOPS > 0) {
+    httpAdapter.set('trust proxy', env.TRUST_PROXY_HOPS);
+  }
+
   // Helmet must come first so security headers are present on every response, including errors.
   app.use(
     helmet({

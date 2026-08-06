@@ -16,6 +16,10 @@ export const apiEnvSchema = baseEnvSchema.extend({
     .string()
     .default('http://localhost:3000,http://localhost:3001')
     .transform((value) => value.split(',').map((origin) => origin.trim())),
+  // SEC-005: number of trusted proxy hops in front of this process (typically 1 for a single LB).
+  // Set to 0 in development (direct connections). Never use `true` — that trusts the entire
+  // X-Forwarded-For chain, which is attacker-controlled.
+  TRUST_PROXY_HOPS: z.coerce.number().int().min(0).default(0),
 });
 
 export type ApiEnv = z.infer<typeof apiEnvSchema>;

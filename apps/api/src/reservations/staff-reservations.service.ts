@@ -6,6 +6,9 @@ import {
   type StaffReservationAction,
 } from './reservation-actions';
 
+// SEC-002: guestName (manager-snapshotted) is returned instead of customer.fullName/id to prevent
+// cross-tenant account-existence enumeration. customer.email is still returned for operational use
+// (the manager booked that email, so it is their data), but the global user id is never exposed.
 const STAFF_RESERVATION_SELECT = {
   id: true,
   status: true,
@@ -14,10 +17,11 @@ const STAFF_RESERVATION_SELECT = {
   priceAmount: true,
   currency: true,
   customerNote: true,
+  guestName: true,
   createdAt: true,
   service: { select: { id: true, name: true } },
   employee: { select: { id: true, fullName: true } },
-  customer: { select: { id: true, fullName: true, email: true } },
+  customer: { select: { email: true } },
 } as const;
 
 export interface StaffReservationDetail {
@@ -28,10 +32,11 @@ export interface StaffReservationDetail {
   priceAmount: number;
   currency: string;
   customerNote: string | null;
+  guestName: string | null;
   createdAt: Date;
   service: { id: string; name: string };
   employee: { id: string; fullName: string };
-  customer: { id: string; fullName: string; email: string };
+  customer: { email: string };
   availableActions: StaffReservationAction[];
 }
 

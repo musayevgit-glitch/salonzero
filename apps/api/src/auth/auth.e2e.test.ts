@@ -238,6 +238,72 @@ describe('POST /auth/reset-password', () => {
       .send({ token: 'not-a-real-token', password: 'newlongenoughpassword' });
     expect(res.status).toBe(401);
   });
+
+  // SEC-004 regressions: resetting the password must invalidate existing sessions and sibling tokens.
+  it('SEC-004: existing session is invalidated after a successful password reset', async () => {
+    const email = `sec004-session-${randomUUID()}@example.com`;
+
+    // Establish session S1
+    const s1 = await newAgentWithCsrf();
+    await s1.agent
+      .post('/auth/register')
+      .set('x-csrf-token', s1.csrfToken)
+      .send({ email, password: 'originalpassword', fullName: 'SEC-004 User' });
+    const me1 = await s1.agent.get('/auth/me');
+    expect(me1.status).toBe(200);
+
+    // Mint a reset token directly (forgot-password would normally send email)
+    const { createHash } = await import('node:crypto');
+    const rawToken = randomUUID();
+    const tokenHash = createHash('sha256').update(rawToken).digest('hex');
+    const userId = (me1.body as { id: string }).id;
+    await prisma.passwordResetToken.create({
+      data: { userId, tokenHash, expiresAt: new Date(Date.now() + 3_600_000) },
+    });
+
+    // Consume the token on a different agent
+    const resetAgent = await newAgentWithCsrf();
+    const resetRes = await resetAgent.agent
+      .post('/auth/reset-password')
+      .set('x-csrf-token', resetAgent.csrfToken)
+      .send({ token: rawToken, password: 'newlongenoughpassword' });
+    expect(resetRes.status).toBe(200);
+
+    // S1's cookie must now be invalid
+    const me2 = await s1.agent.get('/auth/me');
+    expect(me2.status).toBe(401);
+  });
+
+  it('SEC-004: a sibling (unused) reset token is invalidated when one is consumed', async () => {
+    const email = `sec004-sibling-${randomUUID()}@example.com`;
+
+    const setup = await newAgentWithCsrf();
+    const regRes = await setup.agent
+      .post('/auth/register')
+      .set('x-csrf-token', setup.csrfToken)
+      .send({ email, password: 'originalpassword', fullName: 'SEC-004b User' });
+    const userId = (regRes.body as { id: string }).id;
+
+    // Mint two tokens
+    const { createHash } = await import('node:crypto');
+    const raw1 = randomUUID();
+    const raw2 = randomUUID();
+    await prisma.passwordResetToken.createMany({
+      data: [
+        { userId, tokenHash: createHash('sha256').update(raw1).digest('hex'), expiresAt: new Date(Date.now() + 3_600_000) },
+        { userId, tokenHash: createHash('sha256').update(raw2).digest('hex'), expiresAt: new Date(Date.now() + 3_600_000) },
+      ],
+    });
+
+    // Consume token 1
+    const { agent, csrfToken } = await newAgentWithCsrf();
+    await agent.post('/auth/reset-password').set('x-csrf-token', csrfToken).send({ token: raw1, password: 'newpass123456' });
+
+    // Token 2 must be rejected
+    const { agent: a2, csrfToken: ct2 } = await newAgentWithCsrf();
+    const res2 = await a2.post('/auth/reset-password').set('x-csrf-token', ct2).send({ token: raw2, password: 'anotherpass456' });
+    expect(res2.status).toBe(401);
+  });
 });
 
 // SEC-001 regression: invitation acceptance must not silently log in as an existing account

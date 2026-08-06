@@ -138,7 +138,10 @@ describe('GET /salons/:salonId/reservations (staff list)', () => {
     const item = res.body.items[0];
     expect(item.service.name).toBe('Haircut');
     expect(item.employee.fullName).toBe('Stylist');
-    expect(item.customer.fullName).toBe('Alice Customer');
+    // SEC-002: staff list returns customer email (their booking data) but not fullName/id
+    expect(item.customer.email).toBeDefined();
+    expect(item.customer.fullName).toBeUndefined();
+    expect(item.customer.id).toBeUndefined();
     expect(item.availableActions.sort()).toEqual(['cancel', 'confirm', 'reject', 'reschedule'].sort());
   });
 

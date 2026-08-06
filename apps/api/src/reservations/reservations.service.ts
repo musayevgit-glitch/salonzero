@@ -25,6 +25,7 @@ export interface ReservationDetail {
   priceAmount: number;
   currency: string;
   customerNote: string | null;
+  guestName: string | null;
   createdAt: Date;
 }
 
@@ -39,6 +40,7 @@ const RESERVATION_SELECT = {
   priceAmount: true,
   currency: true,
   customerNote: true,
+  guestName: true,
   createdAt: true,
 } as const;
 
@@ -340,6 +342,9 @@ export class ReservationsService {
             priceAmount: service.priceAmount,
             currency: service.currency,
             customerNote: input.customerNote ?? null,
+            // SEC-002: snapshot the manager-supplied name so the staff detail never leaks the
+            // global User.fullName of a pre-existing account from another salon.
+            guestName: input.customerFullName,
           },
           select: RESERVATION_SELECT,
         });
