@@ -5,6 +5,7 @@ import { AuditModule } from './audit/audit.module';
 import { AuthModule } from './auth/auth.module';
 import { AuthzModule } from './authz/authz.module';
 import { CustomerProfileModule } from './customer-profile/customer-profile.module';
+import { ReportsModule } from './reports/reports.module';
 import { EmployeesModule } from './employees/employees.module';
 import { HealthController } from './health/health.controller';
 import { PrismaModule } from './prisma/prisma.module';
@@ -32,6 +33,7 @@ import { UploadsModule } from './uploads/uploads.module';
     UploadsModule,
     PublicModule,
     CustomerProfileModule,
+    ReportsModule,
   ],
   controllers: [HealthController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

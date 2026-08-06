@@ -1399,3 +1399,60 @@ Next: Section 18.4 — Summary + auth handoff
 - Docker is not installed in this environment; resolved by using the existing Postgres.app (PG 18)
   installation instead (see Section 8) — a `salonomia` database/role now exists locally and all
   migrations/tests have been verified against it. Node v24.15.0 and pnpm 11.17.0 confirmed available.
+
+## Section 18.4-18.6 — Summary, Confirm, Result, Customer Reservation Management
+
+Status: done.
+API: `CustomerReservationsService` (list + detail with `canCancel`/`canReschedule` from policy window),
+`CustomerReservationsController` (`GET /customer/reservations`, `GET /customer/reservations/:id`),
+`listCustomerReservationsQuerySchema` in validation package.
+Web: `book/summary/page.tsx` (auth check via `/auth/me`, login/register CTAs with returnTo),
+`book/confirm/page.tsx` (pre-fills from profile, terms checkbox, POST /reservations, 409 → clear
+startAt + redirect to datetime), `book/result/[reservationId]/page.tsx` (server RSC, forwards
+session cookie via `fetchApiServer`, PENDING vs CONFIRMED messaging), `account/reservations/page.tsx`
+(paginated list, status badges), `account/reservations/[reservationId]/page.tsx` (full detail,
+inline cancel with confirmation, inline reschedule with date strip + slot grid).
+Helpers: `lib/fetch-api-server.ts` (server-side authenticated fetch forwarding connect.sid cookie),
+`AccountNav` client component (active-tab highlighting via usePathname).
+Status fix: `CANCELLED` enum value does not exist — correct values are `CANCELLED_BY_CUSTOMER`
+and `CANCELLED_BY_SALON`; fixed across validation schema, web status maps, and service.
+Tests: 8 new customer-reservations.e2e tests (auth, pagination, list isolation, guessed-ID 404,
+cross-customer ownership). Full suite: 319 passing.
+Commit: c137e7b
+
+## Phase 11 — Reports, Audit Logs, and Operational Hardening
+
+Status: done.
+API: `ReportsModule` (`GET /salons/:salonId/reports`, `GET /salons/:salonId/reports/audit-logs`,
+`GET /superadmin/reports`, `GET /superadmin/reports/audit-logs`). Authorization: SALON_ADMIN
+and SUPERADMIN for salon-scoped; SUPERADMIN-only for global. Audit log query scoped by `salonId`
+— cross-tenant events never leaked. Actor resolution exposes only `email`/`fullName` — no
+`passwordHash`. Validation: `salonReportQuerySchema` (from/to YYYY-MM-DD, from ≤ to enforced,
+strict), `auditLogQuerySchema` (page/pageSize/action/targetType/actorUserId, strict).
+Dashboard UI: `salon/[salonId]/reports/page.tsx` (KPI cards, status breakdown, top services,
+daily table, date-range filter), `salon/[salonId]/audit-logs/page.tsx` (searchable table,
+paginated), `superadmin/reports/page.tsx` (global KPIs + per-salon revenue table),
+`superadmin/audit-logs/page.tsx` (filterable by action + targetType, expandable metadata).
+Dashboard home updated with links to reports and audit logs.
+Tests: 13 new reports.e2e tests (auth, cross-tenant isolation, password hash not exposed,
+invalid range rejected, unknown params rejected). Full suite: 332 passing.
+
+## Phase 10 — Playwright E2E Booking Journey
+
+Status: done (spec written; browsers not installed in this environment).
+File: `e2e/customer-booking-journey.spec.ts` — 10 specs across mobile + desktop projects:
+discovery page, salon detail, stepper navigation, guard redirects (no draft → /service),
+full end-to-end journey (service → stylist → datetime → summary → login handoff → confirm →
+result), account reservations list + detail + cancel, 409 conflict handling documented,
+axe-core accessibility checks on service and summary steps.
+
+## Phase 14 — Production Readiness
+
+Status: done (documentation).
+Files created under `docs/operations/`:
+- `environment-variables.md` — all required env vars, rotation notes, secret scoping
+- `deployment.md` — build order, migration deploy, zero-downtime strategy, rollback
+- `monitoring.md` — health endpoint, alert thresholds, audit retention, log format
+- `backup-and-restore.md` — pg_dump commands, PITR, monthly restore test, critical tables
+- `incident-response.md` — P0/P1/P2/P3 definitions, breach playbook, runbooks, PIR template
+- `release-checklist.md` — pre-deploy gates: types, tests, security, DB, observability, smoke tests

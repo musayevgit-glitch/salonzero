@@ -36,7 +36,8 @@ interface AvailabilitySlot {
 const STATUS_LABEL: Record<string, string> = {
   PENDING: 'Pending',
   CONFIRMED: 'Confirmed',
-  CANCELLED: 'Cancelled',
+  CANCELLED_BY_CUSTOMER: 'Cancelled',
+  CANCELLED_BY_SALON: 'Cancelled by salon',
   REJECTED: 'Rejected',
   CHECKED_IN: 'Checked in',
   COMPLETED: 'Completed',

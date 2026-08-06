@@ -65,15 +65,23 @@ export default function DashboardHomePage() {
         <h1 className="text-xl font-semibold text-text-primary">Welcome, {user.fullName}</h1>
         <p className="text-sm text-text-secondary">{user.email}</p>
         {user.isSuperadmin ? (
-          <p className="mt-4 text-sm">
-            <Link href="/superadmin/salons">Manage salons →</Link>
-          </p>
+          <ul className="mt-4 flex flex-col gap-2 text-sm">
+            <li><Link href="/superadmin/salons">Manage salons →</Link></li>
+            <li><Link href="/superadmin/reports">Platform reports →</Link></li>
+            <li><Link href="/superadmin/audit-logs">Audit log →</Link></li>
+          </ul>
         ) : null}
         {memberships.length > 0 ? (
           <ul className="mt-4 flex flex-col gap-2">
             {memberships.map((m) => (
-              <li key={m.salonId} className="text-sm">
+              <li key={m.salonId} className="text-sm flex flex-col gap-0.5">
                 <Link href={`/salon/${m.salonId}/reservations`}>{m.salonName} — Reservations →</Link>
+                {(m.role === 'SALON_ADMIN' || user.isSuperadmin) && (
+                  <>
+                    <Link href={`/salon/${m.salonId}/reports`} className="text-muted-foreground pl-4 text-xs">Reports →</Link>
+                    <Link href={`/salon/${m.salonId}/audit-logs`} className="text-muted-foreground pl-4 text-xs">Audit log →</Link>
+                  </>
+                )}
               </li>
             ))}
           </ul>

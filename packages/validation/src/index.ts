@@ -13,3 +13,4 @@ export * from './services';
 export * from './public-salons';
 export * from './customer-profile';
 export * from './customer-reservations';
+export * from './reports';

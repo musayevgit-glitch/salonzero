@@ -25,7 +25,8 @@ interface ReservationList {
 const STATUS_LABEL: Record<string, string> = {
   PENDING: 'Pending',
   CONFIRMED: 'Confirmed',
-  CANCELLED: 'Cancelled',
+  CANCELLED_BY_CUSTOMER: 'Cancelled',
+  CANCELLED_BY_SALON: 'Cancelled by salon',
   REJECTED: 'Rejected',
   CHECKED_IN: 'Checked in',
   COMPLETED: 'Completed',
@@ -35,7 +36,8 @@ const STATUS_LABEL: Record<string, string> = {
 const STATUS_COLOR: Record<string, string> = {
   PENDING: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200',
   CONFIRMED: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200',
-  CANCELLED: 'bg-gray-100 text-gray-600 dark:bg-gray-800/50 dark:text-gray-400',
+  CANCELLED_BY_CUSTOMER: 'bg-gray-100 text-gray-600 dark:bg-gray-800/50 dark:text-gray-400',
+  CANCELLED_BY_SALON: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
   REJECTED: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
   CHECKED_IN: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200',
   COMPLETED: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-200',
