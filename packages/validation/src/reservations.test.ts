@@ -80,11 +80,12 @@ describe('createManualReservationSchema', () => {
     ).toBe('customer@example.com');
   });
 
-  it('accepts employeeId and customerNote', () => {
+  it('accepts employeeId, customerNote, and an optional idempotencyKey', () => {
     const full = {
       ...VALID_MANUAL,
       employeeId: '44444444-4444-4444-4444-444444444444',
       customerNote: 'Regular customer',
+      idempotencyKey: '33333333-3333-3333-3333-333333333333',
     };
     expect(createManualReservationSchema.parse(full)).toEqual(full);
   });
@@ -117,6 +118,9 @@ describe('createManualReservationSchema', () => {
     expect(() => createManualReservationSchema.parse({ ...VALID_MANUAL, priceAmount: 1 })).toThrow();
     expect(() =>
       createManualReservationSchema.parse({ ...VALID_MANUAL, status: 'CONFIRMED' }),
+    ).toThrow();
+    expect(() =>
+      createManualReservationSchema.parse({ ...VALID_MANUAL, idempotencyKey: 'not-a-uuid' }),
     ).toThrow();
   });
 });

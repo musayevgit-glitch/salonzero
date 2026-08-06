@@ -142,6 +142,69 @@ describe('POST /salons/:salonId/reservations/manual', () => {
     expect((auditRow?.metadata as { source: string })?.source).toBe('MANUAL');
   });
 
+  it('SEC-016: manual booking replay with the same idempotencyKey creates one reservation', async () => {
+    const { salon, service, employee, agent, csrfToken } = await setup('man-idempotent');
+    const idempotencyKey = randomUUID();
+    const customerEmail = `walkin-${randomUUID()}@example.com`;
+    const body = {
+      customerEmail,
+      customerFullName: 'Walk In Customer',
+      serviceId: service.id,
+      employeeId: employee.id,
+      startAt: SLOT_START,
+      idempotencyKey,
+    };
+
+    const first = await agent
+      .post(`/salons/${salon.id}/reservations/manual`)
+      .set('x-csrf-token', csrfToken)
+      .send(body);
+    expect(first.status).toBe(201);
+
+    const second = await agent
+      .post(`/salons/${salon.id}/reservations/manual`)
+      .set('x-csrf-token', csrfToken)
+      .send(body);
+    expect(second.status).toBe(201);
+    expect(second.body.id).toBe(first.body.id);
+
+    const customer = await prisma.user.findUnique({ where: { email: customerEmail } });
+    const count = await prisma.reservation.count({ where: { customerId: customer!.id } });
+    expect(count).toBe(1);
+  });
+
+  it('SEC-016: manual booking replay with changed payload returns 409', async () => {
+    const { salon, service, employee, agent, csrfToken } = await setup('man-idempotent-mismatch');
+    const idempotencyKey = randomUUID();
+    const customerEmail = `walkin-${randomUUID()}@example.com`;
+
+    const first = await agent
+      .post(`/salons/${salon.id}/reservations/manual`)
+      .set('x-csrf-token', csrfToken)
+      .send({
+        customerEmail,
+        customerFullName: 'Walk In Customer',
+        serviceId: service.id,
+        employeeId: employee.id,
+        startAt: '2026-08-10T10:00:00.000Z',
+        idempotencyKey,
+      });
+    expect(first.status).toBe(201);
+
+    const second = await agent
+      .post(`/salons/${salon.id}/reservations/manual`)
+      .set('x-csrf-token', csrfToken)
+      .send({
+        customerEmail,
+        customerFullName: 'Walk In Customer',
+        serviceId: service.id,
+        employeeId: employee.id,
+        startAt: '2026-08-10T14:00:00.000Z',
+        idempotencyKey,
+      });
+    expect(second.status).toBe(409);
+  });
+
   it('SEC-011: rejects a manual booking inside the previous reservation buffer', async () => {
     const { salon, service, employee, agent, csrfToken } = await setup('man-buffer-seq', {
       bufferMinutes: 15,

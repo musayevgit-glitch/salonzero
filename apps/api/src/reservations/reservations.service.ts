@@ -44,6 +44,12 @@ const RESERVATION_SELECT = {
   createdAt: true,
 } as const;
 
+const RESERVATION_SELECT_WITH_IDEMPOTENCY = {
+  ...RESERVATION_SELECT,
+  idempotencyPayloadHash: true,
+  idempotencyExpiresAt: true,
+} as const;
+
 // Active statuses are the only ones a new booking (or the double-booking exclusion constraint)
 // needs to treat as a conflict — see docs/architecture/reservation-state-machine.md.
 const ACTIVE_RESERVATION_STATUSES = ['PENDING', 'CONFIRMED', 'CHECKED_IN'] as const;
@@ -51,6 +57,25 @@ const ACTIVE_RESERVATION_STATUSES = ['PENDING', 'CONFIRMED', 'CHECKED_IN'] as co
 // A generic, privacy-safe message — never reveals *why* a slot is unavailable (another customer's
 // booking, a break, time off) or any detail about who holds it.
 const SLOT_UNAVAILABLE_MESSAGE = 'This time is no longer available. Please choose another time.';
+const IDEMPOTENCY_TTL_MS = 24 * 60 * 60_000;
+
+function canonicalJson(value: unknown): string {
+  if (value === null || typeof value !== 'object') return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
+  const record = value as Record<string, unknown>;
+  return `{${Object.keys(record)
+    .sort()
+    .map((key) => `${JSON.stringify(key)}:${canonicalJson(record[key])}`)
+    .join(',')}}`;
+}
+
+function hashIdempotencyPayload(payload: Record<string, unknown>): string {
+  return crypto.createHash('sha256').update(canonicalJson(payload)).digest('hex');
+}
+
+function idempotencyExpiry(now: Date): Date {
+  return new Date(now.getTime() + IDEMPOTENCY_TTL_MS);
+}
 
 @Injectable()
 export class ReservationsService {
@@ -60,15 +85,24 @@ export class ReservationsService {
   ) {}
 
   async create(customerId: string, input: CreateReservationInput): Promise<ReservationDetail> {
+    const now = new Date();
+    const idempotencyPayloadHash = hashIdempotencyPayload({
+      salonId: input.salonId,
+      serviceId: input.serviceId,
+      employeeId: input.employeeId ?? null,
+      startAt: input.startAt,
+      customerNote: input.customerNote ?? null,
+    });
+
     // Idempotency: a replayed request (double-click, retried timeout) with the same key returns
     // the original reservation instead of creating a duplicate — never trust the client to only
     // submit once (docs/architecture/reservation-state-machine.md).
     const existing = await this.prisma.reservation.findUnique({
       where: { customerId_idempotencyKey: { customerId, idempotencyKey: input.idempotencyKey } },
-      select: RESERVATION_SELECT,
+      select: RESERVATION_SELECT_WITH_IDEMPOTENCY,
     });
     if (existing) {
-      return existing;
+      return this.resolveIdempotentReplay(existing, idempotencyPayloadHash, now);
     }
 
     const salon = await this.prisma.salon.findFirst({
@@ -103,7 +137,6 @@ export class ReservationsService {
     }
 
     const startAt = new Date(input.startAt);
-    const now = new Date();
 
     const candidateEmployeeIds = await this.resolveCandidateEmployeeIds(
       salon.id,
@@ -178,6 +211,8 @@ export class ReservationsService {
             currency: service.currency,
             customerNote: input.customerNote ?? null,
             idempotencyKey: input.idempotencyKey,
+            idempotencyPayloadHash,
+            idempotencyExpiresAt: idempotencyExpiry(now),
           },
           select: RESERVATION_SELECT,
         });
@@ -212,9 +247,9 @@ export class ReservationsService {
         // matching the idempotency guarantee in docs/architecture/reservation-state-machine.md.
         const original = await this.prisma.reservation.findUnique({
           where: { customerId_idempotencyKey: { customerId, idempotencyKey: input.idempotencyKey } },
-          select: RESERVATION_SELECT,
+          select: RESERVATION_SELECT_WITH_IDEMPOTENCY,
         });
-        if (original) return original;
+        if (original) return this.resolveIdempotentReplay(original, idempotencyPayloadHash, now);
       }
       throw err;
     }
@@ -283,6 +318,29 @@ export class ReservationsService {
 
     const startAt = new Date(input.startAt);
     const now = new Date();
+    const customerId = customer.id;
+    const manualIdempotencyPayloadHash = input.idempotencyKey
+      ? hashIdempotencyPayload({
+          customerEmail: input.customerEmail,
+          customerFullName: input.customerFullName,
+          serviceId: input.serviceId,
+          employeeId: input.employeeId ?? null,
+          startAt: input.startAt,
+          customerNote: input.customerNote ?? null,
+      })
+      : null;
+
+    if (input.idempotencyKey && manualIdempotencyPayloadHash) {
+      const existing = await this.prisma.reservation.findUnique({
+        where: {
+          customerId_idempotencyKey: { customerId, idempotencyKey: input.idempotencyKey },
+        },
+        select: RESERVATION_SELECT_WITH_IDEMPOTENCY,
+      });
+      if (existing) {
+        return this.resolveIdempotentReplay(existing, manualIdempotencyPayloadHash, now);
+      }
+    }
 
     const candidateEmployeeIds = await this.resolveCandidateEmployeeIds(
       salon.id,
@@ -320,7 +378,6 @@ export class ReservationsService {
       endAt.getTime() + service.bufferMinutes * 60_000,
     );
     const status = bookingPolicy.autoConfirm ? 'CONFIRMED' : 'PENDING';
-    const customerId = customer.id;
 
     let reservation: ReservationDetail;
     try {
@@ -353,6 +410,9 @@ export class ReservationsService {
             // SEC-002: snapshot the manager-supplied name so the staff detail never leaks the
             // global User.fullName of a pre-existing account from another salon.
             guestName: input.customerFullName,
+            idempotencyKey: input.idempotencyKey,
+            idempotencyPayloadHash: manualIdempotencyPayloadHash,
+            idempotencyExpiresAt: input.idempotencyKey ? idempotencyExpiry(now) : null,
           },
           select: RESERVATION_SELECT,
         });
@@ -379,6 +439,15 @@ export class ReservationsService {
     } catch (err) {
       if (isExclusionConstraintViolation(err)) {
         throw new ConflictException(SLOT_UNAVAILABLE_MESSAGE);
+      }
+      if (input.idempotencyKey && manualIdempotencyPayloadHash && isIdempotencyKeyConflict(err)) {
+        const original = await this.prisma.reservation.findUnique({
+          where: {
+            customerId_idempotencyKey: { customerId, idempotencyKey: input.idempotencyKey },
+          },
+          select: RESERVATION_SELECT_WITH_IDEMPOTENCY,
+        });
+        if (original) return this.resolveIdempotentReplay(original, manualIdempotencyPayloadHash, now);
       }
       throw err;
     }
@@ -465,11 +534,35 @@ export class ReservationsService {
       blockingReservations,
     };
   }
+
+  private resolveIdempotentReplay(
+    existing: ReservationDetail & {
+      idempotencyPayloadHash: string | null;
+      idempotencyExpiresAt: Date | null;
+    },
+    expectedHash: string,
+    now: Date,
+  ): ReservationDetail {
+    if (
+      existing.idempotencyExpiresAt &&
+      existing.idempotencyExpiresAt.getTime() < now.getTime()
+    ) {
+      throw new ConflictException('This idempotency key has expired.');
+    }
+    if (existing.idempotencyPayloadHash && existing.idempotencyPayloadHash !== expectedHash) {
+      throw new ConflictException('This idempotency key was already used for a different request.');
+    }
+
+    const { idempotencyPayloadHash, idempotencyExpiresAt, ...reservation } = existing;
+    void idempotencyPayloadHash;
+    void idempotencyExpiresAt;
+    return reservation;
+  }
 }
 
 function isExclusionConstraintViolation(err: unknown): boolean {
   const message = err instanceof Error ? err.message : String(err);
-  return message.includes('reservation_no_overlap_per_employee');
+  return message.includes('reservation_no_overlap_per_employee') || message.includes('deadlock detected');
 }
 
 function isIdempotencyKeyConflict(err: unknown): boolean {

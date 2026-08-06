@@ -320,7 +320,9 @@ model Reservation {
   // Nullable: only customer-initiated creation (15.3) sets it; manual staff bookings (15.4) may
   // not need one. Multiple NULLs are not considered duplicates under a Postgres unique index, so
   // this never blocks non-idempotent-key writes.
-  idempotencyKey String?
+  idempotencyKey         String?
+  idempotencyPayloadHash String?
+  idempotencyExpiresAt   DateTime? @db.Timestamptz(3)
   // Manager-supplied name snapshot for manual bookings (SEC-002): prevents cross-tenant
   // account-existence enumeration by ensuring staff always see what they typed, never
   // the global User.fullName of a pre-existing account at another salon.

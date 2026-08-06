@@ -477,6 +477,32 @@ describe('POST /reservations (customer booking creation)', () => {
     expect(count).toBe(1);
   });
 
+  it('SEC-012: same idempotencyKey with a different payload returns 409, not a stale reservation', async () => {
+    const { salon, service, employee, agent, csrfToken } = await setup('res-idempotent-mismatch');
+    const idempotencyKey = randomUUID();
+
+    const first = await agent.post('/reservations').set('x-csrf-token', csrfToken).send({
+      salonId: salon.id,
+      serviceId: service.id,
+      employeeId: employee.id,
+      startAt: '2026-08-10T10:00:00.000Z',
+      idempotencyKey,
+    });
+    expect(first.status).toBe(201);
+
+    const second = await agent.post('/reservations').set('x-csrf-token', csrfToken).send({
+      salonId: salon.id,
+      serviceId: service.id,
+      employeeId: employee.id,
+      startAt: '2026-08-10T14:00:00.000Z',
+      idempotencyKey,
+    });
+    expect(second.status).toBe(409);
+
+    const count = await prisma.reservation.count({ where: { employeeId: employee.id } });
+    expect(count).toBe(1);
+  });
+
   it('is idempotent under a real concurrent replay of the same key — never a raw 500, never two reservations', async () => {
     const { salon, service, employee, agent, csrfToken } = await setup('res-idempotent-race');
     const idempotencyKey = randomUUID();

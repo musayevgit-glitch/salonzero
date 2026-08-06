@@ -36,6 +36,7 @@ export const createManualReservationSchema = z
     employeeId: z.string().uuid().nullable().optional(),
     startAt: z.string().datetime(),
     customerNote: z.string().trim().min(1).max(1000).optional(),
+    idempotencyKey: z.string().uuid().optional(),
   })
   .strict();
 export type CreateManualReservationInput = z.infer<typeof createManualReservationSchema>;

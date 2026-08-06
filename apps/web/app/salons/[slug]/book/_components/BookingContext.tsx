@@ -78,10 +78,6 @@ function writeDraft(slug: string, next: Partial<BookingDraft>) {
   sessionStorage.setItem(draftKey(slug), JSON.stringify(next));
 }
 
-function ensureKey(prev: Partial<BookingDraft>): string {
-  return prev.idempotencyKey ?? crypto.randomUUID();
-}
-
 export function BookingShell({
   salonData,
   children,
@@ -104,7 +100,7 @@ export function BookingShell({
     (serviceId: string) => {
       setDraft((prev) => {
         // Changing service resets stylist and time — they are no longer valid
-        const next: Partial<BookingDraft> = { serviceId, idempotencyKey: ensureKey(prev) };
+        const next: Partial<BookingDraft> = { serviceId, idempotencyKey: crypto.randomUUID() };
         writeDraft(salonData.slug, next);
         return next;
       });
@@ -119,7 +115,7 @@ export function BookingShell({
           ...prev,
           employeeId,
           startAt: undefined, // reset time; employee working hours differ
-          idempotencyKey: ensureKey(prev),
+          idempotencyKey: crypto.randomUUID(),
         };
         writeDraft(salonData.slug, next);
         return next;
@@ -131,7 +127,7 @@ export function BookingShell({
   const setStartAt = useCallback(
     (startAt: string | undefined) => {
       setDraft((prev) => {
-        const next: Partial<BookingDraft> = { ...prev, startAt, idempotencyKey: ensureKey(prev) };
+        const next: Partial<BookingDraft> = { ...prev, startAt, idempotencyKey: crypto.randomUUID() };
         writeDraft(salonData.slug, next);
         return next;
       });
