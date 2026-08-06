@@ -4,3 +4,4 @@ export * from './salons';
 export * from './employees';
 export * from './portfolio';
 export * from './service-categories';
+export * from './services';

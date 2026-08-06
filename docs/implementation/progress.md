@@ -561,6 +561,49 @@ role-gated, audited activate/deactivate actions.
 Risks: none new. Section 11.5 (domain/subdomain management) remains deferred.
 Next: Section 13.2 — Salon Admin: Services (service CRUD)
 
+## Section 13.2 — Salon Admin: services
+
+Status: done. `packages/validation/src/services.ts` — money kept as `Int` minor-units + `currency`
+string per docs/architecture/data-model.md ("never float"); `priceAmount` bounded `0..10,000,000`
+(sanity cap, not a business rule); `currency` validated as a 3-letter uppercase ISO-4217-shaped code;
+`durationMinutes` bounded `5..480`, `bufferMinutes` bounded `0..120` (Prompt 13.2's explicit "validate
+duration and buffer boundaries" requirement). `isActive` excluded from create/update — same
+allowlisted-write-surface pattern as employees/service-categories, with dedicated audited activate/
+deactivate actions instead.
+Backend: `apps/api/src/services/*` at `salons/:salonId/services`, `@Roles('SUPERADMIN','SALON_ADMIN')`
+per method. List supports pagination + search + `isActive`/`categoryId` filters (services can be a much
+larger set than categories, unlike 13.1's flat list). `categoryId` on create/update is verified to
+belong to the same salon before being written (`assertCategoryBelongsToSalon`, 400 if not — a service
+can never reference another salon's category, closing off a cross-tenant linkage vector) — `categoryId:
+null` explicitly clears the assignment. Optimistic concurrency via `expectedUpdatedAt`, matching
+employees/categories. No hard-delete route, consistent with ADR-0006 (soft delete via `isActive`
+everywhere in this codebase).
+Commit: pending (this task)
+Tests: 18 new e2e tests — unauthenticated→401, SALON_MANAGER/no-membership→404, cross-salon list
+returns empty, filter by isActive/categoryId/search, create + audit, create with a valid same-salon
+categoryId, reject a categoryId from a different salon, reject missing/invalid fields (bad duration,
+negative buffer, negative price) and forbidden fields (isActive/salonId mass-assignment), cross-salon
+create denied, edit + audit with `changedFields`, stale `expectedUpdatedAt`→409, reject reassigning to
+a cross-salon categoryId, cross-salon edit→404 with row untouched, activate/deactivate + both audit
+rows, cross-salon lifecycle→404, SALON_MANAGER denied on lifecycle actions. 19 new schema tests in
+`packages/validation` (money-is-integer, currency-shape, duration/buffer boundary tests included).
+`apps/api` total: 124 passing tests (80 in `packages/validation`). Full repo gate (14/14) passed.
+UI: `apps/dashboard/app/salon/[salonId]/services/{page.tsx,new/page.tsx,[serviceId]/page.tsx,
+[serviceId]/edit/page.tsx}` — paginated/filterable list (name search, status filter, category filter
+populated from the Section 13.1 categories endpoint), detail page, create/edit forms. Price is entered
+as a decimal string in the form and converted to integer minor-units (`Math.round(price * 100)`) right
+at the request boundary — the wire format and stored format are always the safe integer representation;
+only the form input is a human-friendly decimal.
+Browser walkthrough: created "Haircut" ($50.00/45min, category "Hair") as a seeded SALON_ADMIN,
+confirmed the detail page and the list's resolved category name/formatted price/duration; edited the
+price to $55.00 via the edit form and confirmed it persisted; deactivated it via the `ConfirmDialog` and
+confirmed the badge flipped to "Inactive".
+Security/tenant checks: every route re-derives salonId from `SalonContext`; update/setActive re-scope
+the actual write by `id`+`salonId`; categoryId cross-tenant linkage is blocked at write time, not just
+at read time; isActive is unreachable from create/update bodies.
+Risks: none new. Section 11.5 (domain/subdomain management) remains deferred.
+Next: Section 13.3 — Salon Admin: Employee-service assignment
+
 ## Blockers / environment notes
 
 - Docker is not installed in this environment; resolved by using the existing Postgres.app (PG 18)
