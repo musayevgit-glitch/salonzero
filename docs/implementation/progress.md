@@ -658,7 +658,7 @@ Backend: `apps/api/src/employees/working-schedule/*` nested at
 `salons/:salonId/employees/:employeeId/working-schedule`, `@Roles('SUPERADMIN','SALON_ADMIN')`,
 list/create/delete only (no update — changing a block is delete-then-recreate, which keeps the
 overlap-validation logic in one place and matches the "add/remove blocks" editor UX). `create()`
-requires the employee to belong to the authorized salon *and* be active (400 otherwise) and rejects any
+requires the employee to belong to the authorized salon _and_ be active (400 otherwise) and rejects any
 new interval that overlaps an existing entry on the same weekday for that employee (half-open interval
 overlap check: `newStart < existingEnd && existingStart < newEnd`, so touching-but-not-overlapping
 intervals like 9:00–12:00 and 12:00–17:00 are allowed). `remove()` re-verifies the entry belongs to both
@@ -689,6 +689,49 @@ remains deferred. (3) Section 14.2 (breaks) and 14.3 (time off/closures) are sep
 started; the approved schema has no salon-wide closure model (only per-employee `TimeOff`), which will
 need to be flagged as an open decision when 14.3 is reached rather than improvised.
 Next: Section 14.2 — Salon Admin: breaks
+
+## Section 14.2 — Salon Admin: breaks
+
+Status: done. `packages/validation/src/breaks.ts` → `createBreakSchema`, same weekday/minute-of-day
+shape and reversed-interval guard as `working-schedule.ts` — the approved `Break` model
+(schema.prisma) supports recurring weekly breaks only, no date-specific break table, so that's the
+full scope here (not improvised beyond what the schema supports).
+Backend: `apps/api/src/employees/breaks/*` nested at
+`salons/:salonId/employees/:employeeId/breaks`, `@Roles('SUPERADMIN','SALON_ADMIN')`, list/create/
+delete (no update, same delete-then-recreate rationale as 14.1). `create()` enforces the prompt's "fit
+the selected schedule rules": the break's interval must fall entirely within at least one existing
+`WorkingSchedule` block for that employee on that weekday (`start >= ws.start && end <= ws.end`) — a
+break can never exist outside hours the employee doesn't work at all, and is rejected outright if no
+working-schedule block exists for that day yet. Also rejects breaks that overlap each other on the same
+weekday (same half-open-interval check as 14.1's schedule-overlap logic), and requires the employee to
+be active. `remove()` re-verifies the break belongs to both the employee and the salon.
+Commit: pending (this task)
+Tests: 16 new e2e tests — unauthenticated→401, SALON_MANAGER/no-membership→404, cross-salon
+employeeId→404 on list, create + audit, reject a break with no working-schedule block that day, reject
+a break extending past the working-schedule block, reject reversed interval, reject overlapping break
+same weekday, allow adjacent (touching) breaks, reject creating a break for an inactive employee,
+cross-salon create denied, delete + audit, cross-employee delete→404 with row untouched, cross-salon
+employeeId on delete→404. 6 new schema tests in `packages/validation`. `apps/api` total: 173 passing
+tests (97 in `packages/validation`). Full repo gate (14/14) passed.
+UI: `apps/dashboard/.../employees/[employeeId]/breaks.tsx` — a single compact form (day `Select` +
+start/end `<input type="time">` + Add button) plus a flat list of existing breaks across all days,
+each labeled with its weekday and removable via an `IconButton`. Kept to one form rather than 14.1's
+per-day layout since breaks are typically few — this is the "clear mobile editing UX" the prompt asks
+for without duplicating the heavier 7-section editor.
+Browser walkthrough: seeded a Monday 9:00–17:00 working-schedule block via the API (reusing the same
+authenticated session the browser held), added a Monday 12:00–13:00 break through the live form,
+confirmed it rendered as "Monday, 12:00–13:00" in the list (verified via page-text/DOM extraction — this
+session's browser tool has an unrelated screenshot-rendering glitch, worked around the same way as in
+14.1), then removed it and confirmed the list returned to "No breaks set." Also directly observed one
+real click not registering on the submit button (no POST logged in the network trace) before a retry
+succeeded — consistent with the click-flakiness already noted earlier in this session, not an app bug.
+Security/tenant checks: create/delete both re-derive the authorized salonId and re-check employee
+ownership; the schedule-fit and active-employee rules are enforced server-side, not just in the
+schema (confirmed by real 400s in the e2e suite for both).
+Risks: none new. Section 11.5 (domain/subdomain management) remains deferred. Section 14.3 (time off
+and closures) still needs the salon-wide-closure schema gap flagged as an open decision before
+implementation, not improvised.
+Next: Section 14.3 — Salon Admin: time off and closures
 
 ## Blockers / environment notes
 

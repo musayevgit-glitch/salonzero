@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { BreaksController } from './breaks/breaks.controller';
+import { BreaksService } from './breaks/breaks.service';
 import { EmployeesController } from './employees.controller';
 import { EmployeesService } from './employees.service';
 import { EmployeeServicesController } from './services/employee-services.controller';
@@ -14,7 +16,14 @@ import { WorkingScheduleService } from './working-schedule/working-schedule.serv
     PortfolioController,
     EmployeeServicesController,
     WorkingScheduleController,
+    BreaksController,
   ],
-  providers: [EmployeesService, PortfolioService, EmployeeServicesService, WorkingScheduleService],
+  providers: [
+    EmployeesService,
+    PortfolioService,
+    EmployeeServicesService,
+    WorkingScheduleService,
+    BreaksService,
+  ],
 })
 export class EmployeesModule {}

@@ -18,6 +18,7 @@ import { apiFetch, ApiError } from '../../../../../lib/api-client';
 import { PortfolioGallery } from './portfolio-gallery';
 import { ServiceAssignment } from './service-assignment';
 import { WorkingScheduleEditor } from './working-schedule';
+import { BreaksEditor } from './breaks';
 
 interface EmployeeDetail {
   id: string;
@@ -156,6 +157,13 @@ export default function EmployeeDetailPage() {
         <h2 className="text-lg font-semibold text-text-primary">Weekly working schedule</h2>
         <div className="mt-4">
           <WorkingScheduleEditor salonId={salonId} employeeId={employee.id} />
+        </div>
+      </Card>
+
+      <Card className="max-w-2xl">
+        <h2 className="text-lg font-semibold text-text-primary">Breaks</h2>
+        <div className="mt-4">
+          <BreaksEditor salonId={salonId} employeeId={employee.id} />
         </div>
       </Card>
 
