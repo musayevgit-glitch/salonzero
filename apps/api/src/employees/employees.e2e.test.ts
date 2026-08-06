@@ -33,25 +33,25 @@ async function registerUser(email: string) {
     .post('/auth/register')
     .set('x-csrf-token', csrfToken)
     .send({ email, password: 'longenoughpassword', fullName: 'Employees Test' });
-  return { agent, userId: res.body.id as string };
+  return { agent, userId: res.body.id as string, csrfToken };
 }
 
 async function registerAsSalonAdmin(email: string, salonId: string) {
-  const { agent, userId } = await registerUser(email);
+  const { agent, userId, csrfToken } = await registerUser(email);
   await prisma.salonMembership.create({ data: { userId, salonId, role: 'SALON_ADMIN' } });
-  return { agent, userId };
+  return { agent, userId, csrfToken };
 }
 
 async function registerAsSalonManager(email: string, salonId: string) {
-  const { agent, userId } = await registerUser(email);
+  const { agent, userId, csrfToken } = await registerUser(email);
   await prisma.salonMembership.create({ data: { userId, salonId, role: 'SALON_MANAGER' } });
-  return { agent, userId };
+  return { agent, userId, csrfToken };
 }
 
 async function registerAsSuperadmin(email: string) {
-  const { agent, userId } = await registerUser(email);
+  const { agent, userId, csrfToken } = await registerUser(email);
   await prisma.user.update({ where: { id: userId }, data: { isSuperadmin: true } });
-  return { agent, userId };
+  return { agent, userId, csrfToken };
 }
 
 beforeAll(async () => {
@@ -201,6 +201,7 @@ describe('GET /salons/:salonId/employees/:employeeId (detail)', () => {
       photoUrl: null,
       isActive: true,
       createdAt: employee.createdAt.toISOString(),
+      updatedAt: employee.updatedAt.toISOString(),
     });
   });
 
@@ -240,5 +241,280 @@ describe('GET /salons/:salonId/employees/:employeeId (detail)', () => {
 
     const nonexistentRes = await agent.get(`/salons/${salon.id}/employees/${randomUUID()}`);
     expect(nonexistentRes.status).toBe(404);
+  });
+});
+
+describe('POST /salons/:salonId/employees (create)', () => {
+  it('rejects SALON_MANAGER and a user with no membership', async () => {
+    const salon = await prisma.salon.create({
+      data: {
+        slug: `emp-create-denied-${randomUUID()}`,
+        name: 'Emp Create Denied',
+        timezone: 'UTC',
+      },
+    });
+    const { agent, csrfToken } = await registerAsSalonManager(
+      `emp-create-manager-${randomUUID()}@example.com`,
+      salon.id,
+    );
+    const res = await agent
+      .post(`/salons/${salon.id}/employees`)
+      .set('x-csrf-token', csrfToken)
+      .send({ fullName: 'Hacked Stylist' });
+    expect(res.status).toBe(404);
+  });
+
+  it('creates an employee scoped to the authorized salon, and audits it', async () => {
+    const salon = await prisma.salon.create({
+      data: { slug: `emp-create-ok-${randomUUID()}`, name: 'Emp Create OK', timezone: 'UTC' },
+    });
+    const { agent, csrfToken, userId } = await registerAsSalonAdmin(
+      `emp-create-admin-${randomUUID()}@example.com`,
+      salon.id,
+    );
+
+    const res = await agent
+      .post(`/salons/${salon.id}/employees`)
+      .set('x-csrf-token', csrfToken)
+      .send({ fullName: 'New Stylist', bio: 'Fresh talent' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.fullName).toBe('New Stylist');
+    expect(res.body.isActive).toBe(true);
+
+    const stored = await prisma.employeeProfile.findUnique({ where: { id: res.body.id } });
+    expect(stored?.salonId).toBe(salon.id);
+
+    const auditRow = await prisma.auditLog.findFirst({
+      where: { actorUserId: userId, action: 'employee.created', targetId: res.body.id },
+    });
+    expect(auditRow).not.toBeNull();
+  });
+
+  it('rejects a missing fullName and forbidden/protected fields (mass assignment)', async () => {
+    const salon = await prisma.salon.create({
+      data: {
+        slug: `emp-create-invalid-${randomUUID()}`,
+        name: 'Emp Create Invalid',
+        timezone: 'UTC',
+      },
+    });
+    const { agent, csrfToken } = await registerAsSalonAdmin(
+      `emp-create-invalid-admin-${randomUUID()}@example.com`,
+      salon.id,
+    );
+
+    const missingRes = await agent
+      .post(`/salons/${salon.id}/employees`)
+      .set('x-csrf-token', csrfToken)
+      .send({});
+    expect(missingRes.status).toBe(400);
+
+    const forbiddenRes = await agent
+      .post(`/salons/${salon.id}/employees`)
+      .set('x-csrf-token', csrfToken)
+      .send({ fullName: 'X', isActive: false });
+    expect(forbiddenRes.status).toBe(400);
+  });
+
+  it('cannot be used to create an employee in a salon the caller does not administer', async () => {
+    const suffix = randomUUID();
+    const ownSalon = await prisma.salon.create({
+      data: { slug: `emp-create-own-${suffix}`, name: 'Create Own Salon', timezone: 'UTC' },
+    });
+    const otherSalon = await prisma.salon.create({
+      data: { slug: `emp-create-other-${suffix}`, name: 'Create Other Salon', timezone: 'UTC' },
+    });
+    const { agent, csrfToken } = await registerAsSalonAdmin(
+      `emp-create-cross-${suffix}@example.com`,
+      ownSalon.id,
+    );
+
+    const res = await agent
+      .post(`/salons/${otherSalon.id}/employees`)
+      .set('x-csrf-token', csrfToken)
+      .send({ fullName: 'Cross Salon Stylist' });
+    expect(res.status).toBe(404);
+  });
+});
+
+describe('PATCH /salons/:salonId/employees/:employeeId (edit)', () => {
+  it('rejects SALON_MANAGER', async () => {
+    const salon = await prisma.salon.create({
+      data: { slug: `emp-edit-denied-${randomUUID()}`, name: 'Emp Edit Denied', timezone: 'UTC' },
+    });
+    const employee = await prisma.employeeProfile.create({
+      data: { salonId: salon.id, fullName: 'Original Name' },
+    });
+    const { agent, csrfToken } = await registerAsSalonManager(
+      `emp-edit-manager-${randomUUID()}@example.com`,
+      salon.id,
+    );
+
+    const res = await agent
+      .patch(`/salons/${salon.id}/employees/${employee.id}`)
+      .set('x-csrf-token', csrfToken)
+      .send({ fullName: 'Hacked Name' });
+    expect(res.status).toBe(404);
+  });
+
+  it('updates only the provided allowlisted fields, and audits which changed', async () => {
+    const salon = await prisma.salon.create({
+      data: { slug: `emp-edit-ok-${randomUUID()}`, name: 'Emp Edit OK', timezone: 'UTC' },
+    });
+    const employee = await prisma.employeeProfile.create({
+      data: { salonId: salon.id, fullName: 'Old Name', bio: 'Old bio' },
+    });
+    const { agent, csrfToken, userId } = await registerAsSalonAdmin(
+      `emp-edit-admin-${randomUUID()}@example.com`,
+      salon.id,
+    );
+
+    const res = await agent
+      .patch(`/salons/${salon.id}/employees/${employee.id}`)
+      .set('x-csrf-token', csrfToken)
+      .send({ fullName: 'New Name' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.fullName).toBe('New Name');
+    expect(res.body.bio).toBe('Old bio');
+
+    const auditRow = await prisma.auditLog.findFirst({
+      where: { actorUserId: userId, action: 'employee.updated', targetId: employee.id },
+    });
+    expect((auditRow?.metadata as { changedFields?: string[] } | null)?.changedFields).toEqual([
+      'fullName',
+    ]);
+  });
+
+  it('rejects a stale update (optimistic concurrency)', async () => {
+    const salon = await prisma.salon.create({
+      data: { slug: `emp-edit-stale-${randomUUID()}`, name: 'Emp Edit Stale', timezone: 'UTC' },
+    });
+    const employee = await prisma.employeeProfile.create({
+      data: { salonId: salon.id, fullName: 'Stale Stylist' },
+    });
+    const { agent, csrfToken } = await registerAsSalonAdmin(
+      `emp-edit-stale-admin-${randomUUID()}@example.com`,
+      salon.id,
+    );
+
+    const staleTimestamp = new Date(employee.updatedAt.getTime() - 1000).toISOString();
+    const res = await agent
+      .patch(`/salons/${salon.id}/employees/${employee.id}`)
+      .set('x-csrf-token', csrfToken)
+      .send({ fullName: 'Conflicting Name', expectedUpdatedAt: staleTimestamp });
+    expect(res.status).toBe(409);
+  });
+
+  it('returns 404 for an employee ID belonging to a different salon (cross-salon assignment guard)', async () => {
+    const suffix = randomUUID();
+    const salonA = await prisma.salon.create({
+      data: { slug: `emp-edit-cross-a-${suffix}`, name: 'Edit Cross A', timezone: 'UTC' },
+    });
+    const salonB = await prisma.salon.create({
+      data: { slug: `emp-edit-cross-b-${suffix}`, name: 'Edit Cross B', timezone: 'UTC' },
+    });
+    const employeeInB = await prisma.employeeProfile.create({
+      data: { salonId: salonB.id, fullName: 'Cross Target Stylist' },
+    });
+    const { agent, csrfToken } = await registerAsSalonAdmin(
+      `emp-edit-cross-admin-${suffix}@example.com`,
+      salonA.id,
+    );
+
+    const res = await agent
+      .patch(`/salons/${salonA.id}/employees/${employeeInB.id}`)
+      .set('x-csrf-token', csrfToken)
+      .send({ fullName: 'Reassigned Name' });
+    expect(res.status).toBe(404);
+
+    const untouched = await prisma.employeeProfile.findUnique({ where: { id: employeeInB.id } });
+    expect(untouched?.fullName).toBe('Cross Target Stylist');
+  });
+});
+
+describe('POST /salons/:salonId/employees/:employeeId/activate and /deactivate', () => {
+  it('rejects SALON_MANAGER for both actions', async () => {
+    const salon = await prisma.salon.create({
+      data: {
+        slug: `emp-lifecycle-denied-${randomUUID()}`,
+        name: 'Emp Lifecycle Denied',
+        timezone: 'UTC',
+      },
+    });
+    const employee = await prisma.employeeProfile.create({
+      data: { salonId: salon.id, fullName: 'Lifecycle Denied' },
+    });
+    const { agent, csrfToken } = await registerAsSalonManager(
+      `emp-lifecycle-manager-${randomUUID()}@example.com`,
+      salon.id,
+    );
+
+    const deactivateRes = await agent
+      .post(`/salons/${salon.id}/employees/${employee.id}/deactivate`)
+      .set('x-csrf-token', csrfToken)
+      .send();
+    expect(deactivateRes.status).toBe(404);
+  });
+
+  it('deactivates then reactivates an employee, auditing both', async () => {
+    const salon = await prisma.salon.create({
+      data: { slug: `emp-lifecycle-ok-${randomUUID()}`, name: 'Emp Lifecycle OK', timezone: 'UTC' },
+    });
+    const employee = await prisma.employeeProfile.create({
+      data: { salonId: salon.id, fullName: 'Lifecycle OK' },
+    });
+    const { agent, csrfToken, userId } = await registerAsSalonAdmin(
+      `emp-lifecycle-admin-${randomUUID()}@example.com`,
+      salon.id,
+    );
+
+    const deactivateRes = await agent
+      .post(`/salons/${salon.id}/employees/${employee.id}/deactivate`)
+      .set('x-csrf-token', csrfToken)
+      .send();
+    expect(deactivateRes.status).toBe(200);
+    expect(deactivateRes.body.isActive).toBe(false);
+
+    const deactivateAudit = await prisma.auditLog.findFirst({
+      where: { actorUserId: userId, action: 'employee.deactivated', targetId: employee.id },
+    });
+    expect(deactivateAudit).not.toBeNull();
+
+    const activateRes = await agent
+      .post(`/salons/${salon.id}/employees/${employee.id}/activate`)
+      .set('x-csrf-token', csrfToken)
+      .send();
+    expect(activateRes.status).toBe(200);
+    expect(activateRes.body.isActive).toBe(true);
+
+    const activateAudit = await prisma.auditLog.findFirst({
+      where: { actorUserId: userId, action: 'employee.activated', targetId: employee.id },
+    });
+    expect(activateAudit).not.toBeNull();
+  });
+
+  it('returns 404 for an employee ID belonging to a different salon', async () => {
+    const suffix = randomUUID();
+    const salonA = await prisma.salon.create({
+      data: { slug: `emp-lifecycle-cross-a-${suffix}`, name: 'Lifecycle Cross A', timezone: 'UTC' },
+    });
+    const salonB = await prisma.salon.create({
+      data: { slug: `emp-lifecycle-cross-b-${suffix}`, name: 'Lifecycle Cross B', timezone: 'UTC' },
+    });
+    const employeeInB = await prisma.employeeProfile.create({
+      data: { salonId: salonB.id, fullName: 'Lifecycle Cross Target' },
+    });
+    const { agent, csrfToken } = await registerAsSalonAdmin(
+      `emp-lifecycle-cross-admin-${suffix}@example.com`,
+      salonA.id,
+    );
+
+    const res = await agent
+      .post(`/salons/${salonA.id}/employees/${employeeInB.id}/deactivate`)
+      .set('x-csrf-token', csrfToken)
+      .send();
+    expect(res.status).toBe(404);
   });
 });

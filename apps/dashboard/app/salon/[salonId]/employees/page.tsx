@@ -110,7 +110,10 @@ export default function SalonEmployeesPage() {
 
   return (
     <main className="flex flex-col gap-6 p-8">
-      <h1 className="text-xl font-semibold text-text-primary">Employees</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-semibold text-text-primary">Employees</h1>
+        <Link href={`/salon/${salonId}/employees/new`}>+ New employee</Link>
+      </div>
 
       <div className="flex flex-col gap-3 sm:flex-row">
         <Input

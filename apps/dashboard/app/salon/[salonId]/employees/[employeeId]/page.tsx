@@ -3,10 +3,14 @@
 import {
   Badge,
   Breadcrumbs,
+  Button,
   Card,
+  ConfirmDialog,
   ErrorState,
+  Link,
   PermissionDeniedState,
   Skeleton,
+  useToast,
 } from '@salonomia/ui';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -30,9 +34,12 @@ type LoadState =
 export default function EmployeeDetailPage() {
   const router = useRouter();
   const { salonId, employeeId } = useParams<{ salonId: string; employeeId: string }>();
+  const { showToast } = useToast();
   const [state, setState] = useState<LoadState>({ kind: 'loading' });
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [lifecycleBusy, setLifecycleBusy] = useState(false);
 
-  useEffect(() => {
+  function load() {
     apiFetch<EmployeeDetail>(`/salons/${salonId}/employees/${employeeId}`)
       .then((employee) => setState({ kind: 'ready', employee }))
       .catch((err: unknown) => {
@@ -51,7 +58,28 @@ export default function EmployeeDetailPage() {
           message: err instanceof ApiError ? err.message : 'Something went wrong.',
         });
       });
-  }, [salonId, employeeId, router]);
+  }
+
+  useEffect(load, [salonId, employeeId, router]);
+
+  async function handleLifecycleConfirm() {
+    if (state.kind !== 'ready') return;
+    setLifecycleBusy(true);
+    const action = state.employee.isActive ? 'deactivate' : 'activate';
+    try {
+      await apiFetch(`/salons/${salonId}/employees/${employeeId}/${action}`, {
+        method: 'POST',
+        body: JSON.stringify({}),
+      });
+      showToast(action === 'deactivate' ? 'Employee deactivated' : 'Employee activated');
+      setConfirmOpen(false);
+      load();
+    } catch (err) {
+      showToast(err instanceof ApiError ? err.message : 'Something went wrong.', 'danger');
+    } finally {
+      setLifecycleBusy(false);
+    }
+  }
 
   if (state.kind === 'loading') {
     return (
@@ -95,7 +123,32 @@ export default function EmployeeDetailPage() {
           </Badge>
         </div>
         {employee.bio ? <p className="mt-4 text-sm text-text-secondary">{employee.bio}</p> : null}
+
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link href={`/salon/${salonId}/employees/${employee.id}/edit`}>Edit</Link>
+          <Button
+            variant={employee.isActive ? 'destructive' : 'secondary'}
+            onClick={() => setConfirmOpen(true)}
+          >
+            {employee.isActive ? 'Deactivate' : 'Activate'}
+          </Button>
+        </div>
       </Card>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title={employee.isActive ? 'Deactivate this employee?' : 'Activate this employee?'}
+        description={
+          employee.isActive
+            ? 'They will no longer be bookable for services. This does not affect existing reservations.'
+            : 'They will become bookable again.'
+        }
+        confirmLabel={employee.isActive ? 'Deactivate' : 'Activate'}
+        destructive={employee.isActive}
+        confirming={lifecycleBusy}
+        onConfirm={handleLifecycleConfirm}
+      />
     </main>
   );
 }

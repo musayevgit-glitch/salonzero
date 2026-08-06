@@ -414,6 +414,45 @@ subdomain management) remains unimplemented — deferred, not forgotten; still n
 subdomain-based salon resolution work in later phases.
 Next: Section 12.2 — Salon Admin: employee create/edit/status
 
+## Section 12.2 — Salon Admin: employee create/edit/status
+
+Status: done. `packages/validation/src/employees.ts` → `createEmployeeSchema` (fullName required,
+bio optional, `.strict()` — salonId/id/isActive/photoUrl all rejected; photoUrl deliberately reserved
+for 12.3's signed-upload flow) and `updateEmployeeSchema` (all fields optional, explicit-null clears
+bio, `expectedUpdatedAt` for optimistic concurrency, `.strict()` + refine to reject an empty body).
+Backend: `EmployeesService.create/update/setActive` — `update()` compares `expectedUpdatedAt` against
+the current row's `updatedAt` and throws 409 on mismatch before writing; both `update()` and
+`setActive()` re-scope the actual `.update()` where-clause by `id` + `salonId` even though ownership
+was already proven by the preceding `findFirst`, so a future refactor bug can't turn this into a
+cross-salon write. Every write builds its Prisma `data` object field-by-field from a fixed allowlist
+(never a spread of the raw body) and audits via `AuditService` (`employee.created`, `employee.updated`
+with `changedFields` metadata, `employee.activated`/`employee.deactivated`). Controller adds
+`POST /`, `PATCH /:employeeId`, `POST /:employeeId/activate`, `POST /:employeeId/deactivate`, all
+`@Roles('SUPERADMIN','SALON_ADMIN')`, all reading `salonId`/`userId` from `@CurrentSalonContext()`/
+`@CurrentUser()`. UI: new-employee form, edit form (sends `expectedUpdatedAt`, surfaces 409 as a
+friendly "changed by someone else" message), and detail page gains Edit link + Activate/Deactivate
+button behind `ConfirmDialog` (destructive styling when deactivating).
+Commit: pending (this task)
+Tests: 11 new integration tests (SALON_MANAGER denied on create/update/activate/deactivate; successful
+create + audit; missing/forbidden fields on create→400; cross-salon create denied; successful update
+preserves untouched fields + audit changedFields; stale `expectedUpdatedAt`→409; cross-salon employee
+PATCH→404 with row left untouched; deactivate-then-activate with both audit rows verified; cross-salon
+activate/deactivate→404). Also fixed a stale exact-shape assertion in a 12.1 test that didn't account
+for `updatedAt` now being in the detail select. `apps/api` total: 71 passing tests. 12 new schema tests
+in `packages/validation` (37 total in that package). Full repo gate (12/12) passed.
+Browser walkthrough: created a real employee ("Nigar Aliyeva") via the live form as a seeded
+SALON_ADMIN, confirmed redirect to its detail page with correct name/bio/Active badge; edited the name
+via the live edit form, confirmed the toast and the updated name on the detail page; opened the
+Deactivate `ConfirmDialog`, confirmed its destructive copy, confirmed, and verified the badge flipped
+to "Inactive" with the button relabeling to "Activate".
+Security/tenant checks: concurrency check and both write paths re-verify `salonId` at the actual
+`.update()` call, not just at the ownership pre-check; `.strict()` schemas block `isActive`/`salonId`/
+`id`/`photoUrl` from ever reaching the service via create/update bodies — activation state can only
+change through the dedicated activate/deactivate routes, which are separately role-gated and audited.
+Risks: none new. Section 11.5 (domain/subdomain management) remains deferred. Section 12.3 (employee
+portfolio/photo uploads) will need a signed-upload storage decision (ADR) before implementation.
+Next: Section 12.3 — Salon Admin: employee portfolio/photo uploads (pending storage ADR)
+
 ## Blockers / environment notes
 
 - Docker is not installed in this environment; resolved by using the existing Postgres.app (PG 18)
