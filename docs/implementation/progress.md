@@ -749,7 +749,7 @@ below).
 Backend: `apps/api/src/employees/time-off/*` nested at
 `salons/:salonId/employees/:employeeId/time-off`, `@Roles('SUPERADMIN','SALON_ADMIN')`, list/create/
 delete. `create()` implements Prompt 14.3's core safety requirement literally: it never touches a
-reservation. It first rejects overlap with the employee's *other* time-off periods (409), then checks
+reservation. It first rejects overlap with the employee's _other_ time-off periods (409), then checks
 for overlapping reservations still in an active status (PENDING/CONFIRMED/CHECKED_IN — terminal
 statuses like CANCELLED_*/COMPLETED/NO_SHOW can never conflict). If any exist and the caller hasn't set
 `acknowledgeConflicts`, the endpoint returns 409 with the conflicting reservations in the body **and
@@ -764,7 +764,7 @@ employeeId→404 on list, create with no conflicts + audit, reject endAt≤start
 over-length reason, reject overlapping time-off for the same employee, **surface conflicting
 reservations without creating the time-off row, verify the reservation is left untouched, then
 successfully create via the explicit `acknowledgeConflicts` override and verify the reservation is
-*still* untouched afterward**, terminal-status reservations (cancelled) never count as conflicts,
+_still_ untouched afterward**, terminal-status reservations (cancelled) never count as conflicts,
 cross-salon create denied, delete + audit, cross-employee delete→404 with row untouched, cross-salon
 employeeId on delete→404. 7 new schema tests in `packages/validation`. `apps/api` total: 188 passing
 tests (104 in `packages/validation`). Full repo gate (14/14) passed.
@@ -800,6 +800,33 @@ revisiting if salons and their admins end up in different timezones in practice.
 for everything the current schema supports.
 Next: Section 15 — Reservation Engine (backend-first; flagged in the playbook as the most critical
 area, to be worked in separate focused sessions)
+
+## Section 15.1 — Reservation state machine (documentation only)
+
+Status: done. No endpoints implemented, per the prompt's explicit "do not implement endpoints"
+constraint. Read the approved reservation specification
+(`docs/Salonomia_Optimal_Customer_Reservation_Flow.md`), ADR-0005 (concurrency), the relevant schema
+(`ReservationStatus` enum, `Reservation`, `ReservationStatusHistory`, `BookingPolicy` in
+`schema.prisma`), and authorization policy (`docs/product/role-permission-matrix.md`,
+`docs/security/authorization.md`). Wrote `docs/architecture/reservation-state-machine.md`: the full
+transition table (from/to/actor/preconditions/side-effects/audit-event/notification-event), actor
+permissions summary, an explicit illegal-transitions list, idempotency behavior (confirm/reject on an
+already-transitioned reservation is a no-op success, not an error; double-submit creation is prevented
+via an idempotency key — mechanism deferred to 15.3), and a restatement (not a change) of ADR-0005's
+concurrency guarantee, clarifying which transitions need the full transactional re-check (creation,
+reschedule — anything touching time/employee) versus a plain conditional `UPDATE` (confirm, reject,
+cancel, check-in, complete, no-show).
+Commit: pending (this task)
+Tests: n/a (documentation only, as instructed). This document is the executable-as-tests spec that
+15.3–15.5's implementation and 15.6's security review will be checked against.
+Security/tenant checks: n/a at this stage — the point of this document is to make later reviews
+mechanical: every transition row already states its precondition (including the salon/customer
+ownership check) and which errors are illegal vs. idempotent, so 15.6 can audit against a written
+contract instead of inferring intended behavior from code.
+Risks: none new — this is a planning artifact. The real risk surface opens up starting 15.2
+(availability engine) and 15.3 (booking transaction), which is why the playbook calls for separate
+sessions per sub-prompt in this section.
+Next: Section 15.2 — Availability engine (pure domain service, no UI, no reservation-creation endpoint)
 
 ## Blockers / environment notes
 
