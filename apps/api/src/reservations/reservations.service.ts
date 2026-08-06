@@ -141,6 +141,9 @@ export class ReservationsService {
     }
 
     const endAt = new Date(startAt.getTime() + service.durationMinutes * 60_000);
+    const blockedUntil = new Date(
+      endAt.getTime() + service.bufferMinutes * 60_000,
+    );
     const status = bookingPolicy.autoConfirm ? 'CONFIRMED' : 'PENDING';
 
     let reservation: ReservationDetail;
@@ -153,8 +156,8 @@ export class ReservationsService {
           where: {
             employeeId: chosenEmployeeId!,
             status: { in: [...ACTIVE_RESERVATION_STATUSES] },
-            startAt: { lt: endAt },
-            endAt: { gt: startAt },
+            startAt: { lt: blockedUntil },
+            blockedUntil: { gt: startAt },
           },
         });
         if (conflicting > 0) {
@@ -170,6 +173,7 @@ export class ReservationsService {
             status,
             startAt,
             endAt,
+            blockedUntil,
             priceAmount: service.priceAmount,
             currency: service.currency,
             customerNote: input.customerNote ?? null,
@@ -312,6 +316,9 @@ export class ReservationsService {
     }
 
     const endAt = new Date(startAt.getTime() + service.durationMinutes * 60_000);
+    const blockedUntil = new Date(
+      endAt.getTime() + service.bufferMinutes * 60_000,
+    );
     const status = bookingPolicy.autoConfirm ? 'CONFIRMED' : 'PENDING';
     const customerId = customer.id;
 
@@ -322,8 +329,8 @@ export class ReservationsService {
           where: {
             employeeId: chosenEmployeeId!,
             status: { in: [...ACTIVE_RESERVATION_STATUSES] },
-            startAt: { lt: endAt },
-            endAt: { gt: startAt },
+            startAt: { lt: blockedUntil },
+            blockedUntil: { gt: startAt },
           },
         });
         if (conflicting > 0) {
@@ -339,6 +346,7 @@ export class ReservationsService {
             status,
             startAt,
             endAt,
+            blockedUntil,
             priceAmount: service.priceAmount,
             currency: service.currency,
             customerNote: input.customerNote ?? null,
@@ -441,9 +449,9 @@ export class ReservationsService {
           employeeId,
           status: { in: [...ACTIVE_RESERVATION_STATUSES] },
           startAt: { lt: windowEnd },
-          endAt: { gt: windowStart },
+          blockedUntil: { gt: windowStart },
         },
-        select: { startAt: true, endAt: true },
+        select: { startAt: true, endAt: true, blockedUntil: true },
       }),
     ]);
 

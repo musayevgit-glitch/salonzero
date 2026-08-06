@@ -315,6 +315,9 @@ export class TransitionsService {
     }
 
     const newEndAt = new Date(newStartAt.getTime() + service.durationMinutes * 60_000);
+    const newBlockedUntil = new Date(
+      newEndAt.getTime() + service.bufferMinutes * 60_000,
+    );
 
     let updated: ReservationDetail;
     try {
@@ -326,8 +329,8 @@ export class TransitionsService {
             id: { not: current.id },
             employeeId: targetEmployeeId,
             status: { in: [...ACTIVE_RESERVATION_STATUSES] },
-            startAt: { lt: newEndAt },
-            endAt: { gt: newStartAt },
+            startAt: { lt: newBlockedUntil },
+            blockedUntil: { gt: newStartAt },
           },
         });
         if (conflicting > 0) {
@@ -336,7 +339,12 @@ export class TransitionsService {
 
         const result = await tx.reservation.update({
           where: { id: current.id, status: current.status, salonId: current.salonId },
-          data: { employeeId: targetEmployeeId, startAt: newStartAt, endAt: newEndAt },
+          data: {
+            employeeId: targetEmployeeId,
+            startAt: newStartAt,
+            endAt: newEndAt,
+            blockedUntil: newBlockedUntil,
+          },
           select: RESERVATION_SELECT,
         });
         await tx.reservationStatusHistory.create({
@@ -404,9 +412,9 @@ export class TransitionsService {
           id: { not: excludeReservationId },
           status: { in: [...ACTIVE_RESERVATION_STATUSES] },
           startAt: { lt: windowEnd },
-          endAt: { gt: windowStart },
+          blockedUntil: { gt: windowStart },
         },
-        select: { startAt: true, endAt: true },
+        select: { startAt: true, endAt: true, blockedUntil: true },
       }),
     ]);
 

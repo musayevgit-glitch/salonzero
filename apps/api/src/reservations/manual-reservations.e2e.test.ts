@@ -50,12 +50,19 @@ async function registerAsSalonManager(email: string, salonId: string) {
 
 const SLOT_START = '2026-08-10T10:00:00.000Z'; // a Monday
 
-async function setup(prefix: string) {
+async function setup(prefix: string, options: { bufferMinutes?: number } = {}) {
   const salon = await prisma.salon.create({
     data: { slug: `${prefix}-${randomUUID()}`, name: prefix, timezone: 'UTC', bookingPolicy: { create: {} } },
   });
   const service = await prisma.service.create({
-    data: { salonId: salon.id, name: 'Haircut', priceAmount: 5000, currency: 'USD', durationMinutes: 60 },
+    data: {
+      salonId: salon.id,
+      name: 'Haircut',
+      priceAmount: 5000,
+      currency: 'USD',
+      durationMinutes: 60,
+      bufferMinutes: options.bufferMinutes ?? 0,
+    },
   });
   const employee = await prisma.employeeProfile.create({
     data: { salonId: salon.id, fullName: 'Stylist', isActive: true },
@@ -133,6 +140,68 @@ describe('POST /salons/:salonId/reservations/manual', () => {
       where: { actorUserId: managerId, action: 'reservation.created', targetId: res.body.id },
     });
     expect((auditRow?.metadata as { source: string })?.source).toBe('MANUAL');
+  });
+
+  it('SEC-011: rejects a manual booking inside the previous reservation buffer', async () => {
+    const { salon, service, employee, agent, csrfToken } = await setup('man-buffer-seq', {
+      bufferMinutes: 15,
+    });
+
+    const first = await agent
+      .post(`/salons/${salon.id}/reservations/manual`)
+      .set('x-csrf-token', csrfToken)
+      .send({
+        customerEmail: `walkin-${randomUUID()}@example.com`,
+        customerFullName: 'Walk In',
+        serviceId: service.id,
+        employeeId: employee.id,
+        startAt: '2026-08-10T10:00:00.000Z',
+      });
+    expect(first.status).toBe(201);
+
+    const second = await agent
+      .post(`/salons/${salon.id}/reservations/manual`)
+      .set('x-csrf-token', csrfToken)
+      .send({
+        customerEmail: `walkin-${randomUUID()}@example.com`,
+        customerFullName: 'Walk In',
+        serviceId: service.id,
+        employeeId: employee.id,
+        startAt: '2026-08-10T11:00:00.000Z',
+      });
+    expect(second.status).toBe(409);
+  });
+
+  it('SEC-011: serializes concurrent manual bookings that collide only through buffer', async () => {
+    const { salon, service, employee, agent, csrfToken } = await setup('man-buffer-concurrent', {
+      bufferMinutes: 15,
+    });
+
+    const requests = [
+      agent
+        .post(`/salons/${salon.id}/reservations/manual`)
+        .set('x-csrf-token', csrfToken)
+        .send({
+          customerEmail: `walkin-${randomUUID()}@example.com`,
+          customerFullName: 'Walk In',
+          serviceId: service.id,
+          employeeId: employee.id,
+          startAt: '2026-08-10T10:00:00.000Z',
+        }),
+      agent
+        .post(`/salons/${salon.id}/reservations/manual`)
+        .set('x-csrf-token', csrfToken)
+        .send({
+          customerEmail: `walkin-${randomUUID()}@example.com`,
+          customerFullName: 'Walk In',
+          serviceId: service.id,
+          employeeId: employee.id,
+          startAt: '2026-08-10T11:00:00.000Z',
+        }),
+    ];
+
+    const statuses = (await Promise.all(requests)).map((res) => res.status).sort();
+    expect(statuses).toEqual([201, 409]);
   });
 
   it('looks up an existing customer by email instead of creating a duplicate', async () => {

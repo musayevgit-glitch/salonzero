@@ -40,6 +40,7 @@ interface SetupOptions {
   autoConfirm?: boolean;
   minNoticeMinutes?: number;
   maxAdvanceDays?: number;
+  bufferMinutes?: number;
 }
 
 async function setup(prefix: string, options: SetupOptions = {}) {
@@ -64,7 +65,7 @@ async function setup(prefix: string, options: SetupOptions = {}) {
       priceAmount: 5000,
       currency: 'USD',
       durationMinutes: 60,
-      bufferMinutes: 0,
+      bufferMinutes: options.bufferMinutes ?? 0,
     },
   });
   const employee = await prisma.employeeProfile.create({
@@ -155,6 +156,56 @@ describe('POST /reservations (customer booking creation)', () => {
       where: { userId: customerId, type: 'reservation.pending_customer' },
     });
     expect(notification).not.toBeNull();
+  });
+
+  it('SEC-011: rejects a sequential booking inside the previous reservation buffer', async () => {
+    const { salon, service, employee, agent, csrfToken } = await setup('res-buffer-seq', {
+      bufferMinutes: 15,
+    });
+
+    const first = await agent.post('/reservations').set('x-csrf-token', csrfToken).send({
+      salonId: salon.id,
+      serviceId: service.id,
+      employeeId: employee.id,
+      startAt: '2026-08-10T10:00:00.000Z',
+      idempotencyKey: randomUUID(),
+    });
+    expect(first.status).toBe(201);
+
+    const second = await agent.post('/reservations').set('x-csrf-token', csrfToken).send({
+      salonId: salon.id,
+      serviceId: service.id,
+      employeeId: employee.id,
+      startAt: '2026-08-10T11:00:00.000Z',
+      idempotencyKey: randomUUID(),
+    });
+    expect(second.status).toBe(409);
+  });
+
+  it('SEC-011: serializes concurrent bookings that collide only through buffer', async () => {
+    const { salon, service, employee, agent, csrfToken } = await setup('res-buffer-concurrent', {
+      bufferMinutes: 15,
+    });
+
+    const requests = [
+      agent.post('/reservations').set('x-csrf-token', csrfToken).send({
+        salonId: salon.id,
+        serviceId: service.id,
+        employeeId: employee.id,
+        startAt: '2026-08-10T10:00:00.000Z',
+        idempotencyKey: randomUUID(),
+      }),
+      agent.post('/reservations').set('x-csrf-token', csrfToken).send({
+        salonId: salon.id,
+        serviceId: service.id,
+        employeeId: employee.id,
+        startAt: '2026-08-10T11:00:00.000Z',
+        idempotencyKey: randomUUID(),
+      }),
+    ];
+
+    const statuses = (await Promise.all(requests)).map((res) => res.status).sort();
+    expect(statuses).toEqual([201, 409]);
   });
 
   it('creates a CONFIRMED reservation under auto-confirm policy', async () => {

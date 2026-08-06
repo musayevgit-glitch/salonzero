@@ -50,6 +50,7 @@ interface SetupOverrides {
   endAt?: Date;
   cancellationWindowHours?: number;
   rescheduleWindowHours?: number;
+  bufferMinutes?: number;
 }
 
 async function setup(prefix: string, overrides: SetupOverrides = {}) {
@@ -67,7 +68,14 @@ async function setup(prefix: string, overrides: SetupOverrides = {}) {
     },
   });
   const service = await prisma.service.create({
-    data: { salonId: salon.id, name: 'Haircut', priceAmount: 5000, currency: 'USD', durationMinutes: 60 },
+    data: {
+      salonId: salon.id,
+      name: 'Haircut',
+      priceAmount: 5000,
+      currency: 'USD',
+      durationMinutes: 60,
+      bufferMinutes: overrides.bufferMinutes ?? 0,
+    },
   });
   const employee = await prisma.employeeProfile.create({
     data: { salonId: salon.id, fullName: 'Stylist', isActive: true },
@@ -96,6 +104,7 @@ async function setup(prefix: string, overrides: SetupOverrides = {}) {
       status: (overrides.status ?? 'PENDING') as never,
       startAt,
       endAt,
+      blockedUntil: new Date(endAt.getTime() + (overrides.bufferMinutes ?? 0) * 60_000),
       priceAmount: 5000,
       currency: 'USD',
     },
@@ -282,6 +291,7 @@ describe('reschedule', () => {
         status: 'CONFIRMED',
         startAt: new Date('2026-08-10T14:00:00.000Z'),
         endAt: new Date('2026-08-10T15:00:00.000Z'),
+        blockedUntil: new Date('2026-08-10T15:00:00.000Z'),
         priceAmount: 5000,
         currency: 'USD',
       },
@@ -291,6 +301,36 @@ describe('reschedule', () => {
       .post(`/salons/${salon.id}/reservations/${reservation.id}/reschedule`)
       .set('x-csrf-token', adminCsrf)
       .send({ startAt: '2026-08-10T14:00:00.000Z' });
+    expect(res.status).toBe(409);
+  });
+
+  it('SEC-011: rejects staff rescheduling inside another reservation buffer', async () => {
+    const { salon, service, employee, reservation, adminAgent, adminCsrf } = await setup(
+      'tr-staff-buffer',
+      { bufferMinutes: 15 },
+    );
+    const otherCustomer = await prisma.user.create({
+      data: { email: `other-${randomUUID()}@example.com`, passwordHash: 'x', fullName: 'Other' },
+    });
+    await prisma.reservation.create({
+      data: {
+        salonId: salon.id,
+        serviceId: service.id,
+        employeeId: employee.id,
+        customerId: otherCustomer.id,
+        status: 'CONFIRMED',
+        startAt: new Date('2026-08-10T14:00:00.000Z'),
+        endAt: new Date('2026-08-10T15:00:00.000Z'),
+        blockedUntil: new Date('2026-08-10T15:15:00.000Z'),
+        priceAmount: 5000,
+        currency: 'USD',
+      },
+    });
+
+    const res = await adminAgent
+      .post(`/salons/${salon.id}/reservations/${reservation.id}/reschedule`)
+      .set('x-csrf-token', adminCsrf)
+      .send({ startAt: '2026-08-10T15:00:00.000Z' });
     expect(res.status).toBe(409);
   });
 
@@ -309,6 +349,46 @@ describe('reschedule', () => {
       .set('x-csrf-token', custCsrf)
       .send({ startAt: newStart.toISOString() });
     expect(res.status).toBe(200);
+  });
+
+  it('SEC-011: rejects customer rescheduling inside another reservation buffer', async () => {
+    const farFuture = new Date(Date.now() + 30 * 24 * 60 * 60_000);
+    farFuture.setUTCHours(10, 0, 0, 0);
+    while (farFuture.getUTCDay() !== 1) farFuture.setUTCDate(farFuture.getUTCDate() + 1);
+
+    const { salon, service, employee, reservation, custAgent, custCsrf } = await setup(
+      'tr-cust-buffer',
+      {
+        startAt: farFuture,
+        endAt: new Date(farFuture.getTime() + 60 * 60_000),
+        bufferMinutes: 15,
+      },
+    );
+    const otherCustomer = await prisma.user.create({
+      data: { email: `other-${randomUUID()}@example.com`, passwordHash: 'x', fullName: 'Other' },
+    });
+    const blockerStart = new Date(farFuture.getTime() + 4 * 60 * 60_000);
+    const blockerEnd = new Date(blockerStart.getTime() + 60 * 60_000);
+    await prisma.reservation.create({
+      data: {
+        salonId: salon.id,
+        serviceId: service.id,
+        employeeId: employee.id,
+        customerId: otherCustomer.id,
+        status: 'CONFIRMED',
+        startAt: blockerStart,
+        endAt: blockerEnd,
+        blockedUntil: new Date(blockerEnd.getTime() + 15 * 60_000),
+        priceAmount: 5000,
+        currency: 'USD',
+      },
+    });
+
+    const res = await custAgent
+      .post(`/reservations/${reservation.id}/reschedule`)
+      .set('x-csrf-token', custCsrf)
+      .send({ startAt: blockerEnd.toISOString() });
+    expect(res.status).toBe(409);
   });
 
   it('rejects customer reschedule outside the reschedule window', async () => {

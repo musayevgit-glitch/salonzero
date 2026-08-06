@@ -26,6 +26,7 @@ async function createReservation(overrides: {
       currency: 'AZN',
       startAt: overrides.startAt,
       endAt: overrides.endAt,
+      blockedUntil: overrides.endAt,
       status: overrides.status ?? 'PENDING',
     },
   });

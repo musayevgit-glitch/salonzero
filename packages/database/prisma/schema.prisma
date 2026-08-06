@@ -312,6 +312,7 @@ model Reservation {
   status       ReservationStatus @default(PENDING)
   startAt      DateTime          @db.Timestamptz(3)
   endAt        DateTime          @db.Timestamptz(3)
+  blockedUntil DateTime          @db.Timestamptz(3)
   priceAmount  Int
   currency     String
   customerNote String?

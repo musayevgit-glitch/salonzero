@@ -313,9 +313,9 @@ export class PublicSalonsService {
           where: {
             status: { in: ['PENDING', 'CONFIRMED', 'CHECKED_IN'] },
             startAt: { lt: rangeEnd },
-            endAt: { gt: rangeStart },
+            blockedUntil: { gt: rangeStart },
           },
-          select: { startAt: true, endAt: true },
+          select: { startAt: true, endAt: true, blockedUntil: true },
         },
       },
     });

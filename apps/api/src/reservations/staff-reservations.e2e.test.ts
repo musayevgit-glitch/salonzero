@@ -80,6 +80,7 @@ async function createReservation(
       status: status as never,
       startAt,
       endAt: new Date(startAt.getTime() + 60 * 60_000),
+      blockedUntil: new Date(startAt.getTime() + 60 * 60_000),
       priceAmount: 5000,
       currency: 'USD',
     },
