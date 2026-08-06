@@ -20,3 +20,30 @@ export const createReservationSchema = z
   })
   .strict();
 export type CreateReservationInput = z.infer<typeof createReservationSchema>;
+
+// Manager/admin manual booking (Section 15.4) — no salonId (comes from the authorized route
+// context, never client-chosen), no price/duration/status fields at all.
+export const createManualReservationSchema = z
+  .object({
+    customerEmail: z.string().trim().email(),
+    customerFullName: z.string().trim().min(1).max(200).optional(),
+    serviceId: z.string().uuid(),
+    employeeId: z.string().uuid().nullable().optional(),
+    startAt: z.string().datetime(),
+    customerNote: z.string().trim().min(1).max(1000).optional(),
+  })
+  .strict();
+export type CreateManualReservationInput = z.infer<typeof createManualReservationSchema>;
+
+export const reservationReasonSchema = z
+  .object({ reason: z.string().trim().min(1).max(500).optional() })
+  .strict();
+export type ReservationReasonInput = z.infer<typeof reservationReasonSchema>;
+
+export const rescheduleReservationSchema = z
+  .object({
+    startAt: z.string().datetime(),
+    employeeId: z.string().uuid().optional(),
+  })
+  .strict();
+export type RescheduleReservationInput = z.infer<typeof rescheduleReservationSchema>;

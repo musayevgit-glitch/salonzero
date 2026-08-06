@@ -947,6 +947,98 @@ remain deferred, unrelated to this slice.
 Next: Section 15.4 — Manager manual booking (SALON_MANAGER/SALON_ADMIN creating a reservation on a
 customer's behalf, inside their own salon only)
 
+## Section 15.4 — Manager manual booking
+
+Status: done. `packages/validation/src/reservations.ts` → `createManualReservationSchema`
+(customerEmail + optional customerFullName for a not-yet-existing customer, serviceId, optional
+employeeId, startAt, optional customerNote — `.strict()` blocks salonId/price/status). Backend:
+`ReservationsService.createManual(salonId, actorUserId, input)` reuses the 15.3 candidate-resolution/
+availability-check/transactional-create machinery (`resolveCandidateEmployeeIds`,
+`loadEmployeeAvailabilityInput`, `isEmployeeSlotAvailable`, in-tx conflict recount, ADR-0005 exclusion
+constraint as the real guarantee) but: looks up the customer by email, creates one if absent (requires
+customerFullName in that case), records history with `changedByUserId = actorUserId` (the staff member,
+not the customer), stores no idempotencyKey, and audits with `source: 'MANUAL'` + the customerId in
+metadata. New `apps/api/src/reservations/manual-reservations.controller.ts` at
+`salons/:salonId/reservations/manual`, `@Roles('SUPERADMIN','SALON_ADMIN','SALON_MANAGER')` — this is
+the first reservation-write route SALON_MANAGER can reach, per the prompt's explicit manual-booking
+privilege.
+Commit: pending (this task)
+Tests: 7 new e2e tests — CUSTOMER denied, SALON_MANAGER creates a new customer + reservation with
+`source: 'MANUAL'` audited, existing-customer lookup (no duplicate user row), cross-salon denial
+(manager cannot target another salon), serviceId not in the salon→400, mass-assignment
+(price/status/salonId) rejected, and a real concurrency test (two simultaneous manual bookings for the
+same slot — exactly one 201/one 409, exactly one active reservation after). All passed on first run.
+`apps/api` total: 246 passing tests. Full repo gate deferred to the combined 15.4+15.5 run below.
+Security/tenant checks: salonId always the authorized `SalonContext`, never client-supplied; customer
+lookup/creation never trusts a client-supplied customerId; audit distinguishes manual (staff-initiated)
+bookings from customer self-service ones via `source`.
+Risks: none new.
+Next: Section 15.5 — Reservation status transitions (confirm/reject/cancel/reschedule/check-in/
+complete/no-show)
+
+## Section 15.5 — Reservation status transitions
+
+Status: done. All four transition groups from docs/architecture/reservation-state-machine.md (15.1)
+implemented in one pass per explicit instruction to resolve 15.4+15.5 together. `packages/validation/
+src/reservations.ts` → `reservationReasonSchema` (optional reason, capped 500 chars), `
+rescheduleReservationSchema` (startAt + optional employeeId). New `apps/api/src/reservations/
+transitions.service.ts`: staff actions (confirm/reject/cancelBySalon/checkIn/complete/noShow/
+rescheduleBySalon, salon-scoped) and customer actions (cancelByCustomer/rescheduleByCustomer,
+ownership-scoped by customerId, never the route). Concurrency: every status change is a compare-and-swap
+`update({ where: { id, status: currentStatus }, ... })` — Prisma allows a unique field plus additional
+scalar filters in `where`; a concurrent transition finds zero matching rows, throws `P2025`, mapped to a
+409. Idempotent no-ops for confirm-on-CONFIRMED and reject-on-REJECTED, matching the 15.1 state machine;
+every other repeated/illegal transition hits a natural 409 since the precondition status no longer
+matches. `reschedule()` re-runs the full 15.2/15.3 availability engine against the new time (excluding
+the reservation's own current row from its own conflict check), inside the same transactional
+conflict-recount + exclusion-constraint pattern as create. Customer cancel/reschedule enforce
+`BookingPolicy.cancellationWindowHours`/`rescheduleWindowHours` (default 24h) computed from the real
+`startAt`, never a client-supplied value; salon-initiated cancel has no window (staff can cancel
+anytime up to a terminal state). `noShow` requires `now > endAt` (can't be marked before the appointment
+time has actually passed). New controllers: `staff-transitions.controller.ts` at
+`salons/:salonId/reservations/:reservationId` and `customer-transitions.controller.ts` at
+`reservations/:reservationId`, wired into `reservations.module.ts`.
+Commit: pending (this task)
+**Bug found and fixed via the first test run, not by inspection**: both new controllers initially
+declared `@Roles(...)` at the `@Controller()` class level. `RolesGuard` calls
+`reflector.get(ROLES_KEY, context.getHandler())`, which only reads _method-level_ decorator metadata —
+a class-level `@Roles()` is silently invisible to it, so every route fell through to "no roles found →
+fail closed → 404 for everyone," including the correct role. This is the identical mistake made and
+fixed earlier this session in `portfolio.controller.ts` (Section 12.3) and should have been caught
+before writing the controllers; it wasn't, and was only caught because the new e2e suite was actually
+run (16 of 19 tests failed with 404 on the first pass — the only 3 that "passed" were the ones that
+themselves expected a 404). Fixed by moving `@Roles(...)` from the class decorator onto each of the 9
+route methods individually.
+Tests: 19 new e2e tests in `apps/api/src/reservations/transitions.e2e.test.ts` — confirm (success +
+audit + idempotent replay, illegal-transition→409, CUSTOMER denied→404, cross-salon→404), reject
+(success + reason + idempotent), salon cancel (success, terminal-state→409), customer cancel (within
+window, outside window→409, another customer's reservation→404), staff reschedule (success,
+conflicting-slot→409), customer reschedule (within window, outside window→409), check-in→complete
+happy path, check-in-on-pending→409, complete-without-check-in→409, no-show on a past reservation,
+no-show-on-a-future-reservation→409. All 19 passed after the controller fix. 15 new schema tests in
+`packages/validation` for the three new schemas (createManualReservationSchema/
+reservationReasonSchema/rescheduleReservationSchema — valid/invalid/boundary/mass-assignment cases).
+Full monorepo gate: `pnpm turbo run lint typecheck test build` — `apps/api` 265/265 passing,
+`packages/validation` 121/121 passing, all lint/typecheck green across every workspace. `apps/web`'s
+build step failed on a pre-existing, unrelated Next.js `<Html>`/`_document` prerender error in the
+`/404` page — confirmed unrelated (apps/web was not touched by this or any recent reservation work);
+not fixed here, out of scope for this milestone.
+Security/tenant checks: every staff transition re-derives salonId from `SalonContext`, never the route
+param directly downstream; every customer transition scopes its lookup by `customerId` from the
+session, never a client-supplied identity; cancellation/reschedule windows are computed server-side
+from the DB's `startAt` and `BookingPolicy`, never trusting a client-supplied window or "now"; reschedule
+re-validates availability against the real schedule/breaks/time-off/other-reservations, not the
+browser's cached view; all transitions are audited with the actor and, where applicable, the reason.
+Risks: (1) The class-level-`@Roles()` bug pattern has now recurred twice in this codebase
+(`portfolio.controller.ts` in 12.3, both new transition controllers here) — worth a lint rule or a
+guard-level runtime assertion ("this route has zero roles and no explicit @Public() escape hatch, fail
+the build") rather than relying on tests to catch it a third time; not implemented this session, flagged
+as a concrete follow-up. (2) Section 15.6 (dedicated reservation security review) has not run yet —
+recommended before this transition surface is considered production-ready, even though the tests above
+already exercise the main tenant/ownership/concurrency boundaries. (3) Section 11.5 (domain/subdomain
+management) and salon-wide closures (open decision #6) remain deferred, unrelated to this slice.
+Next: Section 15.6 — Reservation security review (security-reviewer/database-reviewer read-only audit)
+
 ## Blockers / environment notes
 
 - Docker is not installed in this environment; resolved by using the existing Postgres.app (PG 18)

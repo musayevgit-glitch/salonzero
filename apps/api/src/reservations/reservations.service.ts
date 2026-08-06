@@ -1,10 +1,11 @@
+import * as crypto from 'node:crypto';
 import {
   BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import type { CreateReservationInput } from '@salonomia/validation';
+import type { CreateManualReservationInput, CreateReservationInput } from '@salonomia/validation';
 import { AuditService } from '../audit/audit.service';
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -209,6 +210,161 @@ export class ReservationsService {
       targetId: reservation.id,
       salonId: salon.id,
       metadata: { serviceId: service.id, employeeId: chosenEmployeeId, status },
+    });
+
+    return reservation;
+  }
+
+  /**
+   * Manager/admin manual booking (Section 15.4). salonId is the *authorized* SalonContext value
+   * from the route guard — never client-chosen — so a manager can never book into another salon.
+   * No price/duration/status fields exist on the input schema at all (mass-assignment is
+   * impossible, not just rejected). Customer is looked up by email or minimally created (no
+   * password set — they'd need a password-reset flow to log in, out of scope here).
+   */
+  async createManual(
+    salonId: string,
+    actorUserId: string,
+    input: CreateManualReservationInput,
+  ): Promise<ReservationDetail> {
+    const salon = await this.prisma.salon.findUnique({
+      where: { id: salonId },
+      select: { id: true, timezone: true },
+    });
+    if (!salon) {
+      throw new NotFoundException('Salon not found.');
+    }
+
+    const service = await this.prisma.service.findFirst({
+      where: { id: input.serviceId, salonId: salon.id, isActive: true },
+      select: { id: true, durationMinutes: true, bufferMinutes: true, priceAmount: true, currency: true },
+    });
+    if (!service) {
+      throw new BadRequestException('This service is not available at this salon.');
+    }
+
+    const bookingPolicy = await this.prisma.bookingPolicy.findUnique({ where: { salonId: salon.id } });
+    if (!bookingPolicy) {
+      throw new BadRequestException('This salon is not configured for booking.');
+    }
+
+    let customer = await this.prisma.user.findUnique({ where: { email: input.customerEmail } });
+    if (!customer) {
+      if (!input.customerFullName) {
+        throw new BadRequestException('customerFullName is required to create a new customer.');
+      }
+      // Unusable random hash — this account has no password until the customer resets one.
+      customer = await this.prisma.user.create({
+        data: {
+          email: input.customerEmail,
+          passwordHash: `unset:${crypto.randomUUID()}`,
+          fullName: input.customerFullName,
+        },
+      });
+    }
+
+    const startAt = new Date(input.startAt);
+    const now = new Date();
+
+    const candidateEmployeeIds = await this.resolveCandidateEmployeeIds(
+      salon.id,
+      service.id,
+      input.employeeId ?? null,
+    );
+    if (candidateEmployeeIds.length === 0) {
+      throw new BadRequestException('No eligible stylist is available for this service.');
+    }
+
+    let chosenEmployeeId: string | null = null;
+    for (const employeeId of candidateEmployeeIds) {
+      const availabilityInput = await this.loadEmployeeAvailabilityInput(employeeId, service.id, startAt);
+      const available = isEmployeeSlotAvailable({
+        employee: availabilityInput,
+        salonTimezone: salon.timezone,
+        now,
+        candidateStart: startAt,
+        serviceDurationMinutes: service.durationMinutes,
+        bufferMinutes: service.bufferMinutes,
+        minNoticeMinutes: bookingPolicy.minNoticeMinutes,
+        maxAdvanceDays: bookingPolicy.maxAdvanceDays,
+      });
+      if (available) {
+        chosenEmployeeId = employeeId;
+        break;
+      }
+    }
+    if (!chosenEmployeeId) {
+      throw new ConflictException(SLOT_UNAVAILABLE_MESSAGE);
+    }
+
+    const endAt = new Date(startAt.getTime() + service.durationMinutes * 60_000);
+    const status = bookingPolicy.autoConfirm ? 'CONFIRMED' : 'PENDING';
+    const customerId = customer.id;
+
+    let reservation: ReservationDetail;
+    try {
+      reservation = await this.prisma.$transaction(async (tx) => {
+        const conflicting = await tx.reservation.count({
+          where: {
+            employeeId: chosenEmployeeId!,
+            status: { in: [...ACTIVE_RESERVATION_STATUSES] },
+            startAt: { lt: endAt },
+            endAt: { gt: startAt },
+          },
+        });
+        if (conflicting > 0) {
+          throw new ConflictException(SLOT_UNAVAILABLE_MESSAGE);
+        }
+
+        const created = await tx.reservation.create({
+          data: {
+            salonId: salon.id,
+            serviceId: service.id,
+            employeeId: chosenEmployeeId!,
+            customerId,
+            status,
+            startAt,
+            endAt,
+            priceAmount: service.priceAmount,
+            currency: service.currency,
+            customerNote: input.customerNote ?? null,
+          },
+          select: RESERVATION_SELECT,
+        });
+
+        await tx.reservationStatusHistory.create({
+          data: {
+            reservationId: created.id,
+            fromStatus: null,
+            toStatus: status,
+            changedByUserId: actorUserId,
+          },
+        });
+
+        await tx.notification.create({
+          data: {
+            userId: customerId,
+            type: status === 'CONFIRMED' ? 'reservation.confirmed' : 'reservation.pending_customer',
+            payload: { reservationId: created.id },
+          },
+        });
+
+        return created;
+      });
+    } catch (err) {
+      if (isExclusionConstraintViolation(err)) {
+        throw new ConflictException(SLOT_UNAVAILABLE_MESSAGE);
+      }
+      throw err;
+    }
+
+    await this.audit.record({
+      actorUserId,
+      action: 'reservation.created',
+      targetType: 'Reservation',
+      targetId: reservation.id,
+      salonId: salon.id,
+      metadata: { serviceId: service.id, employeeId: chosenEmployeeId, status, source: 'MANUAL', customerId },
     });
 
     return reservation;
