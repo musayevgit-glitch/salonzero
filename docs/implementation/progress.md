@@ -453,6 +453,69 @@ Risks: none new. Section 11.5 (domain/subdomain management) remains deferred. Se
 portfolio/photo uploads) will need a signed-upload storage decision (ADR) before implementation.
 Next: Section 12.3 — Salon Admin: employee portfolio/photo uploads (pending storage ADR)
 
+## Section 12.3 — Salon Admin: employee portfolio and uploads
+
+Status: done. Wrote ADR-0008 (`docs/adr/0008-file-storage.md`) first: a pluggable `StorageAdapter`
+interface (`packages/storage`) with an `s3` driver (real S3-compatible presigned uploads, for
+production) and a `local` driver (HMAC-signed short-lived upload/download tokens served through the
+API itself, since this environment has no Docker/S3 credentials — same pragmatic-substitute pattern
+already used for sessions in ADR-0003). `STORAGE_DRIVER` env var selects the driver, defaulting to
+`local`; both fail closed if required env vars are missing.
+Backend: `apps/api/src/storage/*` (DI wiring, `STORAGE_ADAPTER`/`LOCAL_DISK_ADAPTER` tokens),
+`apps/api/src/uploads/*` (the local driver's serving route — `PUT/GET /uploads/:token` — 404s
+uniformly on any bad/expired/wrong-purpose token, no oracle), `apps/api/src/employees/portfolio/*`
+(`PortfolioService`/`PortfolioController` under `salons/:salonId/employees/:employeeId/portfolio`).
+Flow: `POST .../upload-url` validates MIME allowlist (jpeg/png/webp only, no SVG/executable per the
+prompt's explicit requirement) and size limit (5MB) and returns a signed target with a random
+server-generated object key (`employees/:employeeId/:uuid.ext`); the client PUTs bytes directly to
+that URL; `POST .../portfolio` (confirm) re-verifies the objectKey belongs to this employee's
+namespace, stats the object (size re-checked server-side — closes the gap where a presigned S3 PUT
+can't enforce size itself), and sniffs the first 12 bytes against real image magic numbers
+(`detectImageMime`) rather than trusting the claimed Content-Type — rejects and deletes the object if
+it isn't a real image. `imageUrl` in the DB stores the object key, not a URL; every read re-resolves a
+fresh (possibly short-lived signed) URL via the adapter, so nothing long-lived leaks. Ordering via
+`POST .../reorder` (transactional, rejects any payload that isn't exactly the current item-id set).
+Deletion is role-gated (SALON_ADMIN/SUPERADMIN only) and tenant/ownership-chained (`id` + `employeeId`
+in one query); storage-delete failure is best-effort and never blocks the DB delete succeeding.
+`caption` doubles as the accessible alt text (one text field on the approved data model, not two).
+UI: `apps/dashboard/.../portfolio-gallery.tsx` — upload button, responsive grid gallery, inline caption
+edit, move-earlier/move-later `IconButton`s (keyboard-accessible ordering without a drag-drop library),
+delete behind `ConfirmDialog`. Added `apps/dashboard/lib/api-client.ts`'s `putFile()` for the raw signed
+upload (bypasses the JSON-only `apiFetch` assumptions but still attaches the CSRF header, since it's a
+state-changing request in the same session).
+Commit: pending (this task)
+Tests: 30 new — `packages/storage` (20: magic-byte detection incl. spoofed-SVG/executable rejection,
+HMAC token round-trip/tamper/expiry/wrong-secret, local-disk path-traversal rejection, size-limit
+enforcement with partial-file cleanup) + `packages/validation` (14 portfolio schema tests) + `apps/api`
+(15 new e2e: role denial, MIME/size rejection, full upload→confirm→list round trip with a real PNG,
+reject-never-uploaded, reject-wrong-employee-namespace, reject-fake-image-content, cross-salon 404 on
+every route, caption edit + audit, cross-employee 404 on edit, reorder + audit, reorder-with-missing-
+item→400, delete + audit + storage cleanup, SALON_MANAGER denied on delete, cross-employee 404 on
+delete). `apps/api` total: 86 passing tests. Full repo gate (14/14 lint+typecheck+test) passed on the
+new `packages/storage` workspace plus all existing ones.
+Browser walkthrough: uploaded a real PNG through the actual HTTP upload-url/PUT/confirm flow (the
+in-app browser tool has no native file-picker control, so this was driven via curl using the same
+authenticated session cookie the browser held — the browser then rendered the result), confirmed the
+image renders via its signed local-storage URL with the caption shown; edited the caption inline and
+confirmed it persisted; opened the delete `ConfirmDialog` and confirmed. **Found and fixed a real bug
+this way**: `apiFetch` unconditionally called `res.json()` on any ok response, which threw on the
+portfolio delete's `204 No Content` (the first 204 endpoint in the app) — the delete had actually
+succeeded server-side every time, but the frontend showed a false "Could not remove photo" error.
+Fixed by short-circuiting on `res.status === 204`. Also fixed `turbo.json`'s `globalEnv` allowlist,
+which was silently stripping the new `STORAGE_DRIVER`/`LOCAL_STORAGE_*`/`S3_*` env vars from turbo-
+orchestrated task runs (direct `pnpm --filter` runs were unaffected, which is why this wasn't caught
+until the full `pnpm test`/`pnpm build` gate).
+Security/tenant checks: every portfolio route re-derives salonId from `SalonContext`, not the raw
+route param; objectKey ownership is checked against the employee's namespace before confirm; actual
+file bytes are verified against an allowlist independent of client-supplied Content-Type; local-disk
+object keys are regex- and path-resolution-checked to reject traversal even though only server-
+generated keys are ever used; the local upload/download serving route 404s uniformly regardless of
+which part of a token is wrong (no distinguishing oracle).
+Risks: (1) No cleanup job exists for storage objects whose upload-url was requested but never
+confirmed (orphaned objects) — acceptable for now, a background sweep can be added later without any
+API contract change. (2) Section 11.5 (domain/subdomain management) remains deferred.
+Next: Section 13 — Salon Admin: Services (service categories)
+
 ## Blockers / environment notes
 
 - Docker is not installed in this environment; resolved by using the existing Postgres.app (PG 18)

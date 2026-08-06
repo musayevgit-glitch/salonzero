@@ -15,6 +15,7 @@ import {
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { apiFetch, ApiError } from '../../../../../lib/api-client';
+import { PortfolioGallery } from './portfolio-gallery';
 
 interface EmployeeDetail {
   id: string;
@@ -132,6 +133,13 @@ export default function EmployeeDetailPage() {
           >
             {employee.isActive ? 'Deactivate' : 'Activate'}
           </Button>
+        </div>
+      </Card>
+
+      <Card className="max-w-2xl">
+        <h2 className="text-lg font-semibold text-text-primary">Portfolio</h2>
+        <div className="mt-4">
+          <PortfolioGallery salonId={salonId} employeeId={employee.id} />
         </div>
       </Card>
 

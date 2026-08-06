@@ -19,6 +19,7 @@
     "@salonomia/auth": "workspace:*",
     "@salonomia/contracts": "workspace:*",
     "@salonomia/database": "workspace:*",
+    "@salonomia/storage": "workspace:*",
     "@salonomia/validation": "workspace:*",
     "argon2": "^0.41.1",
     "connect-pg-simple": "^10.0.0",

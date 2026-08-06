@@ -14,3 +14,5 @@ apps/*/dist/
 packages/*/dist/
 packages/database/generated/
 *.tsbuildinfo
+.local-storage/
+apps/api/.local-storage/

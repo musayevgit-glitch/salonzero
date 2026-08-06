@@ -1,0 +1,2 @@
+export const STORAGE_ADAPTER = Symbol('STORAGE_ADAPTER');
+export const LOCAL_DISK_ADAPTER = Symbol('LOCAL_DISK_ADAPTER');

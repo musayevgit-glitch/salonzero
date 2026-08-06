@@ -40,5 +40,31 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
     throw new ApiError(res.status, body.message ?? 'Something went wrong. Please try again.');
   }
 
+  if (res.status === 204) {
+    return undefined as T;
+  }
+
   return res.json();
+}
+
+/**
+ * Uploads a file directly to a signed upload URL returned by an /upload-url endpoint. Bypasses
+ * apiFetch's JSON assumptions (raw binary body, no JSON response) but still needs the CSRF header
+ * since it's a state-changing request within the same authenticated session.
+ */
+export async function putFile(url: string, file: File): Promise<void> {
+  const csrfToken = readCookie('csrfToken');
+  const res = await fetch(url, {
+    method: 'PUT',
+    credentials: 'include',
+    headers: {
+      'Content-Type': file.type,
+      ...(csrfToken ? { 'x-csrf-token': csrfToken } : {}),
+    },
+    body: file,
+  });
+
+  if (!res.ok) {
+    throw new ApiError(res.status, 'Upload failed. Please try again.');
+  }
 }
