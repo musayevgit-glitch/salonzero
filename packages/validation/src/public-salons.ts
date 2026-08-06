@@ -40,3 +40,12 @@ export const listPublicSalonsQuerySchema = z
     path: ['minPrice'],
   });
 export type ListPublicSalonsQuery = z.infer<typeof listPublicSalonsQuerySchema>;
+
+export const publicAvailabilityQuerySchema = z
+  .object({
+    serviceId: z.string().uuid(),
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'date must be YYYY-MM-DD'),
+    employeeId: z.string().uuid().optional(),
+  })
+  .strict();
+export type PublicAvailabilityQuery = z.infer<typeof publicAvailabilityQuerySchema>;

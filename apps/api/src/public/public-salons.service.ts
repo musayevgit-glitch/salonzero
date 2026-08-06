@@ -1,9 +1,14 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import type { StorageAdapter } from '@salonomia/storage';
-import type { ListPublicSalonsQuery } from '@salonomia/validation';
+import type { ListPublicSalonsQuery, PublicAvailabilityQuery } from '@salonomia/validation';
 import { Prisma } from '@salonomia/database';
 import { PrismaService } from '../prisma/prisma.service';
 import { STORAGE_ADAPTER } from '../storage/storage.tokens';
+import {
+  computeAvailability,
+  computeAnyStylistAvailability,
+} from '../reservations/availability/availability';
+import { localWallTimeToUtc } from '../reservations/availability/timezone';
 
 export interface PublicSalonListItem {
   id: string;
@@ -255,6 +260,95 @@ export class PublicSalonsService {
       serviceCategories: salon.serviceCategories,
       uncategorizedServices,
       employees,
+    };
+  }
+
+  async getAvailability(slug: string, query: PublicAvailabilityQuery) {
+    const salon = await this.prisma.salon.findFirst({
+      where: { slug, status: 'ACTIVE' },
+      select: {
+        id: true,
+        timezone: true,
+        bookingPolicy: {
+          select: { minNoticeMinutes: true, maxAdvanceDays: true },
+        },
+      },
+    });
+    if (!salon) throw new NotFoundException('Salon not found.');
+
+    const service = await this.prisma.service.findFirst({
+      where: { id: query.serviceId, salonId: salon.id, isActive: true },
+      select: { durationMinutes: true, bufferMinutes: true },
+    });
+    if (!service) throw new NotFoundException('Service not found.');
+
+    const policy = salon.bookingPolicy;
+    const minNoticeMinutes = policy?.minNoticeMinutes ?? 60;
+    const maxAdvanceDays = policy?.maxAdvanceDays ?? 60;
+
+    // Convert YYYY-MM-DD local date to UTC day window
+    const [year, month, day] = query.date.split('-').map(Number) as [number, number, number];
+    const localDate = { year, month, day };
+    const rangeStart = localWallTimeToUtc(localDate, 0, salon.timezone);
+    const rangeEnd = localWallTimeToUtc(localDate, 24 * 60, salon.timezone);
+
+    const employeeWhere = {
+      salonId: salon.id,
+      isActive: true,
+      eligibleServices: { some: { serviceId: query.serviceId } },
+      ...(query.employeeId ? { id: query.employeeId } : {}),
+    };
+
+    const employees = await this.prisma.employeeProfile.findMany({
+      where: employeeWhere,
+      select: {
+        id: true,
+        workingSchedules: { select: { weekday: true, startMinuteOfDay: true, endMinuteOfDay: true } },
+        breaks: { select: { weekday: true, startMinuteOfDay: true, endMinuteOfDay: true } },
+        timeOff: {
+          where: { startAt: { lt: rangeEnd }, endAt: { gt: rangeStart } },
+          select: { startAt: true, endAt: true },
+        },
+        reservations: {
+          where: {
+            status: { in: ['PENDING', 'CONFIRMED', 'CHECKED_IN'] },
+            startAt: { lt: rangeEnd },
+            endAt: { gt: rangeStart },
+          },
+          select: { startAt: true, endAt: true },
+        },
+      },
+    });
+
+    const now = new Date();
+    const input = {
+      salonTimezone: salon.timezone,
+      now,
+      rangeStart,
+      rangeEnd,
+      serviceDurationMinutes: service.durationMinutes,
+      bufferMinutes: service.bufferMinutes,
+      minNoticeMinutes,
+      maxAdvanceDays,
+      employees: employees.map((e) => ({
+        employeeId: e.id,
+        isActive: true,
+        isEligibleForService: true,
+        workingSchedule: e.workingSchedules,
+        breaks: e.breaks,
+        timeOff: e.timeOff,
+        blockingReservations: e.reservations,
+      })),
+    };
+
+    const slots = query.employeeId
+      ? computeAvailability(input).map((s) => ({ startAt: s.startAt, endAt: s.endAt }))
+      : computeAnyStylistAvailability(input);
+
+    return {
+      date: query.date,
+      timezone: salon.timezone,
+      slots: slots.map((s) => ({ startAt: s.startAt.toISOString(), endAt: s.endAt.toISOString() })),
     };
   }
 }

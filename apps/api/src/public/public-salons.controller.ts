@@ -1,5 +1,10 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
-import { listPublicSalonsQuerySchema, type ListPublicSalonsQuery } from '@salonomia/validation';
+import {
+  listPublicSalonsQuerySchema,
+  publicAvailabilityQuerySchema,
+  type ListPublicSalonsQuery,
+  type PublicAvailabilityQuery,
+} from '@salonomia/validation';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
 import { PublicSalonsService } from './public-salons.service';
 
@@ -14,6 +19,14 @@ export class PublicSalonsController {
   @Get()
   list(@Query(new ZodValidationPipe(listPublicSalonsQuerySchema)) query: ListPublicSalonsQuery) {
     return this.publicSalons.list(query);
+  }
+
+  @Get(':slug/availability')
+  availability(
+    @Param('slug') slug: string,
+    @Query(new ZodValidationPipe(publicAvailabilityQuerySchema)) query: PublicAvailabilityQuery,
+  ) {
+    return this.publicSalons.getAvailability(slug, query);
   }
 
   @Get(':slug')

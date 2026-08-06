@@ -208,3 +208,83 @@ describe('GET /public/salons/:slug (detail)', () => {
     void employee;
   });
 });
+
+describe('GET /public/salons/:slug/availability', () => {
+  async function createSalonWithService(prefix: string) {
+    const salon = await createSalon(prefix);
+    const service = await prisma.service.create({
+      data: { salonId: salon.id, name: 'Cut', priceAmount: 2000, currency: 'AZN', durationMinutes: 30 },
+    });
+    const employee = await prisma.employeeProfile.create({
+      data: {
+        salonId: salon.id,
+        fullName: 'Avail Stylist',
+        isActive: true,
+        eligibleServices: { create: { serviceId: service.id } },
+        workingSchedules: {
+          create: [{ weekday: 1, startMinuteOfDay: 9 * 60, endMinuteOfDay: 17 * 60 }],
+        },
+      },
+    });
+    return { salon, service, employee };
+  }
+
+  it('returns slots for a valid active service and date', async () => {
+    const { salon, service } = await createSalonWithService(`pub-avail-${randomUUID()}`);
+    // Monday 2026-08-10
+    const res = await request(app.getHttpServer()).get(
+      `/public/salons/${salon.slug}/availability?serviceId=${service.id}&date=2026-08-10`,
+    );
+    expect(res.status).toBe(200);
+    expect(res.body.timezone).toBe('UTC');
+    expect(Array.isArray(res.body.slots)).toBe(true);
+    expect(res.body.slots.length).toBeGreaterThan(0);
+    // No employeeId in slot responses (no private booking details)
+    for (const slot of res.body.slots as { startAt: string; endAt: string }[]) {
+      expect(Object.keys(slot).sort()).toEqual(['endAt', 'startAt'].sort());
+    }
+  });
+
+  it('returns empty slots for a suspended salon', async () => {
+    const salon = await createSalon(`pub-avail-suspended-${randomUUID()}`, { status: 'SUSPENDED' });
+    const res = await request(app.getHttpServer()).get(
+      `/public/salons/${salon.slug}/availability?serviceId=${randomUUID()}&date=2026-08-10`,
+    );
+    expect(res.status).toBe(404);
+  });
+
+  it('400s on missing or malformed params', async () => {
+    const { salon } = await createSalonWithService(`pub-avail-bad-${randomUUID()}`);
+    const missing = await request(app.getHttpServer()).get(
+      `/public/salons/${salon.slug}/availability?date=2026-08-10`,
+    );
+    expect(missing.status).toBe(400);
+
+    const badDate = await request(app.getHttpServer()).get(
+      `/public/salons/${salon.slug}/availability?serviceId=${randomUUID()}&date=not-a-date`,
+    );
+    expect(badDate.status).toBe(400);
+
+    const forbidden = await request(app.getHttpServer()).get(
+      `/public/salons/${salon.slug}/availability?serviceId=${randomUUID()}&date=2026-08-10&status=CONFIRMED`,
+    );
+    expect(forbidden.status).toBe(400);
+  });
+
+  it('404s for a service that does not belong to the salon', async () => {
+    const { salon } = await createSalonWithService(`pub-avail-xtenant-${randomUUID()}`);
+    const otherService = await prisma.service.create({
+      data: {
+        salonId: (await createSalon(`pub-avail-other-${randomUUID()}`)).id,
+        name: 'Other',
+        priceAmount: 1000,
+        currency: 'AZN',
+        durationMinutes: 30,
+      },
+    });
+    const res = await request(app.getHttpServer()).get(
+      `/public/salons/${salon.slug}/availability?serviceId=${otherService.id}&date=2026-08-10`,
+    );
+    expect(res.status).toBe(404);
+  });
+});

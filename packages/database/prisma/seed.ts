@@ -36,10 +36,10 @@ async function main() {
   });
 
   const service = await prisma.service.upsert({
-    where: { id: 'seed-service-haircut' },
+    where: { id: '00000000-0000-0000-0000-000000000001' },
     update: {},
     create: {
-      id: 'seed-service-haircut',
+      id: '00000000-0000-0000-0000-000000000001',
       salonId: salon.id,
       categoryId: category.id,
       name: 'Haircut (seed data)',
@@ -51,10 +51,10 @@ async function main() {
   });
 
   const employee = await prisma.employeeProfile.upsert({
-    where: { id: 'seed-employee-stylist' },
+    where: { id: '00000000-0000-0000-0000-000000000002' },
     update: {},
     create: {
-      id: 'seed-employee-stylist',
+      id: '00000000-0000-0000-0000-000000000002',
       salonId: salon.id,
       fullName: 'Seed Stylist (fake data)',
       eligibleServices: { create: { serviceId: service.id } },

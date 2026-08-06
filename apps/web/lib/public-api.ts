@@ -13,8 +13,17 @@ export class PublicApiError extends Error {
   }
 }
 
-export async function fetchPublicApi<T>(path: string): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`, {
+export async function fetchPublicApi<T>(
+  path: string,
+  opts?: { params?: Record<string, string> },
+): Promise<T> {
+  const url = new URL(`${API_URL}${path}`);
+  if (opts?.params) {
+    for (const [k, v] of Object.entries(opts.params)) {
+      url.searchParams.set(k, v);
+    }
+  }
+  const res = await fetch(url.toString(), {
     // Public discovery data changes rarely enough that a short revalidation window is a reasonable
     // default; not user-specific, so no cookies/credentials are ever sent here.
     next: { revalidate: 30 },
