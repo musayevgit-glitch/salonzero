@@ -647,6 +647,49 @@ Risks: none new. Section 11.5 (domain/subdomain management) remains deferred. Th
 (Salon Admin — Services) in full.
 Next: Section 14 — Salon Admin: Scheduling (weekly working schedule, breaks, time off/closures)
 
+## Section 14.1 — Salon Admin: weekly working schedule
+
+Status: done. `packages/validation/src/working-schedule.ts` → `createWorkingScheduleSchema`
+(`weekday` 0–6, `startMinuteOfDay`/`endMinuteOfDay` bounded to a single day, `.refine()` rejecting
+reversed/zero-length intervals). Minute-of-day values are interpreted in the salon's local timezone per
+the existing `WorkingSchedule` model comment (schema.prisma) — no separate timezone field needed since
+the interpretation is fixed at the salon level, not per-entry.
+Backend: `apps/api/src/employees/working-schedule/*` nested at
+`salons/:salonId/employees/:employeeId/working-schedule`, `@Roles('SUPERADMIN','SALON_ADMIN')`,
+list/create/delete only (no update — changing a block is delete-then-recreate, which keeps the
+overlap-validation logic in one place and matches the "add/remove blocks" editor UX). `create()`
+requires the employee to belong to the authorized salon *and* be active (400 otherwise) and rejects any
+new interval that overlaps an existing entry on the same weekday for that employee (half-open interval
+overlap check: `newStart < existingEnd && existingStart < newEnd`, so touching-but-not-overlapping
+intervals like 9:00–12:00 and 12:00–17:00 are allowed). `remove()` re-verifies the entry belongs to both
+the employee and the salon before deleting.
+Commit: pending (this task)
+Tests: 16 new e2e tests — unauthenticated→401, SALON_MANAGER/no-membership→404, cross-salon
+employeeId→404 on list, create + audit, reject reversed interval, reject out-of-range weekday/minute
+values, reject overlapping interval same weekday, allow adjacent (touching) intervals, allow the same
+interval on a different weekday, reject creating a schedule for an inactive employee, cross-salon create
+denied, delete + audit, delete a nonexistent entry is unreachable (belongs-to-different-employee→404),
+cross-salon employeeId on delete→404. 7 new schema tests in `packages/validation`. `apps/api` total: 157
+passing tests (91 in `packages/validation`). Full repo gate (14/14) passed.
+UI: `apps/dashboard/.../employees/[employeeId]/working-schedule.tsx` — a responsive weekly editor:
+all 7 days listed with their current blocks as removable chips, plus a per-day `<input type="time">`
+pair and an Add button. Wired onto the employee detail page below "Eligible services".
+Browser walkthrough: added a Monday 09:00–17:00 block through the live time-input form, confirmed it
+rendered as a chip on Monday only (verified via page-text extraction, since this session's browser tool
+had a scroll/screenshot rendering glitch — worked around by reading DOM/page-text directly, which
+reliably confirmed real app state throughout); removed the chip and confirmed Monday returned to
+"No hours set."
+Security/tenant checks: create/delete both re-derive the authorized salonId and re-check employee
+ownership; the active-employee rule is enforced server-side (confirmed by a real 400 in both the e2e
+test and an earlier manual browser attempt against a still-inactive seeded employee, not just asserted
+in code).
+Risks: (1) No update endpoint — editing a block requires delete + recreate; acceptable given the small
+scope of "add/remove blocks" the prompt asks for. (2) Section 11.5 (domain/subdomain management)
+remains deferred. (3) Section 14.2 (breaks) and 14.3 (time off/closures) are separate slices, not yet
+started; the approved schema has no salon-wide closure model (only per-employee `TimeOff`), which will
+need to be flagged as an open decision when 14.3 is reached rather than improvised.
+Next: Section 14.2 — Salon Admin: breaks
+
 ## Blockers / environment notes
 
 - Docker is not installed in this environment; resolved by using the existing Postgres.app (PG 18)

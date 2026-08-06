@@ -17,6 +17,7 @@ import { useEffect, useState } from 'react';
 import { apiFetch, ApiError } from '../../../../../lib/api-client';
 import { PortfolioGallery } from './portfolio-gallery';
 import { ServiceAssignment } from './service-assignment';
+import { WorkingScheduleEditor } from './working-schedule';
 
 interface EmployeeDetail {
   id: string;
@@ -148,6 +149,13 @@ export default function EmployeeDetailPage() {
         <h2 className="text-lg font-semibold text-text-primary">Eligible services</h2>
         <div className="mt-4">
           <ServiceAssignment salonId={salonId} employeeId={employee.id} />
+        </div>
+      </Card>
+
+      <Card className="max-w-2xl">
+        <h2 className="text-lg font-semibold text-text-primary">Weekly working schedule</h2>
+        <div className="mt-4">
+          <WorkingScheduleEditor salonId={salonId} employeeId={employee.id} />
         </div>
       </Card>
 

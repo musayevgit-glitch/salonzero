@@ -5,9 +5,16 @@ import { EmployeeServicesController } from './services/employee-services.control
 import { EmployeeServicesService } from './services/employee-services.service';
 import { PortfolioController } from './portfolio/portfolio.controller';
 import { PortfolioService } from './portfolio/portfolio.service';
+import { WorkingScheduleController } from './working-schedule/working-schedule.controller';
+import { WorkingScheduleService } from './working-schedule/working-schedule.service';
 
 @Module({
-  controllers: [EmployeesController, PortfolioController, EmployeeServicesController],
-  providers: [EmployeesService, PortfolioService, EmployeeServicesService],
+  controllers: [
+    EmployeesController,
+    PortfolioController,
+    EmployeeServicesController,
+    WorkingScheduleController,
+  ],
+  providers: [EmployeesService, PortfolioService, EmployeeServicesService, WorkingScheduleService],
 })
 export class EmployeesModule {}

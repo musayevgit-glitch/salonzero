@@ -3,6 +3,7 @@ export * from './auth';
 export * from './salons';
 export * from './employees';
 export * from './employee-services';
+export * from './working-schedule';
 export * from './portfolio';
 export * from './service-categories';
 export * from './services';
