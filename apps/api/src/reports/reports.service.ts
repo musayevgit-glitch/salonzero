@@ -9,6 +9,18 @@ const REVENUE_STATUSES: ReservationStatus[] = [
   ReservationStatus.COMPLETED,
 ];
 
+const SENSITIVE_METADATA_KEY = /password|secret|token|cookie|authorization/i;
+
+function sanitizeMetadata(value: unknown): unknown {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return value;
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>).map(([key, val]) => [
+      key,
+      SENSITIVE_METADATA_KEY.test(key) ? '[REDACTED]' : val,
+    ]),
+  );
+}
+
 @Injectable()
 export class ReportsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -150,6 +162,7 @@ export class ReportsService {
     return {
       items: items.map((l) => ({
         ...l,
+        metadata: sanitizeMetadata(l.metadata),
         actor: l.actorUserId ? (actorMap[l.actorUserId] ?? null) : null,
       })),
       total,

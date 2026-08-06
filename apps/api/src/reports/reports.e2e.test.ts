@@ -154,6 +154,25 @@ describe('GET /salons/:salonId/reports/audit-logs', () => {
     // salonB admin must not see salonA events
     expect(res.body.items.every((i: { salonId: string }) => i.salonId === salonB.id)).toBe(true);
   });
+
+  it('SEC-020: redacts sensitive metadata keys when reading audit logs', async () => {
+    const { salon, agent } = await createSalonWithAdmin();
+    await prisma.auditLog.create({
+      data: {
+        action: 'test.metadata_redaction',
+        targetType: 'Test',
+        targetId: randomUUID(),
+        salonId: salon.id,
+        metadata: { safe: 'ok', resetToken: 'secret-token' },
+      },
+    });
+
+    const res = await agent.get(
+      `/salons/${salon.id}/reports/audit-logs?action=test.metadata_redaction`,
+    );
+    expect(res.status).toBe(200);
+    expect(res.body.items[0].metadata).toEqual({ safe: 'ok', resetToken: '[REDACTED]' });
+  });
 });
 
 describe('GET /superadmin/reports', () => {

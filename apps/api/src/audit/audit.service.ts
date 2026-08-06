@@ -8,6 +8,9 @@ export interface AuditEventInput {
   targetType: string;
   targetId: string;
   salonId?: string | null;
+  ipAddress?: string | null;
+  userAgent?: string | null;
+  requestId?: string | null;
   // Safe, small metadata only — never secrets/tokens/passwords (docs/security/security-requirements.md).
   metadata?: Prisma.InputJsonValue;
 }
@@ -24,6 +27,9 @@ export class AuditService {
         targetType: event.targetType,
         targetId: event.targetId,
         salonId: event.salonId ?? null,
+        ipAddress: event.ipAddress ?? null,
+        userAgent: event.userAgent ?? null,
+        requestId: event.requestId ?? null,
         metadata: event.metadata,
       },
     });

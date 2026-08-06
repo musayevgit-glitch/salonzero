@@ -228,8 +228,25 @@ describe('RolesGuard denial matrix (docs/security/authorization.md)', () => {
     await prisma.user.update({ where: { id: userId }, data: { isSuperadmin: true } });
 
     // SUPERADMIN has no SalonMembership row, and salon-admin-only doesn't list SUPERADMIN — denied.
-    const res = await agent.get(`/test-authz/salon-admin-only/${salon.id}`);
+    const res = await agent
+      .get(`/test-authz/salon-admin-only/${salon.id}`)
+      .set('user-agent', 'authz-test-agent')
+      .set('x-request-id', 'req-sec-020');
     expect(res.status).toBe(404);
+
+    const denied = await prisma.auditLog.findFirst({
+      where: { actorUserId: userId, action: 'authz.denied', salonId: salon.id },
+    });
+    expect(denied).toMatchObject({
+      ipAddress: expect.any(String),
+      userAgent: 'authz-test-agent',
+      requestId: 'req-sec-020',
+    });
+
+    const contextEntry = await prisma.auditLog.findFirst({
+      where: { actorUserId: userId, action: 'superadmin.context_entry', salonId: salon.id },
+    });
+    expect(contextEntry).toBeNull();
   });
 
   it('allows any authenticated user on a CUSTOMER-only route (ownership is the handler’s job, not this guard’s)', async () => {
@@ -239,9 +256,13 @@ describe('RolesGuard denial matrix (docs/security/authorization.md)', () => {
   });
 
   it('returns 404 for a malformed (non-UUID) salonId — never 500', async () => {
-    const { agent } = await registerAndLogin(`authz-bad-uuid-${randomUUID()}@example.com`);
+    const { agent, userId } = await registerAndLogin(`authz-bad-uuid-${randomUUID()}@example.com`);
     const res = await agent.get('/test-authz/salon-admin-only/not-a-uuid');
     expect(res.status).toBe(404);
+    const denied = await prisma.auditLog.findFirst({
+      where: { actorUserId: userId, action: 'authz.denied', targetId: 'not-a-uuid' },
+    });
+    expect(denied).not.toBeNull();
   });
 
   it('ignores a forged salonId in the request body — only the route param is authoritative', async () => {

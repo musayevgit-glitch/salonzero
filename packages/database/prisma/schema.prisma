@@ -376,6 +376,9 @@ model AuditLog {
   targetType  String
   targetId    String
   salonId     String?
+  ipAddress   String?
+  userAgent   String?
+  requestId   String?
   metadata    Json?
   createdAt   DateTime @default(now()) @db.Timestamptz(3)
 

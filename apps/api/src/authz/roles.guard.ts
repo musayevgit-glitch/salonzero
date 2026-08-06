@@ -48,6 +48,7 @@ export class RolesGuard implements CanActivate {
     // Reject non-UUID salonId before touching the DB — avoids Prisma throwing a 500 on malformed
     // input and prevents information leakage via error message differences.
     if (salonId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(salonId)) {
+      await this.recordDenied(request, salonId, requiredRoles, 'invalid_salon_id');
       throw new NotFoundException();
     }
 
@@ -65,6 +66,7 @@ export class RolesGuard implements CanActivate {
         });
         return true;
       }
+      await this.recordDenied(request, null, requiredRoles, 'missing_platform_role');
       throw new NotFoundException();
     }
 
@@ -96,6 +98,7 @@ export class RolesGuard implements CanActivate {
       membership.salon.status !== 'ACTIVE' ||
       !requiredRoles.includes(membership.role)
     ) {
+      await this.recordDenied(request, salonId, requiredRoles, 'missing_salon_role');
       throw new NotFoundException();
     }
 
@@ -106,5 +109,29 @@ export class RolesGuard implements CanActivate {
     };
     request.salonContext = salonContext;
     return true;
+  }
+
+  private async recordDenied(
+    request: Request,
+    salonId: string | null,
+    requiredRoles: Role[],
+    reason: string,
+  ): Promise<void> {
+    await this.audit.record({
+      actorUserId: request.user?.id ?? null,
+      action: 'authz.denied',
+      targetType: salonId ? 'Salon' : 'Platform',
+      targetId: salonId ?? 'platform',
+      salonId,
+      ipAddress: request.ip,
+      userAgent: request.get('user-agent') ?? null,
+      requestId: request.get('x-request-id') ?? null,
+      metadata: {
+        route: request.route?.path ?? null,
+        method: request.method,
+        requiredRoles,
+        reason,
+      },
+    });
   }
 }
