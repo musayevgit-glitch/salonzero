@@ -2,6 +2,7 @@ import type { INestApplication } from '@nestjs/common';
 import connectPgSimple from 'connect-pg-simple';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
+import helmet from 'helmet';
 import passport from 'passport';
 import { Pool } from 'pg';
 import { CsrfGuard } from './auth/guards/csrf.guard';
@@ -12,6 +13,14 @@ import type { ApiEnv } from './config/env';
 // session/CSRF/CORS wiring production uses rather than a simplified stand-in.
 export function configureApp(app: INestApplication, env: ApiEnv): void {
   const isProduction = env.NODE_ENV === 'production';
+
+  // Helmet must come first so security headers are present on every response, including errors.
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: 'cross-origin' }, // allow browser-fetched assets
+      contentSecurityPolicy: isProduction, // dev keeps it off so HMR websockets work
+    }),
+  );
 
   app.enableCors({ origin: env.CORS_ORIGINS, credentials: true });
   app.use(cookieParser());
