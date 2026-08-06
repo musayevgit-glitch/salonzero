@@ -828,6 +828,58 @@ Risks: none new — this is a planning artifact. The real risk surface opens up 
 sessions per sub-prompt in this section.
 Next: Section 15.2 — Availability engine (pure domain service, no UI, no reservation-creation endpoint)
 
+## Section 15.2 — Availability engine (pure domain service)
+
+Status: done. No UI, no reservation-creation endpoint, per the prompt's explicit scope — this is
+callable domain logic only, to be wired up by Section 15.3's booking transaction.
+`apps/api/src/reservations/availability/timezone.ts` — dependency-free zoned-time helpers
+(`getLocalDateParts`, `getLocalWeekday`, `addLocalDays`, `compareLocalDateParts`,
+`localWallTimeToUtc`), built on `Intl.DateTimeFormat` rather than a date library. `localWallTimeToUtc`
+uses an iterative offset-correction algorithm (converges in ≤3 passes) to convert a
+weekday/minute-of-day wall-clock value (as stored on `WorkingSchedule`/`Break`) into the correct UTC
+instant, including across DST transitions. DST policy is deliberately documented rather than
+"perfectly" disambiguated: a spring-forward gap (a wall time that never existed) resolves to whatever
+instant the correction converges on; a fall-back fold (a wall time that occurs twice) resolves to the
+first occurrence — both are consistent/deterministic (same input → same output), which is what
+"deterministic time handling" requires here, not perfect real-world disambiguation of an inherently
+ambiguous local time.
+`apps/api/src/reservations/availability/availability.ts` — `computeAvailability()`, a pure function
+(no I/O) taking every input as plain data: salon timezone, current instant (`now`, passed in — never
+`Date.now()` inside the engine), search range, service duration/buffer, booking notice/horizon, and
+per-employee working schedule/breaks/time-off/blocking-reservations/eligibility/active-status. Iterates
+by *local calendar day* (not fixed 24h steps) in the salon's timezone — the detail that makes DST
+handled correctly, since a "day" can be 23 or 25 real hours but is always exactly one calendar date.
+Generates candidate starts on a configurable grid (default 15min) within each working block, filtering
+out any candidate whose `[start, start + duration + buffer)` span overlaps a break, time-off period, or
+blocking reservation. Buffer design decision (documented in code): buffer is trailing padding that must
+not collide with the *next* commitment, but is not required to fit before the working day's own closing
+time — kept deliberately simple rather than special-casing end-of-day. `computeAnyStylistAvailability()`
+wraps this for the "any suitable stylist" flow, deduping identical start times across employees.
+Salon-wide closures are out of scope here too, consistent with the 14.3 decision (no such input exists
+yet — the function signature simply has no closure parameter to add).
+Commit: pending (this task)
+Tests: 26 new unit tests, all pure (no DB, no NestJS test module) — 11 for the timezone helpers
+(including explicit fixtures for the 2026 US spring-forward date crossing EST→EDT, the fall-back date
+crossing EDT→EST, and determinism checks for the nonexistent/duplicated wall times right at each
+transition) and 15 for the availability engine (basic slot generation on a grid, inactive/ineligible
+employees produce no slots, break/blocking-reservation/time-off exclusion — including the "buffer as
+trailing padding" case — booking-notice and booking-horizon boundaries, multiple employees, "any
+stylist" deduping, and full end-to-end DST-crossing slot generation in `America/New_York`). Two of my
+own first-draft test assertions were themselves wrong (a 60-minute appointment window fully containing
+a 30-minute break/reservation does *not* leave two slots free, only the touching one; 9am on the
+US fall-back date is already standard time, not daylight time, since the transition happens at 2am that
+same day) — caught by actually running the suite rather than assuming the math, then fixed. `apps/api`
+total: 214 passing tests. Full repo gate (14/14) passed.
+Security/tenant checks: n/a directly (no I/O, no auth surface) — but this is exactly the code Section
+15.6's security review will need to re-verify once it's wired into a real endpoint (e.g., that callers
+never let a client supply `now`, employee eligibility, or schedule data — this function trusts whatever
+it's given, so the caller's job in 15.3 is to make sure that's always server-derived).
+Risks: none new. The real risk surface is Section 15.3 (the actual booking transaction, concurrency,
+and endpoint authorization) — this slice is intentionally inert (no DB, no route) so it carries no
+runtime risk on its own.
+Next: Section 15.3 — Customer booking transaction (the first endpoint in this area; separate session
+per the playbook)
+
 ## Blockers / environment notes
 
 - Docker is not installed in this environment; resolved by using the existing Postgres.app (PG 18)
