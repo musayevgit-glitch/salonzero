@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createSalonSchema, listSalonsQuerySchema } from './salons';
+import { createSalonSchema, listSalonsQuerySchema, updateSalonSchema } from './salons';
 
 describe('listSalonsQuerySchema', () => {
   it('defaults page/pageSize when omitted', () => {
@@ -49,5 +49,36 @@ describe('createSalonSchema', () => {
     expect(() => createSalonSchema.parse({ ...valid, status: 'SUSPENDED' })).toThrow();
     expect(() => createSalonSchema.parse({ ...valid, id: 'forged-id' })).toThrow();
     expect(() => createSalonSchema.parse({ ...valid, subdomain: 'forged' })).toThrow();
+  });
+});
+
+describe('updateSalonSchema', () => {
+  it('accepts a partial update with a single field', () => {
+    expect(updateSalonSchema.parse({ name: 'New Name' })).toEqual({ name: 'New Name' });
+  });
+
+  it('accepts explicit null to clear an optional field', () => {
+    expect(updateSalonSchema.parse({ city: null })).toEqual({ city: null });
+  });
+
+  it('rejects an empty body (no editable field provided)', () => {
+    expect(() => updateSalonSchema.parse({})).toThrow();
+  });
+
+  it('rejects a body containing only expectedUpdatedAt', () => {
+    expect(() =>
+      updateSalonSchema.parse({ expectedUpdatedAt: new Date().toISOString() }),
+    ).toThrow();
+  });
+
+  it('rejects an invalid email', () => {
+    expect(() => updateSalonSchema.parse({ email: 'not-an-email' })).toThrow();
+  });
+
+  it('rejects forbidden/protected fields (slug, status, subdomain, id)', () => {
+    expect(() => updateSalonSchema.parse({ name: 'X', slug: 'new-slug' })).toThrow();
+    expect(() => updateSalonSchema.parse({ name: 'X', status: 'SUSPENDED' })).toThrow();
+    expect(() => updateSalonSchema.parse({ name: 'X', subdomain: 'forged' })).toThrow();
+    expect(() => updateSalonSchema.parse({ name: 'X', id: 'forged-id' })).toThrow();
   });
 });

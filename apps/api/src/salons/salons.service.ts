@@ -4,7 +4,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import type { CreateSalonInput, ListSalonsQuery } from '@salonomia/validation';
+import type {
+  CreateSalonInput,
+  ListSalonsQuery,
+  SalonLifecycleActionInput,
+  UpdateSalonInput,
+} from '@salonomia/validation';
 import { AuditService } from '../audit/audit.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { TokenService } from '../auth/token.service';
@@ -43,7 +48,26 @@ export interface SalonDetail extends SalonListItem {
   customDomain: string | null;
   genderFocus: string | null;
   activeMembershipCount: number;
+  updatedAt: Date;
 }
+
+const DETAIL_SELECT = {
+  id: true,
+  slug: true,
+  name: true,
+  status: true,
+  city: true,
+  timezone: true,
+  createdAt: true,
+  updatedAt: true,
+  description: true,
+  addressLine: true,
+  phone: true,
+  email: true,
+  subdomain: true,
+  customDomain: true,
+  genderFocus: true,
+} as const;
 
 export interface CreateSalonResult {
   salon: SalonListItem;
@@ -175,20 +199,7 @@ export class SalonsService {
     const salon = await this.prisma.salon.findUnique({
       where: { id: salonId },
       select: {
-        id: true,
-        slug: true,
-        name: true,
-        status: true,
-        city: true,
-        timezone: true,
-        createdAt: true,
-        description: true,
-        addressLine: true,
-        phone: true,
-        email: true,
-        subdomain: true,
-        customDomain: true,
-        genderFocus: true,
+        ...DETAIL_SELECT,
         _count: { select: { memberships: { where: { status: 'ACTIVE' } } } },
       },
     });
@@ -200,6 +211,120 @@ export class SalonsService {
     }
 
     const { _count, ...rest } = salon;
+    return { ...rest, activeMembershipCount: _count.memberships };
+  }
+
+  async update(
+    salonId: string,
+    input: UpdateSalonInput,
+    actorUserId: string,
+  ): Promise<SalonDetail> {
+    const current = await this.prisma.salon.findUnique({ where: { id: salonId } });
+    if (!current) {
+      throw new NotFoundException();
+    }
+
+    if (input.expectedUpdatedAt) {
+      const expected = new Date(input.expectedUpdatedAt).getTime();
+      if (expected !== current.updatedAt.getTime()) {
+        throw new ConflictException(
+          'This salon was changed by someone else. Reload and try again.',
+        );
+      }
+    }
+
+    if (input.timezone && !SUPPORTED_TIMEZONES.has(input.timezone)) {
+      throw new BadRequestException('timezone must be a valid IANA time zone identifier.');
+    }
+
+    // Explicit allowlist, built field-by-field from validated input — never a spread of the raw
+    // body (docs/security/authorization.md / validation-contract skill).
+    const data: Record<string, unknown> = {};
+    const editableFields = [
+      'name',
+      'timezone',
+      'city',
+      'description',
+      'addressLine',
+      'phone',
+      'email',
+      'genderFocus',
+    ] as const;
+    for (const field of editableFields) {
+      if (field in input) data[field] = input[field];
+    }
+
+    const updated = await this.prisma.salon.update({
+      where: { id: salonId },
+      data,
+      select: {
+        ...DETAIL_SELECT,
+        _count: { select: { memberships: { where: { status: 'ACTIVE' } } } },
+      },
+    });
+
+    await this.audit.record({
+      actorUserId,
+      action: 'salon.updated',
+      targetType: 'Salon',
+      targetId: salonId,
+      salonId,
+      metadata: { changedFields: Object.keys(data) },
+    });
+
+    const { _count, ...rest } = updated;
+    return { ...rest, activeMembershipCount: _count.memberships };
+  }
+
+  async suspend(
+    salonId: string,
+    input: SalonLifecycleActionInput,
+    actorUserId: string,
+  ): Promise<SalonDetail> {
+    return this.setStatus(salonId, 'SUSPENDED', 'salon.suspended', input, actorUserId);
+  }
+
+  async restore(
+    salonId: string,
+    input: SalonLifecycleActionInput,
+    actorUserId: string,
+  ): Promise<SalonDetail> {
+    return this.setStatus(salonId, 'ACTIVE', 'salon.restored', input, actorUserId);
+  }
+
+  private async setStatus(
+    salonId: string,
+    status: 'ACTIVE' | 'SUSPENDED',
+    auditAction: string,
+    input: SalonLifecycleActionInput,
+    actorUserId: string,
+  ): Promise<SalonDetail> {
+    const current = await this.prisma.salon.findUnique({ where: { id: salonId } });
+    if (!current) {
+      throw new NotFoundException();
+    }
+
+    // deletedAt is intentionally untouched: it marks genuine (future, not-yet-implemented) deletion,
+    // not suspension — ADR-0006 keeps those two concepts separate.
+    const updated = await this.prisma.salon.update({
+      where: { id: salonId },
+      data: { status },
+      select: {
+        ...DETAIL_SELECT,
+        _count: { select: { memberships: { where: { status: 'ACTIVE' } } } },
+      },
+    });
+
+    await this.audit.record({
+      actorUserId,
+      action: auditAction,
+      targetType: 'Salon',
+      targetId: salonId,
+      salonId,
+      metadata: input.reason ? { reason: input.reason } : undefined,
+    });
+
+    const { _count, ...rest } = updated;
     return { ...rest, activeMembershipCount: _count.memberships };
   }
 }

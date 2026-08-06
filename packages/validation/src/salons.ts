@@ -43,3 +43,37 @@ export const createSalonSchema = z
   })
   .strict();
 export type CreateSalonInput = z.infer<typeof createSalonSchema>;
+
+// Explicit allowlist of editable fields — slug/subdomain/customDomain/status/id are never accepted
+// here (slug rarely changes and would break existing links; subdomain is Section 11.5's job; status
+// is Section 11.4's suspend/restore action, not a generic field edit).
+export const updateSalonSchema = z
+  .object({
+    name: z.string().trim().min(1).max(200).optional(),
+    timezone: z.string().trim().min(1).max(100).optional(),
+    city: z.string().trim().min(1).max(100).nullable().optional(),
+    description: z.string().trim().min(1).max(2000).nullable().optional(),
+    addressLine: z.string().trim().min(1).max(300).nullable().optional(),
+    phone: z.string().trim().min(1).max(30).nullable().optional(),
+    email: z.string().trim().toLowerCase().email().max(254).nullable().optional(),
+    genderFocus: z.enum(['WOMEN', 'MEN', 'UNISEX']).nullable().optional(),
+    // Optimistic concurrency: the client echoes back the `updatedAt` it last read; a mismatch means
+    // someone else changed the salon in between, and the update is rejected rather than silently
+    // overwriting their change.
+    expectedUpdatedAt: z.string().datetime().optional(),
+  })
+  .strict()
+  .refine((obj) => Object.keys(obj).some((key) => key !== 'expectedUpdatedAt'), {
+    message: 'At least one editable field must be provided.',
+  });
+export type UpdateSalonInput = z.infer<typeof updateSalonSchema>;
+
+// Suspend/restore (Section 11.4) — an optional reason, recorded on the audit event. No status field
+// here: which action (suspend vs. restore) is determined by the route, never by a client-supplied
+// status value.
+export const salonLifecycleActionSchema = z
+  .object({
+    reason: z.string().trim().min(1).max(500).optional(),
+  })
+  .strict();
+export type SalonLifecycleActionInput = z.infer<typeof salonLifecycleActionSchema>;

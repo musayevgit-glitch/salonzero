@@ -143,6 +143,26 @@ describe('RolesGuard denial matrix (docs/security/authorization.md)', () => {
     expect(res.status).toBe(404);
   });
 
+  it('rejects an active membership at a suspended salon (Section 11.4 suspend effect)', async () => {
+    const salon = await prisma.salon.create({
+      data: {
+        slug: `authz-suspsalon-${randomUUID()}`,
+        name: 'Suspended Salon',
+        timezone: 'UTC',
+        status: 'SUSPENDED',
+      },
+    });
+    const { agent, userId } = await registerAndLogin(
+      `authz-staff-suspsalon-${randomUUID()}@example.com`,
+    );
+    await prisma.salonMembership.create({
+      data: { userId, salonId: salon.id, role: 'SALON_ADMIN' },
+    });
+
+    const res = await agent.get(`/test-authz/salon-admin-only/${salon.id}`);
+    expect(res.status).toBe(404);
+  });
+
   it('rejects a membership for a *different* salon than the one requested (cross-salon)', async () => {
     const ownSalon = await prisma.salon.create({
       data: { slug: `authz-own-${randomUUID()}`, name: 'Own Salon', timezone: 'UTC' },
@@ -159,6 +179,24 @@ describe('RolesGuard denial matrix (docs/security/authorization.md)', () => {
 
     const res = await agent.get(`/test-authz/salon-admin-only/${otherSalon.id}`);
     expect(res.status).toBe(404);
+  });
+
+  it('still allows SUPERADMIN into a suspended salon (needed to restore it)', async () => {
+    const salon = await prisma.salon.create({
+      data: {
+        slug: `authz-suspsuper-${randomUUID()}`,
+        name: 'Suspended For Super',
+        timezone: 'UTC',
+        status: 'SUSPENDED',
+      },
+    });
+    const { agent, userId } = await registerAndLogin(
+      `authz-super-suspended-${randomUUID()}@example.com`,
+    );
+    await prisma.user.update({ where: { id: userId }, data: { isSuperadmin: true } });
+
+    const res = await agent.get(`/test-authz/superadmin-only/${salon.id}`);
+    expect(res.status).toBe(200);
   });
 
   it('allows SUPERADMIN on a route that declares SUPERADMIN, for any salon, and audits it', async () => {

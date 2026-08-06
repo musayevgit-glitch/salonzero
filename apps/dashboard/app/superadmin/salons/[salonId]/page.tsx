@@ -3,10 +3,14 @@
 import {
   Badge,
   Breadcrumbs,
+  Button,
   Card,
+  ConfirmDialog,
   ErrorState,
+  Link,
   PermissionDeniedState,
   Skeleton,
+  useToast,
 } from '@salonomia/ui';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -27,6 +31,7 @@ interface SalonDetail {
   customDomain: string | null;
   genderFocus: string | null;
   activeMembershipCount: number;
+  updatedAt: string;
 }
 
 type LoadState =
@@ -39,16 +44,15 @@ type LoadState =
 export default function SuperadminSalonDetailPage() {
   const router = useRouter();
   const { salonId } = useParams<{ salonId: string }>();
+  const { showToast } = useToast();
   const [state, setState] = useState<LoadState>({ kind: 'loading' });
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [lifecycleBusy, setLifecycleBusy] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
+  function load() {
     apiFetch<SalonDetail>(`/salons/${salonId}`)
-      .then((salon) => {
-        if (!cancelled) setState({ kind: 'ready', salon });
-      })
+      .then((salon) => setState({ kind: 'ready', salon }))
       .catch((err: unknown) => {
-        if (cancelled) return;
         if (err instanceof ApiError && err.status === 401) {
           router.replace(`/login?returnTo=/superadmin/salons/${salonId}`);
           return;
@@ -64,10 +68,25 @@ export default function SuperadminSalonDetailPage() {
           message: err instanceof ApiError ? err.message : 'Something went wrong.',
         });
       });
-    return () => {
-      cancelled = true;
-    };
-  }, [salonId, router]);
+  }
+
+  useEffect(load, [salonId, router]);
+
+  async function handleLifecycleConfirm() {
+    if (state.kind !== 'ready') return;
+    setLifecycleBusy(true);
+    const action = state.salon.status === 'ACTIVE' ? 'suspend' : 'restore';
+    try {
+      await apiFetch(`/salons/${salonId}/${action}`, { method: 'POST', body: JSON.stringify({}) });
+      showToast(action === 'suspend' ? 'Salon suspended' : 'Salon restored');
+      setConfirmOpen(false);
+      load();
+    } catch (err) {
+      showToast(err instanceof ApiError ? err.message : 'Something went wrong.', 'danger');
+    } finally {
+      setLifecycleBusy(false);
+    }
+  }
 
   if (state.kind === 'loading') {
     return (
@@ -77,15 +96,7 @@ export default function SuperadminSalonDetailPage() {
     );
   }
 
-  if (state.kind === 'permission-denied') {
-    return (
-      <main className="p-8">
-        <PermissionDeniedState />
-      </main>
-    );
-  }
-
-  if (state.kind === 'not-found') {
+  if (state.kind === 'permission-denied' || state.kind === 'not-found') {
     return (
       <main className="p-8">
         <PermissionDeniedState />
@@ -102,6 +113,7 @@ export default function SuperadminSalonDetailPage() {
   }
 
   const { salon } = state;
+  const isActive = salon.status === 'ACTIVE';
 
   return (
     <main className="flex flex-col gap-6 p-8">
@@ -111,7 +123,7 @@ export default function SuperadminSalonDetailPage() {
       <Card className="max-w-lg">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold text-text-primary">{salon.name}</h1>
-          <Badge tone={salon.status === 'ACTIVE' ? 'success' : 'neutral'}>{salon.status}</Badge>
+          <Badge tone={isActive ? 'success' : 'neutral'}>{salon.status}</Badge>
         </div>
         <dl className="mt-4 flex flex-col gap-2 text-sm">
           <div className="flex flex-wrap justify-between gap-x-3 gap-y-1">
@@ -140,7 +152,32 @@ export default function SuperadminSalonDetailPage() {
         {salon.description ? (
           <p className="mt-4 text-sm text-text-secondary">{salon.description}</p>
         ) : null}
+
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link href={`/superadmin/salons/${salon.id}/edit`}>Edit</Link>
+          <Button
+            variant={isActive ? 'destructive' : 'secondary'}
+            onClick={() => setConfirmOpen(true)}
+          >
+            {isActive ? 'Suspend' : 'Restore'}
+          </Button>
+        </div>
       </Card>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title={isActive ? 'Suspend this salon?' : 'Restore this salon?'}
+        description={
+          isActive
+            ? 'Its own staff will immediately lose access, and it disappears from public/customer-facing views once those exist. This does not affect existing data.'
+            : 'Staff access and public visibility will be restored.'
+        }
+        confirmLabel={isActive ? 'Suspend' : 'Restore'}
+        destructive={isActive}
+        confirming={lifecycleBusy}
+        onConfirm={handleLifecycleConfirm}
+      />
     </main>
   );
 }

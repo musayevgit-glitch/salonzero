@@ -5,6 +5,7 @@ import {
   HttpCode,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -12,8 +13,12 @@ import {
 import {
   createSalonSchema,
   listSalonsQuerySchema,
+  salonLifecycleActionSchema,
+  updateSalonSchema,
   type CreateSalonInput,
   type ListSalonsQuery,
+  type SalonLifecycleActionInput,
+  type UpdateSalonInput,
 } from '@salonomia/validation';
 import { AuthenticatedGuard } from '../auth/guards/authenticated.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -48,5 +53,38 @@ export class SalonsController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.salonsService.create(body, user.id);
+  }
+
+  @Roles('SUPERADMIN')
+  @HttpCode(200)
+  @Patch(':salonId')
+  update(
+    @Param('salonId', new ParseUUIDPipe({ errorHttpStatusCode: 404 })) salonId: string,
+    @Body(new ZodValidationPipe(updateSalonSchema)) body: UpdateSalonInput,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.salonsService.update(salonId, body, user.id);
+  }
+
+  @Roles('SUPERADMIN')
+  @HttpCode(200)
+  @Post(':salonId/suspend')
+  suspend(
+    @Param('salonId', new ParseUUIDPipe({ errorHttpStatusCode: 404 })) salonId: string,
+    @Body(new ZodValidationPipe(salonLifecycleActionSchema)) body: SalonLifecycleActionInput,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.salonsService.suspend(salonId, body, user.id);
+  }
+
+  @Roles('SUPERADMIN')
+  @HttpCode(200)
+  @Post(':salonId/restore')
+  restore(
+    @Param('salonId', new ParseUUIDPipe({ errorHttpStatusCode: 404 })) salonId: string,
+    @Body(new ZodValidationPipe(salonLifecycleActionSchema)) body: SalonLifecycleActionInput,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.salonsService.restore(salonId, body, user.id);
   }
 }

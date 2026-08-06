@@ -298,10 +298,11 @@ real Postgres), slug derivation + normalization, duplicate-slug→409, invalid-t
 missing-required-field→400, forbidden-field-injection→400. Full repo gate (12/12) passed; compiled
 `node dist/main.js` + real dashboard `next dev` both smoke-tested; full browser walkthrough as the
 seeded superadmin (fill form → submit → confirmation with real invite link) followed by a curl-driven
-verification that the *actual* token from that *actual* invitation really works end-to-end (accepted →
+verification that the _actual_ token from that _actual_ invitation really works end-to-end (accepted →
 new User created → SalonMembership(SALON_ADMIN) row created) — not a synthetic test double.
 Two real bugs found and fixed, both by actually running the thing rather than trusting the first green
 test run:
+
 1. `Intl.supportedValuesOf('timeZone')` does not include plain `'UTC'` — ICU's canonical form is
    `'Etc/UTC'`. Since `'UTC'` is a completely standard identifier already used throughout this
    project's own seed data and tests, rejecting it would have been a real product bug for the first
@@ -310,21 +311,71 @@ test run:
    at all and expected `401`, but the global `CsrfGuard` runs before any controller-level guard, so an
    unauthenticated + CSRF-less request correctly gets `403` first. Fixed the test to prime CSRF (as a
    real browser would) so it actually exercises `AuthenticatedGuard`'s `401`, not `CsrfGuard`'s `403`.
-Also hit and fixed a test-infrastructure issue unrelated to this feature's logic: the global
-`AUTH_THROTTLE` (10 registrations/60s, shared across all `apps/api` test files in one process) started
-rejecting legitimate test registrations once enough test files accumulated Section 9/10/11 auth calls
-in the same 60-second window. Made the limit `AUTH_THROTTLE_LIMIT` env-overridable (production default
-unchanged at 10) and set it in `apps/api`'s own `test` script so `pnpm test` works without a special
-invocation — this is a real scaling concern for future phases too (more test files, same shared bucket).
-Security/tenant checks: mass-assignment rejected at the schema layer before the service ever runs;
-slug/timezone/adminEmail all server-validated; invitation token only ever appears in the one API
-response that creates it, never logged, never re-returned by any other endpoint.
-Risks: (1) `AUTH_THROTTLE_LIMIT` env-override strategy should be revisited once there are enough auth
-test files that even 1000/60s in one process feels fragile — a per-test-file fresh Nest app with
-isolated throttler storage would be the more scalable fix, not attempted here (would touch every
-existing test file). (2) Invitation email delivery is still just a manually-copied link — unchanged
-known gap from Section 9, now with a second call site.
-Next: Section 11.3 — Superadmin: edit salon (allowlisted fields)
+   Also hit and fixed a test-infrastructure issue unrelated to this feature's logic: the global
+   `AUTH_THROTTLE` (10 registrations/60s, shared across all `apps/api` test files in one process) started
+   rejecting legitimate test registrations once enough test files accumulated Section 9/10/11 auth calls
+   in the same 60-second window. Made the limit `AUTH_THROTTLE_LIMIT` env-overridable (production default
+   unchanged at 10) and set it in `apps/api`'s own `test` script so `pnpm test` works without a special
+   invocation — this is a real scaling concern for future phases too (more test files, same shared bucket).
+   Security/tenant checks: mass-assignment rejected at the schema layer before the service ever runs;
+   slug/timezone/adminEmail all server-validated; invitation token only ever appears in the one API
+   response that creates it, never logged, never re-returned by any other endpoint.
+   Risks: (1) `AUTH_THROTTLE_LIMIT` env-override strategy should be revisited once there are enough auth
+   test files that even 1000/60s in one process feels fragile — a per-test-file fresh Nest app with
+   isolated throttler storage would be the more scalable fix, not attempted here (would touch every
+   existing test file). (2) Invitation email delivery is still just a manually-copied link — unchanged
+   known gap from Section 9, now with a second call site.
+   Next: Section 11.3 — Superadmin: edit salon (allowlisted fields)
+
+## Section 11.3 — Superadmin: edit salon (allowlisted fields) + 11.4 — Suspend/restore
+
+Status: done (both slices, one commit — implemented together since 11.4's suspend effect required
+extending the same `RolesGuard` branch 11.3's tests exercise). `updateSalonSchema` (packages/
+validation): explicit field-by-field allowlist (name/timezone/city/description/addressLine/phone/
+email/genderFocus), `.strict()` rejects slug/subdomain/status/id, `nullable()` lets a field be
+explicitly cleared, requires at least one real field beyond the optional `expectedUpdatedAt`
+concurrency token. `salonLifecycleActionSchema`: optional `reason` only — which action (suspend vs.
+restore) is decided by the route, never a client-supplied status. `SalonsService.update()`: 404 if
+missing, 409 if `expectedUpdatedAt` doesn't match the current row (optimistic concurrency — a real
+stale-write guard, not just UI-level), re-validates timezone if provided, builds the Prisma `data`
+object field-by-field from the allowlist (never spreads the body), audits `salon.updated` with the
+list of changed field *names* only (not values, keeping audit metadata small per docs/security/
+security-requirements.md). `suspend()`/`restore()` share one `setStatus()` helper, audit
+`salon.suspended`/`salon.restored` with the optional reason.
+**11.4's suspend effect implemented for real, not just documented**: extended `RolesGuard`'s
+membership-lookup branch to also require `membership.salon.status === 'ACTIVE'` — a suspended salon's
+own SALON_ADMIN/SALON_MANAGER staff are denied (404) immediately, while SUPERADMIN's bypass branch
+(evaluated earlier, unaffected) can still enter a suspended salon to restore it. Public-visibility and
+new/existing-reservation effects remain documented-only (no public browsing or reservation engine
+exists yet to enforce them against) — noted as risk below for whoever builds those.
+UI: `apps/dashboard/app/superadmin/salons/[salonId]/edit/page.tsx` (pre-filled form, sends
+`expectedUpdatedAt` from the just-fetched detail, surfaces the 409 as "someone else changed this,
+reload" rather than a generic error) and a Suspend/Restore button + `ConfirmDialog` (explicit
+confirmation, per CLAUDE.md's destructive-action rule) added to the existing detail page.
+Commit: pending (this task)
+Tests: 8 new update tests + 5 new suspend/restore tests in salons.e2e.test.ts (cross-role denial,
+successful update preserves untouched fields, explicit-null clears a field, empty-body/forbidden-field
+→400, stale `expectedUpdatedAt`→409, nonexistent salon→404 on all three actions, suspend/restore audit
+rows with reason verified) + 2 new RolesGuard tests (suspended salon blocks its own active-membership
+staff; SUPERADMIN still gets into a suspended salon). Full repo gate (12/12) passed. Full browser
+walkthrough as the seeded superadmin against the real running stack: opened a real salon, suspended it
+(confirm dialog → toast → badge flips to SUSPENDED → button flips to Restore), restored it, then edited
+its city field and confirmed the change persisted through a page reload — all against real Postgres,
+not mocked.
+Security/tenant checks: allowlist enforced at both the schema layer (`.strict()`) and the service layer
+(field-by-field copy, no spread); optimistic concurrency prevents a lost-update race between two admins
+editing the same salon; suspend/restore audited with actor + reason; suspended-salon access denial
+verified through the real HTTP+guard pipeline, not just at the unit level.
+Risks: (1) Public-visibility and reservation-blocking suspend effects are documented in
+docs/security/authorization.md / this entry but not enforceable yet — no public salon browsing or
+reservation engine exists. Whoever builds those must filter/check `salon.status === 'ACTIVE'`
+explicitly; nothing currently does that automatically for them. (2) `expectedUpdatedAt` concurrency
+check compares millisecond timestamps — fine given Prisma's `@db.Timestamptz(3)` precision, but worth
+remembering if the column precision ever changes. (3) No decision yet on whether suspending a salon
+should also force-expire its staff's live sessions (currently they'd just get 404s on next request via
+RolesGuard, which is sufficient, but the session itself stays technically valid) — matches the same
+accepted trade-off already noted for suspended *users* in Section 9.
+Next: Section 11.5 — Superadmin: domain/subdomain management
 
 ## Blockers / environment notes
 

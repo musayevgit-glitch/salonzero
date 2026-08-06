@@ -78,9 +78,18 @@ export class RolesGuard implements CanActivate {
 
     const membership = await this.prisma.salonMembership.findUnique({
       where: { userId_salonId: { userId: user.id, salonId } },
+      include: { salon: { select: { status: true } } },
     });
 
-    if (!membership || membership.status !== 'ACTIVE' || !requiredRoles.includes(membership.role)) {
+    // A suspended salon blocks its own staff (SALON_ADMIN/SALON_MANAGER) — only SUPERADMIN (handled
+    // above, before this branch) can still act on it, e.g. to restore it (docs/product/
+    // acceptance-criteria.md / Section 11.4 suspend-effects).
+    if (
+      !membership ||
+      membership.status !== 'ACTIVE' ||
+      membership.salon.status !== 'ACTIVE' ||
+      !requiredRoles.includes(membership.role)
+    ) {
       throw new NotFoundException();
     }
 
