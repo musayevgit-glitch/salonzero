@@ -31,11 +31,14 @@ import { CurrentUser } from './decorators/current-user.decorator';
 import { AuthenticatedGuard } from './guards/authenticated.guard';
 import type { AuthenticatedUser } from './types';
 
-// Overridable via env so integration test suites (which legitimately register/login far more than
-// 10 times/minute from one IP across many files) don't fight the same limit real abuse does.
-// Production keeps the strict default of 10/60s unless explicitly reconfigured.
+// SEC-006: parsed via validateApiEnv at startup; any non-numeric value fails startup rather than
+// silently disabling rate limiting. The controller reads from process.env after that gate has
+// already run, so the value is guaranteed to coerce to a valid integer.
 const AUTH_THROTTLE = {
-  default: { limit: Number(process.env.AUTH_THROTTLE_LIMIT ?? 10), ttl: 60_000 },
+  default: {
+    limit: Math.max(1, Number.isFinite(Number(process.env.AUTH_THROTTLE_LIMIT)) ? Number(process.env.AUTH_THROTTLE_LIMIT) : 10),
+    ttl: 60_000,
+  },
 };
 
 @Controller('auth')

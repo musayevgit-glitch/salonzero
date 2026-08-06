@@ -171,9 +171,19 @@ export class AuthService {
     callerUserId?: string,
   ): Promise<AuthenticatedUser | null> {
     const tokenHash = this.tokens.hash(input.token);
-    const invitation = await this.prisma.salonInvitation.findUnique({ where: { tokenHash } });
+    const invitation = await this.prisma.salonInvitation.findUnique({
+      where: { tokenHash },
+      include: { salon: { select: { status: true } } },
+    });
 
-    if (!invitation || invitation.acceptedAt || invitation.expiresAt < new Date()) {
+    // SEC-015: also reject if the salon is no longer active — an inactive salon's invitation
+    // must not grant membership or establish a session.
+    if (
+      !invitation ||
+      invitation.acceptedAt ||
+      invitation.expiresAt < new Date() ||
+      invitation.salon.status !== 'ACTIVE'
+    ) {
       return null;
     }
 

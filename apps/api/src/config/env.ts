@@ -20,6 +20,9 @@ export const apiEnvSchema = baseEnvSchema.extend({
   // Set to 0 in development (direct connections). Never use `true` — that trusts the entire
   // X-Forwarded-For chain, which is attacker-controlled.
   TRUST_PROXY_HOPS: z.coerce.number().int().min(0).default(0),
+  // SEC-006: auth route throttle limit goes through env validation so a non-numeric value (typo,
+  // template artifact) causes a startup failure rather than silently disabling rate limiting.
+  AUTH_THROTTLE_LIMIT: z.coerce.number().int().min(1).max(10_000).default(10),
 });
 
 export type ApiEnv = z.infer<typeof apiEnvSchema>;
