@@ -1456,3 +1456,35 @@ Files created under `docs/operations/`:
 - `backup-and-restore.md` — pg_dump commands, PITR, monthly restore test, critical tables
 - `incident-response.md` — P0/P1/P2/P3 definitions, breach playbook, runbooks, PIR template
 - `release-checklist.md` — pre-deploy gates: types, tests, security, DB, observability, smoke tests
+
+## Dashboard Navigation + Security Headers (post-Phase-14 hardening)
+
+Status: done. Commits: 557b441, bb8e1cd.
+
+Dashboard sidebar navigation:
+- `apps/dashboard/app/salon/[salonId]/layout.tsx` + `_components/SalonShell.tsx` —
+  `DashboardShell` (sidebar on desktop, hamburger drawer on mobile) for all salon pages;
+  nav items: Reservations, Employees, Services, Service Categories, Reports, Audit Log.
+- `apps/dashboard/app/superadmin/layout.tsx` + `_components/SuperadminShell.tsx` —
+  same shell for superadmin section; nav items: Salons, Reports, Audit Log.
+  Active tab detected via `usePathname()` in a `'use client'` wrapper around the server layout.
+
+Security headers:
+- API: `helmet` added to `configure-app.ts` (HSTS, X-Content-Type-Options, X-Frame-Options,
+  X-XSS-Protection:0, Referrer-Policy); CSP disabled in dev so HMR works; applied before CORS.
+- web + dashboard: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`,
+  `Permissions-Policy` added to both `next.config.ts` files via `headers()`.
+
+Test env fix:
+- `apps/api/vitest.config.ts` now loads root `.env` via `vite loadEnv` — all 334 tests pass
+  with a plain `pnpm --filter @salonomia/api test` without manually sourcing `.env` first.
+
+Tests: 334 passing (all API), dashboard and web TypeScript clean.
+
+## Phase 12 — Complete Security Audit
+
+Status: in progress (background security-reviewer agent; will produce docs/security/final-audit.md).
+
+## Phase 13 — Security Remediation
+
+Status: blocked on Phase 12 completion.
