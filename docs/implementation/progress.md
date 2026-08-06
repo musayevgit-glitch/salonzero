@@ -339,7 +339,7 @@ restore) is decided by the route, never a client-supplied status. `SalonsService
 missing, 409 if `expectedUpdatedAt` doesn't match the current row (optimistic concurrency — a real
 stale-write guard, not just UI-level), re-validates timezone if provided, builds the Prisma `data`
 object field-by-field from the allowlist (never spreads the body), audits `salon.updated` with the
-list of changed field *names* only (not values, keeping audit metadata small per docs/security/
+list of changed field _names_ only (not values, keeping audit metadata small per docs/security/
 security-requirements.md). `suspend()`/`restore()` share one `setStatus()` helper, audit
 `salon.suspended`/`salon.restored` with the optional reason.
 **11.4's suspend effect implemented for real, not just documented**: extended `RolesGuard`'s
@@ -374,8 +374,45 @@ check compares millisecond timestamps — fine given Prisma's `@db.Timestamptz(3
 remembering if the column precision ever changes. (3) No decision yet on whether suspending a salon
 should also force-expire its staff's live sessions (currently they'd just get 404s on next request via
 RolesGuard, which is sufficient, but the session itself stays technically valid) — matches the same
-accepted trade-off already noted for suspended *users* in Section 9.
-Next: Section 11.5 — Superadmin: domain/subdomain management
+accepted trade-off already noted for suspended _users_ in Section 9.
+Next: Section 11.5 — Superadmin: domain/subdomain management (deferred — see below)
+
+## Section 12.1 — Salon Admin: employee list and detail (read-only)
+
+Status: done. Section 11.5 (superadmin domain/subdomain management) deferred at the user's explicit
+request in favor of moving to Section 12 — not implemented, remains open. This is the first
+SALON_ADMIN-scoped (not platform/SUPERADMIN-only) route built on top of `RolesGuard`.
+`packages/validation/src/employees.ts` → `listEmployeesQuerySchema` (page/pageSize/search/
+isActive — coerced from string 'true'/'false' since it travels as a query param). Backend:
+`apps/api/src/employees/*` — `EmployeesController` at `salons/:salonId/employees`, `@Roles('SUPERADMIN',
+'SALON_ADMIN')` (SALON_MANAGER and plain users denied per the prompt's explicit spec). Handlers read
+the authorized salonId from `@CurrentSalonContext()` (the guard-resolved value), never from the raw
+route param directly, matching the documented pattern in `salon-context.ts`. `list()` scopes every
+query by that salonId; `detail()` combines `id` + `salonId` in one `findFirst` (not fetch-then-check),
+so an employee ID from a different salon 404s identically to a nonexistent one. UI:
+`apps/dashboard/app/salon/[salonId]/employees/{page.tsx,[employeeId]/page.tsx}` — same search/filter/
+Table/MobileRecordList/Pagination pattern as the superadmin salons list, reusing the design system.
+Commit: pending (this task)
+Tests: 8 new integration tests: unauthenticated→401, SALON_MANAGER and no-membership user→404 on both
+list and detail, SALON_ADMIN and SUPERADMIN both succeed with correct search/isActive-filter/pagination,
+**cross-salon leakage test** (an admin of salon A gets an empty-filtered result for salon A and an
+outright 404 for salon B, never a mixed/leaked list), **IDOR test** (a valid SALON_ADMIN of salon A
+requesting a real employee ID that belongs to salon B still 404s — the salonId is in the query, not
+checked after fetching), malformed/nonexistent employee ID→404. Full repo gate (12/12) passed. Full
+browser walkthrough: seeded a real salon + SALON_ADMIN + two employees (one active, one inactive) via
+Prisma, logged in as that SALON_ADMIN in-browser (after logging out of the superadmin session used in
+prior sections — cookies are shared across dashboard sessions on `localhost` regardless of port), and
+verified the list (both employees, correct badges) and detail page render real data.
+Security/tenant checks: this is the first route where the resolved `SalonContext.salonId` (not the raw
+`:salonId` route param) is what handlers actually use — verified via the cross-salon and IDOR tests
+that this is not just cosmetic, it's the thing preventing leakage. No sensitive fields are exposed
+(`EmployeeProfile` has none beyond what's already documented as public in data-classification.md).
+Risks: (1) No SALON_ADMIN dashboard landing/navigation exists yet — this route is only reachable by
+direct URL today; a "my salon" landing page is naturally Prompt 12.2+'s or a later phase's job, not
+attempted here to keep this slice's diff focused on the read flow itself. (2) Section 11.5 (domain/
+subdomain management) remains unimplemented — deferred, not forgotten; still needed before any public
+subdomain-based salon resolution work in later phases.
+Next: Section 12.2 — Salon Admin: employee create/edit/status
 
 ## Blockers / environment notes
 
