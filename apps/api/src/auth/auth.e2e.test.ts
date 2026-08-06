@@ -240,6 +240,135 @@ describe('POST /auth/reset-password', () => {
   });
 });
 
+// SEC-001 regression: invitation acceptance must not silently log in as an existing account
+// without proving knowledge of that account's credentials.
+describe('POST /auth/invitations/accept — SEC-001 regression', () => {
+  async function createInvitationToken(
+    salonId: string,
+    email: string,
+    role: 'SALON_MANAGER' | 'SALON_ADMIN' = 'SALON_MANAGER',
+  ): Promise<string> {
+    // Create a raw token + hash the way TokenService does (SHA-256 hex)
+    const { createHash } = await import('node:crypto');
+    const rawToken = randomUUID();
+    const tokenHash = createHash('sha256').update(rawToken).digest('hex');
+    await prisma.salonInvitation.create({
+      data: {
+        salonId,
+        email,
+        role,
+        tokenHash,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      },
+    });
+    return rawToken;
+  }
+
+  it('rejects an unauthenticated caller trying to accept an invitation for an existing account (SEC-001)', async () => {
+    const salon = await prisma.salon.create({
+      data: { slug: `sec-001-${randomUUID()}`, name: 'SEC-001 Salon', timezone: 'UTC' },
+    });
+    // Existing account
+    const existingEmail = `sec001-existing-${randomUUID()}@example.com`;
+    const { agent: existingAgent, csrfToken: ect } = await newAgentWithCsrf();
+    await existingAgent
+      .post('/auth/register')
+      .set('x-csrf-token', ect)
+      .send({ email: existingEmail, password: 'existingpassword123', fullName: 'Existing User' });
+
+    const token = await createInvitationToken(salon.id, existingEmail);
+
+    // Attack: unauthenticated caller tries to accept the invitation → must get 409, not a new session
+    const { agent: attackerAgent, csrfToken: act } = await newAgentWithCsrf();
+    const res = await attackerAgent
+      .post('/auth/invitations/accept')
+      .set('x-csrf-token', act)
+      .send({ token, fullName: 'Attacker', password: 'attackerpass123' });
+
+    expect(res.status).toBe(409);
+
+    // Verify the attacker has no authenticated session
+    const meRes = await attackerAgent.get('/auth/me');
+    expect(meRes.status).toBe(401);
+  });
+
+  it('rejects an attacker authenticated as a different account trying to accept someone else\'s invitation', async () => {
+    const salon = await prisma.salon.create({
+      data: { slug: `sec-001b-${randomUUID()}`, name: 'SEC-001b Salon', timezone: 'UTC' },
+    });
+    const victimEmail = `sec001-victim-${randomUUID()}@example.com`;
+    const victimSetup = await newAgentWithCsrf();
+    await victimSetup.agent
+      .post('/auth/register')
+      .set('x-csrf-token', victimSetup.csrfToken)
+      .send({ email: victimEmail, password: 'victimpassword123', fullName: 'Victim' });
+
+    const token = await createInvitationToken(salon.id, victimEmail);
+
+    // Attacker has their own account
+    const attackerSetup = await newAgentWithCsrf();
+    await attackerSetup.agent
+      .post('/auth/register')
+      .set('x-csrf-token', attackerSetup.csrfToken)
+      .send({ email: `sec001-attacker-${randomUUID()}@example.com`, password: 'atkpass123', fullName: 'Attacker' });
+
+    const res = await attackerSetup.agent
+      .post('/auth/invitations/accept')
+      .set('x-csrf-token', attackerSetup.csrfToken)
+      .send({ token });
+
+    expect(res.status).toBe(409);
+  });
+
+  it('accepts an invitation for a new email address without requiring prior authentication', async () => {
+    const salon = await prisma.salon.create({
+      data: { slug: `sec-001c-${randomUUID()}`, name: 'SEC-001c Salon', timezone: 'UTC' },
+    });
+    const newEmail = `sec001-new-${randomUUID()}@example.com`;
+    const token = await createInvitationToken(salon.id, newEmail);
+
+    const { agent, csrfToken } = await newAgentWithCsrf();
+    const res = await agent
+      .post('/auth/invitations/accept')
+      .set('x-csrf-token', csrfToken)
+      .send({ token, fullName: 'New User', password: 'newuserpassword123' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.email).toBe(newEmail);
+
+    const meRes = await agent.get('/auth/me');
+    expect(meRes.status).toBe(200);
+  });
+
+  it('allows an already-authenticated existing user to accept their own invitation', async () => {
+    const salon = await prisma.salon.create({
+      data: { slug: `sec-001d-${randomUUID()}`, name: 'SEC-001d Salon', timezone: 'UTC' },
+    });
+    const email = `sec001-self-${randomUUID()}@example.com`;
+
+    const { agent, csrfToken } = await newAgentWithCsrf();
+    await agent
+      .post('/auth/register')
+      .set('x-csrf-token', csrfToken)
+      .send({ email, password: 'myselfpassword123', fullName: 'Self User' });
+
+    const token = await createInvitationToken(salon.id, email);
+
+    const res = await agent
+      .post('/auth/invitations/accept')
+      .set('x-csrf-token', csrfToken)
+      .send({ token });
+
+    expect(res.status).toBe(200);
+    expect(res.body.email).toBe(email);
+
+    // Confirm membership was created
+    const salonsRes = await agent.get('/auth/my-salons');
+    expect(salonsRes.status).toBe(200);
+    expect(salonsRes.body.some((m: { salonId: string }) => m.salonId === salon.id)).toBe(true);
+  });
+});
+
 describe('GET /auth/my-salons', () => {
   it('rejects an unauthenticated request', async () => {
     const res = await request(app.getHttpServer()).get('/auth/my-salons');

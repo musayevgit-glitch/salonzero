@@ -151,7 +151,15 @@ export class AuthService {
     return true;
   }
 
-  async acceptInvitation(input: AcceptInvitationInput): Promise<AuthenticatedUser | null> {
+  // callerUserId: the currently authenticated session user (if any). Accepting an invitation for
+  // an email address that already has an account requires the caller to already be authenticated
+  // as that account — we must never establish a session for an existing account without proof of
+  // identity. Returns null for invalid/expired tokens; throws ConflictException when the email
+  // belongs to an existing account that the caller hasn't authenticated as.
+  async acceptInvitation(
+    input: AcceptInvitationInput,
+    callerUserId?: string,
+  ): Promise<AuthenticatedUser | null> {
     const tokenHash = this.tokens.hash(input.token);
     const invitation = await this.prisma.salonInvitation.findUnique({ where: { tokenHash } });
 
@@ -161,37 +169,68 @@ export class AuthService {
 
     const existingUser = await this.prisma.user.findUnique({ where: { email: invitation.email } });
 
-    const user = await this.prisma.$transaction(async (tx) => {
-      const resolvedUser =
-        existingUser ??
-        (await tx.user.create({
-          data: {
-            email: invitation.email,
-            fullName: input.fullName ?? invitation.email,
-            passwordHash: await this.password.hash(input.password ?? this.tokens.generate().token),
-          },
-        }));
+    if (existingUser) {
+      // SEC-001: an existing account must not receive a new authenticated session via invitation
+      // acceptance alone — that would be a password-less takeover of the existing account. The
+      // caller must already be authenticated as that account (same user id) before we bind the
+      // new membership. If they are, we bind the membership and return the existing user; the
+      // controller will not call req.login() again since they are already logged in.
+      if (!callerUserId || callerUserId !== existingUser.id) {
+        throw new ConflictException(
+          'This invitation email already has an account. Please log in first, then open the invitation link again.',
+        );
+      }
+      if (existingUser.status !== 'ACTIVE') {
+        return null; // treat suspended existing account same as invalid token — no information leak
+      }
+      await this.prisma.$transaction(async (tx) => {
+        await tx.salonMembership.upsert({
+          where: { userId_salonId: { userId: existingUser.id, salonId: invitation.salonId } },
+          create: { userId: existingUser.id, salonId: invitation.salonId, role: invitation.role },
+          update: { role: invitation.role, status: 'ACTIVE' },
+        });
+        await tx.salonInvitation.update({
+          where: { id: invitation.id },
+          data: { acceptedAt: new Date() },
+        });
+      });
+      await this.audit.record({
+        actorUserId: existingUser.id,
+        action: 'membership.invitation_accepted',
+        targetType: 'SalonInvitation',
+        targetId: invitation.id,
+        salonId: invitation.salonId,
+      });
+      return toAuthenticatedUser(existingUser);
+    }
 
+    const newUser = await this.prisma.$transaction(async (tx) => {
+      const created = await tx.user.create({
+        data: {
+          email: invitation.email,
+          fullName: input.fullName ?? invitation.email,
+          passwordHash: await this.password.hash(input.password ?? this.tokens.generate().token),
+        },
+      });
       await tx.salonMembership.create({
-        data: { userId: resolvedUser.id, salonId: invitation.salonId, role: invitation.role },
+        data: { userId: created.id, salonId: invitation.salonId, role: invitation.role },
       });
       await tx.salonInvitation.update({
         where: { id: invitation.id },
         data: { acceptedAt: new Date() },
       });
-
-      return resolvedUser;
+      return created;
     });
 
     await this.audit.record({
-      actorUserId: user.id,
+      actorUserId: newUser.id,
       action: 'membership.invitation_accepted',
       targetType: 'SalonInvitation',
       targetId: invitation.id,
       salonId: invitation.salonId,
     });
 
-    return toAuthenticatedUser(user);
+    return toAuthenticatedUser(newUser);
   }
 
   async findAuthenticatedUserById(id: string): Promise<AuthenticatedUser | null> {

@@ -40,11 +40,36 @@ describe('isSafeRedirectPath', () => {
     expect(isSafeRedirectPath('/account/reservations')).toBe(true);
   });
 
-  it('rejects a protocol-relative URL', () => {
+  it('allows root path', () => {
+    expect(isSafeRedirectPath('/')).toBe(true);
+  });
+
+  it('allows path with query string and hash', () => {
+    expect(isSafeRedirectPath('/salons?city=Baku#services')).toBe(true);
+  });
+
+  it('rejects a protocol-relative URL (//)', () => {
     expect(isSafeRedirectPath('//evil.example.com')).toBe(false);
+  });
+
+  // SEC-003 regression: backslash bypass was passing the old /^\/(?!\/)/ regex
+  it('rejects a backslash bypass (/\\\\evil.com)', () => {
+    expect(isSafeRedirectPath('/\\evil.com')).toBe(false);
   });
 
   it('rejects an absolute external URL', () => {
     expect(isSafeRedirectPath('https://evil.example.com')).toBe(false);
+  });
+
+  it('rejects a relative path without leading slash', () => {
+    expect(isSafeRedirectPath('evil.com/path')).toBe(false);
+  });
+
+  it('rejects empty string', () => {
+    expect(isSafeRedirectPath('')).toBe(false);
+  });
+
+  it('rejects javascript: URI', () => {
+    expect(isSafeRedirectPath('javascript:alert(1)')).toBe(false);
   });
 });

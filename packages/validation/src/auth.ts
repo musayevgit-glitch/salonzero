@@ -49,6 +49,16 @@ export const acceptInvitationSchema = z
 export type AcceptInvitationInput = z.infer<typeof acceptInvitationSchema>;
 
 // Safe-redirect allowlist: internal path only, never an absolute/protocol-relative URL.
+// Rejects backslash bypass (/\evil.com) and protocol-relative (//) by parsing via URL and
+// verifying the resolved origin matches our dummy base — anything with an authority component
+// will produce a different origin.
 export function isSafeRedirectPath(path: string): boolean {
-  return /^\/(?!\/)/.test(path);
+  if (typeof path !== 'string') return false;
+  if (!path.startsWith('/') || path.startsWith('//') || path.startsWith('/\\')) return false;
+  try {
+    const url = new URL(path, 'https://placeholder.invalid');
+    return url.origin === 'https://placeholder.invalid';
+  } catch {
+    return false;
+  }
 }

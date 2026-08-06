@@ -123,13 +123,19 @@ export class AuthController {
   @Post('invitations/accept')
   @UsePipes(new ZodValidationPipe(acceptInvitationSchema))
   async acceptInvitation(@Body() body: AcceptInvitationInput, @Req() req: Request) {
-    const user = await this.authService.acceptInvitation(body);
+    const callerUserId = (req.user as { id?: string } | undefined)?.id;
+    const user = await this.authService.acceptInvitation(body, callerUserId);
     if (!user) {
       throw new UnauthorizedException('This invitation is invalid or has expired.');
     }
-    await new Promise<void>((resolve, reject) => {
-      req.login(user, (err) => (err ? reject(err) : resolve()));
-    });
+    // Only establish a new session if the caller was not already authenticated as this user.
+    // When callerUserId === user.id, the session already exists — calling req.login again would
+    // regenerate the session unnecessarily and risk losing in-flight state.
+    if (!callerUserId || callerUserId !== user.id) {
+      await new Promise<void>((resolve, reject) => {
+        req.login(user, (err) => (err ? reject(err) : resolve()));
+      });
+    }
     return user;
   }
 }
