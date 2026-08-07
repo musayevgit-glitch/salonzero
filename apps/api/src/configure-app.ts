@@ -6,8 +6,6 @@ import session from 'express-session';
 import helmet from 'helmet';
 import passport from 'passport';
 import { Pool } from 'pg';
-import { CsrfGuard } from './auth/guards/csrf.guard';
-import { csrfCookieMiddleware } from './common/csrf-cookie.middleware';
 import type { ApiEnv } from './config/env';
 
 // Shared between main.ts (real server) and integration tests, so tests exercise the exact same
@@ -55,7 +53,5 @@ export function configureApp(app: INestApplication, env: ApiEnv): void {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  app.use(csrfCookieMiddleware);
-  app.useGlobalGuards(new CsrfGuard());
   app.useGlobalInterceptors(new NoStoreInterceptor());
 }
