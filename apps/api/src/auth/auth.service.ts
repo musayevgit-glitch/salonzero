@@ -144,14 +144,6 @@ export class AuthService {
       });
     });
 
-    // SEC-004: delete all active sessions for this user so a stolen session cookie cannot survive
-    // the victim's own password-reset remediation. connect-pg-simple stores userId in the JSONB
-    // `sess` column at path passport.user.
-    await this.prisma.$executeRaw`
-      DELETE FROM session
-      WHERE sess->'passport'->>'user' = ${record.userId}
-    `;
-
     await this.audit.record({
       actorUserId: record.userId,
       action: 'user.password_reset',

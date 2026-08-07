@@ -43,7 +43,7 @@ const DETAIL_SELECT = {
 export class CustomerReservationsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async list(customerId: string, query: ListCustomerReservationsQuery) {
+  async list(customerId: string, query: ListCustomerReservationsQuery): Promise<unknown> {
     const where = {
       customerId,
       ...(query.status ? { status: query.status as ReservationStatus } : {}),
@@ -61,7 +61,7 @@ export class CustomerReservationsService {
     return { items, total, page: query.page, pageSize: query.pageSize };
   }
 
-  async detail(customerId: string, reservationId: string) {
+  async detail(customerId: string, reservationId: string): Promise<unknown> {
     const r = await this.prisma.reservation.findFirst({
       where: { id: reservationId, customerId },
       select: DETAIL_SELECT,

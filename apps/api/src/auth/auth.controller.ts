@@ -10,6 +10,7 @@ import {
   UseGuards,
   UsePipes,
 } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { AuthGuard } from '@nestjs/passport';
 import { Throttle } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
@@ -26,21 +27,12 @@ import {
 } from '@salonomia/validation';
 import { ZodBodyGuard } from '../common/zod-body.guard';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
-import {
-  bindSessionCsrfToken,
-  clearCsrfCookie,
-  ensureSessionCsrfToken,
-  getSessionCsrfToken,
-  rotateSessionCsrfToken,
-} from '../common/csrf-token';
 import { validateAuthThrottleLimit } from '../config/env';
 import { AuthService } from './auth.service';
 import { CurrentUser } from './decorators/current-user.decorator';
-import { AuthenticatedGuard } from './guards/authenticated.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import type { AuthenticatedUser } from './types';
 
-// SEC-006: keep Nest's decorator-friendly module-load constant, but parse through the same env
-// schema as startup validation so typos fail closed instead of silently weakening throttling.
 const AUTH_THROTTLE = {
   default: {
     limit: validateAuthThrottleLimit(process.env),
@@ -48,26 +40,41 @@ const AUTH_THROTTLE = {
   },
 };
 
+const COOKIE_OPTIONS = (isProduction: boolean) => ({
+  httpOnly: true,
+  sameSite: 'lax' as const,
+  secure: isProduction,
+  maxAge: 30 * 24 * 60 * 60 * 1000,
+  path: '/',
+});
+
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly jwtService: JwtService,
+  ) {}
+
+  private issueToken(user: AuthenticatedUser, res: Response): void {
+    const isProduction = process.env['NODE_ENV'] === 'production';
+    const token = this.jwtService.sign({
+      sub: user.id,
+      email: user.email,
+      fullName: user.fullName,
+      isSuperadmin: user.isSuperadmin,
+    });
+    res.cookie('token', token, COOKIE_OPTIONS(isProduction));
+  }
 
   @Throttle(AUTH_THROTTLE)
   @Post('register')
   @UsePipes(new ZodValidationPipe(registerSchema))
   async register(
     @Body() body: RegisterInput,
-    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const preRegisterCsrfToken = getSessionCsrfToken(req);
     const user = await this.authService.register(body);
-    await new Promise<void>((resolve, reject) => {
-      req.login(user, (err) => (err ? reject(err) : resolve()));
-    });
-    if (preRegisterCsrfToken) {
-      bindSessionCsrfToken(req, res, preRegisterCsrfToken);
-    }
+    this.issueToken(user, res);
     return user;
   }
 
@@ -77,54 +84,37 @@ export class AuthController {
   @Post('login')
   async login(
     @CurrentUser() user: AuthenticatedUser,
-    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    // AuthGuard('local') only runs LocalStrategy.validate — it does not itself call req.login,
-    // so the session cookie is never established without doing it explicitly here too.
-    await new Promise<void>((resolve, reject) => {
-      req.login(user, (err) => (err ? reject(err) : resolve()));
-    });
-    rotateSessionCsrfToken(req, res);
+    this.issueToken(user, res);
     return user;
   }
 
-  // Returns the CSRF token in the JSON body so cross-origin clients (Next.js on a different port
-  // or domain) can read it — document.cookie only sees same-origin cookies.
-  @Get('csrf')
-  csrf(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    const token = ensureSessionCsrfToken(req, res);
-    return { csrfToken: token ?? null };
-  }
-
-  @UseGuards(AuthenticatedGuard)
+  @UseGuards(JwtAuthGuard)
   @HttpCode(200)
   @Post('logout')
-  async logout(@CurrentUser() user: AuthenticatedUser, @Req() req: Request, @Res() res: Response) {
+  async logout(@CurrentUser() user: AuthenticatedUser, @Res() res: Response) {
     await this.authService.recordLogout(user.id);
-    // SEC-021: `throw` inside an Express callback escapes Nest's exception filter and becomes an
-    // uncaughtException — reject the promise instead and let Nest produce a 500 JSON response.
-    await new Promise<void>((resolve, reject) =>
-      req.logout((err) => (err ? reject(err) : resolve())),
-    );
-    await new Promise<void>((resolve) => req.session.destroy(() => resolve()));
-    res.clearCookie('sid');
-    clearCsrfCookie(res);
+    res.clearCookie('token', { path: '/' });
     return res.status(200).json({ ok: true });
   }
 
   @Get('me')
   me(@Req() req: Request) {
-    if (!req.isAuthenticated()) {
+    const token = req.cookies?.['token'] as string | undefined;
+    if (!token) throw new UnauthorizedException();
+    try {
+      const payload = this.jwtService.verify<{
+        sub: string; email: string; fullName: string; isSuperadmin: boolean;
+      }>(token);
+      return { id: payload.sub, email: payload.email, fullName: payload.fullName, isSuperadmin: payload.isSuperadmin };
+    } catch {
       throw new UnauthorizedException();
     }
-    return req.user;
   }
 
-  // Lets the dashboard show "which salons can I get to" without a superadmin-only /salons call —
-  // scoped to the caller's own memberships, never another user's.
   @Get('my-salons')
-  @UseGuards(AuthenticatedGuard)
+  @UseGuards(JwtAuthGuard)
   mySalons(@CurrentUser() user: AuthenticatedUser) {
     return this.authService.getMySalonMemberships(user.id);
   }
@@ -135,7 +125,6 @@ export class AuthController {
   @UsePipes(new ZodValidationPipe(forgotPasswordSchema))
   async forgotPassword(@Body() body: ForgotPasswordInput) {
     await this.authService.forgotPassword(body.email);
-    // Always the same response — enumeration resistance (docs/security/authentication.md).
     return { message: "If an account exists for that email, we've sent reset instructions." };
   }
 
@@ -145,9 +134,7 @@ export class AuthController {
   @UsePipes(new ZodValidationPipe(resetPasswordSchema))
   async resetPassword(@Body() body: ResetPasswordInput) {
     const ok = await this.authService.resetPassword(body.token, body.password);
-    if (!ok) {
-      throw new UnauthorizedException('This reset link is invalid or has expired.');
-    }
+    if (!ok) throw new UnauthorizedException('This reset link is invalid or has expired.');
     return { ok: true };
   }
 
@@ -160,20 +147,10 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const callerUserId = (req.user as { id?: string } | undefined)?.id;
+    const callerUserId = (req.user as AuthenticatedUser | undefined)?.id;
     const user = await this.authService.acceptInvitation(body, callerUserId);
-    if (!user) {
-      throw new UnauthorizedException('This invitation is invalid or has expired.');
-    }
-    // Only establish a new session if the caller was not already authenticated as this user.
-    // When callerUserId === user.id, the session already exists — calling req.login again would
-    // regenerate the session unnecessarily and risk losing in-flight state.
-    if (!callerUserId || callerUserId !== user.id) {
-      await new Promise<void>((resolve, reject) => {
-        req.login(user, (err) => (err ? reject(err) : resolve()));
-      });
-      rotateSessionCsrfToken(req, res);
-    }
+    if (!user) throw new UnauthorizedException('This invitation is invalid or has expired.');
+    this.issueToken(user, res);
     return user;
   }
 }

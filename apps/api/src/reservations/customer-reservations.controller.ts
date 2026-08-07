@@ -22,7 +22,7 @@ export class CustomerReservationsController {
     @CurrentUser() user: AuthenticatedUser,
     @Query(new ZodValidationPipe(listCustomerReservationsQuerySchema))
     query: ListCustomerReservationsQuery,
-  ) {
+  ): Promise<unknown> {
     return this.service.list(user.id, query);
   }
 
@@ -31,7 +31,7 @@ export class CustomerReservationsController {
   detail(
     @CurrentUser() user: AuthenticatedUser,
     @Param('reservationId', new ParseUUIDPipe({ errorHttpStatusCode: 404 })) reservationId: string,
-  ) {
+  ): Promise<unknown> {
     return this.service.detail(user.id, reservationId);
   }
 }
