@@ -1,8 +1,8 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from '../apps/api/src/app.module';
-import { configureApp } from '../apps/api/src/configure-app';
-import { validateApiEnv } from '../apps/api/src/config/env';
+import { AppModule } from './app.module';
+import { configureApp } from './configure-app';
+import { validateApiEnv } from './config/env';
 import serverlessExpress from '@codegenie/serverless-express';
 
 let cachedServer: any;
@@ -19,16 +19,7 @@ async function bootstrap() {
   return cachedServer;
 }
 
-export default async (req: any, res: any) => {
-  try {
-    const server = await bootstrap();
-    return server(req, res);
-  } catch (err: any) {
-    console.error('NestJS Bootstrap Error:', err);
-    res.status(500).json({
-      message: 'NestJS Bootstrap Error',
-      error: err.message,
-      stack: err.stack,
-    });
-  }
+export const handler = async (event: any, context: any, callback: any) => {
+  const server = await bootstrap();
+  return server(event, context, callback);
 };

@@ -2,19 +2,5 @@
   "buildCommand": "pnpm turbo run build --filter=@salonomia/web...",
   "outputDirectory": "apps/web/.next",
   "installCommand": "pnpm install --frozen-lockfile",
-  "framework": "nextjs",
-  "rewrites": [
-    {
-      "source": "/public/(.*)",
-      "destination": "/api"
-    },
-    {
-      "source": "/auth/(.*)",
-      "destination": "/api"
-    },
-    {
-      "source": "/api/(.*)",
-      "destination": "/api"
-    }
-  ]
+  "framework": "nextjs"
 }
