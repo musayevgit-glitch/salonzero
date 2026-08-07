@@ -2,21 +2,31 @@
 
 const API_URL = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000');
 
+function readCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return match ? decodeURIComponent(match[1] ?? '') : null;
+}
+
 export class ApiError extends Error {
   constructor(
     public status: number,
     message: string,
+    public body?: unknown,
   ) {
     super(message);
   }
 }
 
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`, {
+  const csrfToken = readCookie('csrfToken');
+  const apiPath = path.startsWith('/api') ? path : `/api${path}`;
+  const res = await fetch(`${API_URL}${apiPath}`, {
     ...init,
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
+      ...(csrfToken ? { 'x-csrf-token': csrfToken } : {}),
       ...init?.headers,
     },
   });
@@ -25,8 +35,29 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
     const body = await res
       .json()
       .catch(() => ({ message: 'Something went wrong. Please try again.' }));
-    throw new ApiError(res.status, body.message ?? 'Something went wrong. Please try again.');
+    throw new ApiError(res.status, body.message ?? 'Something went wrong. Please try again.', body);
+  }
+
+  if (res.status === 204) {
+    return undefined as T;
   }
 
   return res.json();
+}
+
+export async function putFile(url: string, file: File): Promise<void> {
+  const csrfToken = readCookie('csrfToken');
+  const res = await fetch(url, {
+    method: 'PUT',
+    credentials: 'include',
+    headers: {
+      'Content-Type': file.type,
+      ...(csrfToken ? { 'x-csrf-token': csrfToken } : {}),
+    },
+    body: file,
+  });
+
+  if (!res.ok) {
+    throw new ApiError(res.status, 'Upload failed. Please try again.');
+  }
 }
