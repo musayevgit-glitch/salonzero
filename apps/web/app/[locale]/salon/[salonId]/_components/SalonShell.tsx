@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { label: 'Employees', segment: 'employees', section: 'Operations' },
   { label: 'Services', segment: 'services', section: 'Catalogue' },
   { label: 'Service Categories', segment: 'service-categories', section: 'Catalogue' },
+  { label: 'Settings & Rules', segment: 'settings', section: 'Configuration' },
   { label: 'Reports', segment: 'reports', section: 'Analytics' },
   { label: 'Audit Log', segment: 'audit-logs', section: 'Analytics' },
 ];
