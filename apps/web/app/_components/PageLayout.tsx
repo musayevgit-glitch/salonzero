@@ -15,7 +15,7 @@ const LOCALE_LABELS: Record<string, { flag: string; code: string }> = {
 
 function LanguageSwitcher() {
   const params = useParams();
-  const currentLocale = (params.locale as string) ?? 'az';
+  const currentLocale = (params && params.locale ? (params.locale as string) : 'az') || 'az';
   const router = useRouter();
   const pathname = usePathname();
 

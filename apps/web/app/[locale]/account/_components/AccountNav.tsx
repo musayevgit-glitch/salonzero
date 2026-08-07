@@ -13,7 +13,11 @@ export function AccountNav() {
   return (
     <nav aria-label="Account" className="flex gap-1 overflow-x-auto border-b border-border">
       {NAV_LINKS.map((link) => {
-        const active = link.exact ? pathname === link.href : pathname.startsWith(link.href);
+        const active = pathname
+          ? link.exact
+            ? pathname === link.href
+            : pathname.startsWith(link.href)
+          : false;
         return (
           <Link
             key={link.href}

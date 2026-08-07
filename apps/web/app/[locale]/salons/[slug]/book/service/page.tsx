@@ -39,7 +39,7 @@ export default function ServiceStep() {
   const [activeCategoryId, setActiveCategoryId] = React.useState<string | null>(null);
 
   // Pre-selected employee from stylist card "Rezerv et" link
-  const preselectedEmployeeId = searchParams.get('employee');
+  const preselectedEmployeeId = searchParams ? searchParams.get('employee') : null;
 
   const allServices = [
     ...salon.serviceCategories.flatMap((c) => c.services),

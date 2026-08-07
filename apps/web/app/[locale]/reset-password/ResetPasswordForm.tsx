@@ -6,7 +6,8 @@ import { apiFetch, ApiError } from '../../../lib/api-client';
 
 export function ResetPasswordForm() {
   const router = useRouter();
-  const token = useSearchParams().get('token');
+  const searchParams = useSearchParams();
+  const token = searchParams ? searchParams.get('token') : null;
 
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);

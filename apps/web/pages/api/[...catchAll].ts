@@ -1,11 +1,14 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from '../../apps/api/src/app.module';
-import { configureApp } from '../../apps/api/src/configure-app';
-import { validateApiEnv } from '../../apps/api/src/config/env';
+import { AppModule } from '../../../../apps/api/src/app.module';
+import { configureApp } from '../../../../apps/api/src/configure-app';
+import { validateApiEnv } from '../../../../apps/api/src/config/env';
 import serverlessExpress from '@codegenie/serverless-express';
 
-let cachedServer: any;
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let cachedServer: any = null;
 
 async function bootstrap() {
   if (!cachedServer) {
@@ -26,7 +29,7 @@ export const config = {
   },
 };
 
-export default async function handler(req: any, res: any) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const server = await bootstrap();
-  return server(req, res);
+  return server(req, res, () => {});
 }

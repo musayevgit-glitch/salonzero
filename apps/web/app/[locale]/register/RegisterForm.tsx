@@ -8,7 +8,7 @@ import { apiFetch, ApiError } from '../../../lib/api-client';
 export function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const returnTo = searchParams.get('returnTo');
+  const returnTo = searchParams ? searchParams.get('returnTo') : null;
   const safeReturnTo = returnTo && isSafeRedirectPath(returnTo) ? returnTo : '/account';
 
   const [fullName, setFullName] = useState('');

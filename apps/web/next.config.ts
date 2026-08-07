@@ -12,6 +12,14 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  transpilePackages: [
+    '@salonomia/api',
+    '@salonomia/database',
+    '@salonomia/validation',
+    '@salonomia/auth',
+    '@salonomia/storage',
+    '@salonomia/contracts',
+  ],
   async headers() {
     return [{ source: '/(.*)', headers: securityHeaders }];
   },

@@ -25,7 +25,7 @@ function CheckIcon() {
 
 export function BookingStepper() {
   const pathname = usePathname();
-  const segment = pathname.split('/').pop() ?? '';
+  const segment = pathname ? (pathname.split('/').pop() ?? '') : '';
 
   const currentStep = VISUAL_STEPS.findIndex((s) => s.segments.includes(segment));
 

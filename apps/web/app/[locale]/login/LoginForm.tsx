@@ -12,7 +12,7 @@ export function LoginForm() {
   const tc = useTranslations('common');
   const router = useRouter();
   const searchParams = useSearchParams();
-  const returnTo = searchParams.get('returnTo');
+  const returnTo = searchParams ? searchParams.get('returnTo') : null;
   const safeReturnTo = returnTo && isSafeRedirectPath(returnTo) ? returnTo : '/account';
 
   const [email, setEmail] = useState('');
