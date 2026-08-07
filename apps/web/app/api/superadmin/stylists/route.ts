@@ -9,7 +9,8 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = req.nextUrl;
   const search = searchParams.get('search') || '';
-  const status = searchParams.get('status') || ''; // 'ACTIVE' or 'INACTIVE'
+  const status = searchParams.get('status') || '';
+  const salonId = searchParams.get('salonId') || '';
   const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
   const pageSize = Math.max(1, parseInt(searchParams.get('pageSize') || '20'));
 
@@ -18,7 +19,9 @@ export async function GET(req: NextRequest) {
   if (search) {
     where.fullName = { contains: search, mode: 'insensitive' };
   }
-
+  if (salonId) {
+    where.salonId = salonId;
+  }
   if (status === 'ACTIVE') {
     where.isActive = true;
   } else if (status === 'INACTIVE') {

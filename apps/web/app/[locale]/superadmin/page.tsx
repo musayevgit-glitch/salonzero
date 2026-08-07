@@ -4,159 +4,181 @@ import { useEffect, useState } from 'react';
 import { apiFetch, ApiError } from '../../../lib/api-client';
 import Link from 'next/link';
 
-interface GlobalReport {
-  from: string;
-  to: string;
-  total: number;
-  byStatus: Record<string, number>;
-  bySalon: {
-    salon: { id: string; name: string; slug: string };
-    currency: string;
-    confirmedCount: number;
-    confirmedRevenue: number;
-  }[];
+interface Stats {
+  salons: { total: number; active: number; suspended: number };
+  stylists: { total: number; active: number; inactive: number };
+  services: { total: number; active: number; inactive: number };
+  reservations: { total: number; today: number; week: number; month: number };
+  customers: { total: number };
+  recentSalons: { id: string; name: string; status: string; city: string | null; createdAt: string }[];
+  recentStylists: { id: string; fullName: string; isActive: boolean; createdAt: string; salonId: string; salonName: string }[];
 }
 
-const TODAY = new Date().toISOString().slice(0, 10);
-const THIRTY_AGO = new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10);
-
-function formatMoney(amount: number, currency: string) {
-  return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(amount / 100);
+function StatCard({ label, value, sub, accent, href }: { label: string; value: number | string; sub?: string; accent?: string; href?: string; }) {
+  const content = (
+    <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+      <span style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', fontWeight: 500 }}>{label}</span>
+      <span style={{ fontSize: '2rem', fontWeight: 700, color: accent ?? 'var(--color-text-primary)', lineHeight: 1.1 }}>{value}</span>
+      {sub && <span style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>{sub}</span>}
+    </div>
+  );
+  if (href) return <Link href={href} style={{ textDecoration: 'none' }}>{content}</Link>;
+  return content;
 }
 
 export default function SuperadminDashboardPage() {
-  const [from, setFrom] = useState(THIRTY_AGO);
-  const [to, setTo] = useState(TODAY);
-  const [report, setReport] = useState<GlobalReport | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  function load() {
-    setLoading(true);
-    setError(null);
-    apiFetch<GlobalReport>(`/superadmin/reports?from=${from}&to=${to}`)
-      .then((r) => {
-        setReport(r);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err instanceof ApiError ? err.message : 'Failed to load.');
-        setLoading(false);
-      });
-  }
-
   useEffect(() => {
-    load();
+    setLoading(true);
+    apiFetch<Stats>('/superadmin/stats')
+      .then((s) => { setStats(s); setLoading(false); })
+      .catch((err) => { setError(err instanceof ApiError ? err.message : 'Yüklənmədi'); setLoading(false); });
   }, []);
 
+  if (loading) {
+    return (
+      <main style={{ padding: '2rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '1rem' }}>
+          {Array.from({ length: 9 }).map((_, i) => (
+            <div key={i} style={{ height: 100, background: 'var(--color-surface)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }} />
+          ))}
+        </div>
+      </main>
+    );
+  }
+
+  if (error) return <main style={{ padding: '2rem', color: 'var(--color-danger)' }}>{error}</main>;
+  if (!stats) return null;
+
   return (
-    <div className="space-y-6">
-      <h1 className="text-xl font-semibold">Platforma Hesabatları (Dashboard)</h1>
+    <main style={{ display: 'flex', flexDirection: 'column', gap: '2rem', padding: '1.5rem 2rem' }}>
+      <div>
+        <h1 style={{ fontSize: '1.35rem', fontWeight: 700, color: 'var(--color-text-primary)', margin: 0 }}>Platform Dashboard</h1>
+        <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginTop: 4 }}>Platformanın ümumi vəziyyəti</p>
+      </div>
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          load();
-        }}
-        className="flex flex-wrap items-end gap-3"
-      >
-        <div className="flex flex-col gap-1">
-          <label htmlFor="from" className="text-xs font-medium text-muted-foreground">
-            Başlanğıc
-          </label>
-          <input
-            id="from"
-            type="date"
-            value={from}
-            max={to}
-            onChange={(e) => setFrom(e.target.value)}
-            className="rounded border border-input bg-background px-3 py-1.5 text-sm"
-          />
+      {/* Salons */}
+      <section>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+          <h2 style={{ fontSize: '0.9rem', fontWeight: 600 }}>Salonlar</h2>
+          <Link href="/superadmin/salons" style={{ fontSize: '0.8rem', color: 'var(--color-accent)', textDecoration: 'none' }}>Hamısı →</Link>
         </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="to" className="text-xs font-medium text-muted-foreground">
-            Son
-          </label>
-          <input
-            id="to"
-            type="date"
-            value={to}
-            min={from}
-            max={TODAY}
-            onChange={(e) => setTo(e.target.value)}
-            className="rounded border border-input bg-background px-3 py-1.5 text-sm"
-          />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(155px, 1fr))', gap: '0.75rem' }}>
+          <StatCard label="Cəmi Salonlar" value={stats.salons.total} href="/superadmin/salons" />
+          <StatCard label="Aktiv" value={stats.salons.active} accent="var(--color-success)" href="/superadmin/salons?status=ACTIVE" />
+          <StatCard label="Deaktiv" value={stats.salons.suspended} accent="var(--color-danger)" href="/superadmin/salons?status=SUSPENDED" />
         </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-60"
-        >
-          {loading ? 'Yüklənir…' : 'Tətbiq et'}
-        </button>
-      </form>
+      </section>
 
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {/* Stylists */}
+      <section>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+          <h2 style={{ fontSize: '0.9rem', fontWeight: 600 }}>Stilistlər</h2>
+          <Link href="/superadmin/stylists" style={{ fontSize: '0.8rem', color: 'var(--color-accent)', textDecoration: 'none' }}>Hamısı →</Link>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(155px, 1fr))', gap: '0.75rem' }}>
+          <StatCard label="Cəmi Stilistlər" value={stats.stylists.total} href="/superadmin/stylists" />
+          <StatCard label="Aktiv" value={stats.stylists.active} accent="var(--color-success)" href="/superadmin/stylists?status=ACTIVE" />
+          <StatCard label="Deaktiv" value={stats.stylists.inactive} href="/superadmin/stylists?status=INACTIVE" />
+        </div>
+      </section>
 
-      {report && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-            <div className="rounded-lg border bg-card p-4">
-              <p className="text-xs text-muted-foreground">Ümumi rezervasiyalar</p>
-              <p className="mt-1 text-2xl font-bold">{report.total}</p>
-            </div>
-            <div className="rounded-lg border bg-card p-4">
-              <p className="text-xs text-muted-foreground">Tamamlananlar</p>
-              <p className="mt-1 text-2xl font-bold">{report.byStatus['COMPLETED'] ?? 0}</p>
-            </div>
-            <div className="rounded-lg border bg-card p-4">
-              <p className="text-xs text-muted-foreground">Aktiv salonlar</p>
-              <p className="mt-1 text-2xl font-bold">
-                {new Set(report.bySalon.map((s) => s.salon.id)).size}
-              </p>
-            </div>
+      {/* Services */}
+      <section>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+          <h2 style={{ fontSize: '0.9rem', fontWeight: 600 }}>Xidmətlər</h2>
+          <Link href="/superadmin/services" style={{ fontSize: '0.8rem', color: 'var(--color-accent)', textDecoration: 'none' }}>Hamısı →</Link>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(155px, 1fr))', gap: '0.75rem' }}>
+          <StatCard label="Cəmi Xidmətlər" value={stats.services.total} href="/superadmin/services" />
+          <StatCard label="Aktiv" value={stats.services.active} accent="var(--color-success)" href="/superadmin/services?status=ACTIVE" />
+          <StatCard label="Deaktiv" value={stats.services.inactive} href="/superadmin/services?status=INACTIVE" />
+        </div>
+      </section>
+
+      {/* Reservations */}
+      <section>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+          <h2 style={{ fontSize: '0.9rem', fontWeight: 600 }}>Rezervasiyalar</h2>
+          <Link href="/superadmin/reservations" style={{ fontSize: '0.8rem', color: 'var(--color-accent)', textDecoration: 'none' }}>Hamısı →</Link>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(155px, 1fr))', gap: '0.75rem' }}>
+          <StatCard label="Bugün" value={stats.reservations.today} href="/superadmin/reservations" />
+          <StatCard label="Bu Həftə" value={stats.reservations.week} href="/superadmin/reservations" />
+          <StatCard label="Bu Ay" value={stats.reservations.month} href="/superadmin/reservations" />
+          <StatCard label="Cəmi" value={stats.reservations.total} href="/superadmin/reservations" />
+          <StatCard label="Müştərilər" value={stats.customers.total} href="/superadmin/users" />
+        </div>
+      </section>
+
+      {/* Recent activity */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
+        <section>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+            <h2 style={{ fontSize: '0.9rem', fontWeight: 600 }}>Son salonlar</h2>
+            <Link href="/superadmin/salons" style={{ fontSize: '0.8rem', color: 'var(--color-accent)', textDecoration: 'none' }}>Hamısı →</Link>
           </div>
-
-          <div className="rounded-lg border bg-card p-4">
-            <h2 className="mb-3 text-sm font-semibold">Salon üzrə gəlirlər</h2>
-            {report.bySalon.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Seçilmiş dövrdə gəlir məlumatı yoxdur.</p>
+          <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
+            {stats.recentSalons.length === 0 ? (
+              <p style={{ padding: '1.25rem', fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>Heç bir salon yoxdur.</p>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="border-b">
-                    <tr>
-                      <th className="py-1 text-left font-medium text-muted-foreground">Salon</th>
-                      <th className="py-1 text-right font-medium text-muted-foreground">
-                        Rezervasiyalar
-                      </th>
-                      <th className="py-1 text-right font-medium text-muted-foreground">Gəlir</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {report.bySalon.map((row, i) => (
-                      <tr key={i} className="border-b last:border-0">
-                        <td className="py-1">
-                          <Link
-                            href={`/superadmin/salons/${row.salon.id}`}
-                            className="text-primary hover:underline"
-                          >
-                            {row.salon.name}
-                          </Link>
-                        </td>
-                        <td className="py-1 text-right">{row.confirmedCount}</td>
-                        <td className="py-1 text-right font-medium">
-                          {formatMoney(row.confirmedRevenue, row.currency)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              stats.recentSalons.map((s, i) => (
+                <Link key={s.id} href={`/superadmin/salons/${s.id}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1.25rem', textDecoration: 'none', borderTop: i > 0 ? '1px solid var(--color-border)' : undefined }}>
+                  <div>
+                    <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-primary)', margin: 0 }}>{s.name}</p>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', margin: 0 }}>{s.city ?? '—'}</p>
+                  </div>
+                  <span style={{ fontSize: '0.7rem', fontWeight: 600, padding: '0.2rem 0.5rem', borderRadius: '9999px', background: s.status === 'ACTIVE' ? '#dcfce7' : '#f3f4f6', color: s.status === 'ACTIVE' ? '#16a34a' : '#6b7280' }}>{s.status === 'ACTIVE' ? 'Aktiv' : 'Deaktiv'}</span>
+                </Link>
+              ))
             )}
           </div>
+        </section>
+
+        <section>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+            <h2 style={{ fontSize: '0.9rem', fontWeight: 600 }}>Son stilistlər</h2>
+            <Link href="/superadmin/stylists" style={{ fontSize: '0.8rem', color: 'var(--color-accent)', textDecoration: 'none' }}>Hamısı →</Link>
+          </div>
+          <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
+            {stats.recentStylists.length === 0 ? (
+              <p style={{ padding: '1.25rem', fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>Heç bir stilist yoxdur.</p>
+            ) : (
+              stats.recentStylists.map((s, i) => (
+                <Link key={s.id} href={`/superadmin/stylists/${s.id}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1.25rem', textDecoration: 'none', borderTop: i > 0 ? '1px solid var(--color-border)' : undefined }}>
+                  <div>
+                    <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-primary)', margin: 0 }}>{s.fullName}</p>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', margin: 0 }}>{s.salonName}</p>
+                  </div>
+                  <span style={{ fontSize: '0.7rem', fontWeight: 600, padding: '0.2rem 0.5rem', borderRadius: '9999px', background: s.isActive ? '#dcfce7' : '#f3f4f6', color: s.isActive ? '#16a34a' : '#6b7280' }}>{s.isActive ? 'Aktiv' : 'Deaktiv'}</span>
+                </Link>
+              ))
+            )}
+          </div>
+        </section>
+      </div>
+
+      {/* Quick links */}
+      <section>
+        <h2 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.75rem' }}>Sürətli keçidlər</h2>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
+          {[
+            { label: '+ Yeni Salon', href: '/superadmin/salons/new' },
+            { label: '+ Yeni Stilist', href: '/superadmin/stylists/new' },
+            { label: '+ Yeni Xidmət', href: '/superadmin/services/new' },
+            { label: 'Hesabatlar →', href: '/superadmin/reports' },
+            { label: 'Rezervasiyalar →', href: '/superadmin/reservations' },
+            { label: 'Audit Jurnal →', href: '/superadmin/audit-logs' },
+          ].map((item) => (
+            <Link key={item.href} href={item.href} style={{ padding: '0.5rem 1rem', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', fontSize: '0.85rem', fontWeight: 500, color: 'var(--color-text-primary)', textDecoration: 'none' }}>
+              {item.label}
+            </Link>
+          ))}
         </div>
-      )}
-    </div>
+      </section>
+    </main>
   );
 }
