@@ -56,7 +56,7 @@ export default function StylistStep() {
         <div
           style={{
             background: 'white',
-            border: '1px solid #ede5dc',
+            border: '1px solid #e4d4f4',
             borderRadius: 12,
             padding: '0.75rem 1rem',
             marginBottom: '1.25rem',
@@ -66,12 +66,12 @@ export default function StylistStep() {
             fontSize: '0.82rem',
           }}
         >
-          <span style={{ color: '#6b5e4a' }}>Seçilmiş xidmət</span>
-          <span style={{ fontWeight: 700, color: '#1a1208' }}>{selectedService.name}</span>
+          <span style={{ color: '#6b5d8a' }}>Seçilmiş xidmət</span>
+          <span style={{ fontWeight: 700, color: '#1e1b2e' }}>{selectedService.name}</span>
         </div>
       )}
 
-      <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#1a1208', marginBottom: '0.75rem' }}>
+      <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#1e1b2e', marginBottom: '0.75rem' }}>
         Usta
       </h2>
 
@@ -86,19 +86,19 @@ export default function StylistStep() {
             textAlign: 'left',
             padding: '0.875rem 1rem',
             borderRadius: 14,
-            border: noPreferenceSelected ? '2px solid #c9a460' : '1.5px solid #ede5dc',
+            border: noPreferenceSelected ? '2px solid #7c3aed' : '1.5px solid #e4d4f4',
             background: noPreferenceSelected ? '#fffbf5' : 'white',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             gap: '0.875rem',
-            boxShadow: '0 1px 3px rgba(26,18,8,0.05)',
+            boxShadow: '0 1px 3px rgba(30,27,46,0.05)',
             transition: 'border-color 0.15s, background 0.15s',
           }}
         >
           <div style={{
             width: 48, height: 48, borderRadius: '50%',
-            background: '#f5ece4',
+            background: '#f3e8ff',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             flexShrink: 0,
             fontSize: '1.1rem',
@@ -106,8 +106,8 @@ export default function StylistStep() {
             ✦
           </div>
           <div style={{ flex: 1 }}>
-            <p style={{ fontWeight: 600, fontSize: '0.9rem', color: '#1a1208' }}>Fərq etməz</p>
-            <p style={{ fontSize: '0.75rem', color: '#9a8878', marginTop: '0.15rem' }}>
+            <p style={{ fontWeight: 600, fontSize: '0.9rem', color: '#1e1b2e' }}>Fərq etməz</p>
+            <p style={{ fontSize: '0.75rem', color: '#7c6fa0', marginTop: '0.15rem' }}>
               İstənilən mövcud usta təyin ediləcək
             </p>
           </div>
@@ -131,13 +131,13 @@ export default function StylistStep() {
                 textAlign: 'left',
                 padding: '0.875rem 1rem',
                 borderRadius: 14,
-                border: selected ? '2px solid #c9a460' : '1.5px solid #ede5dc',
+                border: selected ? '2px solid #7c3aed' : '1.5px solid #e4d4f4',
                 background: selected ? '#fffbf5' : 'white',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.875rem',
-                boxShadow: selected ? '0 0 0 3px rgba(201,164,96,0.12)' : '0 1px 3px rgba(26,18,8,0.05)',
+                boxShadow: selected ? '0 0 0 3px rgba(201,164,96,0.12)' : '0 1px 3px rgba(30,27,46,0.05)',
                 transition: 'border-color 0.15s, background 0.15s',
               }}
             >
@@ -155,15 +155,15 @@ export default function StylistStep() {
 
               {/* Info */}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1a1208' }}>
+                <p style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1e1b2e' }}>
                   {employee.fullName}
                 </p>
                 {employee.bio && (
-                  <p style={{ fontSize: '0.72rem', color: '#9a8878', marginTop: '0.1rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <p style={{ fontSize: '0.72rem', color: '#7c6fa0', marginTop: '0.1rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {employee.bio}
                   </p>
                 )}
-                <p style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.72rem', color: '#6b5e4a', marginTop: '0.2rem', fontWeight: 600 }}>
+                <p style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.72rem', color: '#6b5d8a', marginTop: '0.2rem', fontWeight: 600 }}>
                   <StarIcon /> {rating}
                 </p>
               </div>
@@ -174,12 +174,12 @@ export default function StylistStep() {
         })}
 
         {salon.employees.length === 0 && (
-          <p style={{ color: '#9a8878', fontSize: '0.875rem', textAlign: 'center', marginTop: '1rem' }}>
+          <p style={{ color: '#7c6fa0', fontSize: '0.875rem', textAlign: 'center', marginTop: '1rem' }}>
             Heç bir usta əlavə edilməyib.{' '}
             <button
               type="button"
               onClick={() => handleSelect(null)}
-              style={{ color: '#c9a460', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', fontSize: 'inherit' }}
+              style={{ color: '#7c3aed', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', fontSize: 'inherit' }}
             >
               İrəliyə keç
             </button>

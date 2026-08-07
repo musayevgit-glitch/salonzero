@@ -43,54 +43,54 @@ export function LoginForm() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-      <div style={{ background: 'white', borderRadius: 20, padding: '2rem', width: '100%', maxWidth: 400, boxShadow: '0 10px 40px rgba(26,18,8,0.05)' }}>
+      <div style={{ background: 'white', borderRadius: 20, padding: '2rem', width: '100%', maxWidth: 400, boxShadow: '0 10px 40px rgba(30,27,46,0.05)' }}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <a href="/" style={{ textDecoration: 'none' }}>
-            <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.5rem', fontWeight: 700, letterSpacing: '0.05em', color: '#1a1208' }}>
+            <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.5rem', fontWeight: 700, letterSpacing: '0.05em', color: '#1e1b2e' }}>
               SALONOMIA
             </span>
           </a>
-          <p style={{ color: '#c9a460', fontSize: '0.875rem', marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>{tc('tagline')}</p>
+          <p style={{ color: '#7c3aed', fontSize: '0.875rem', marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>{tc('tagline')}</p>
         </div>
         
-        <h1 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#1a1208', marginBottom: '1.5rem', textAlign: 'center', fontFamily: "'Playfair Display', Georgia, serif" }}>{t('loginTitle')}</h1>
+        <h1 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#1e1b2e', marginBottom: '1.5rem', textAlign: 'center', fontFamily: "'Playfair Display', Georgia, serif" }}>{t('loginTitle')}</h1>
         
         <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {error ? <div style={{ color: '#dc2626', fontSize: '0.875rem', background: '#fef2f2', padding: '0.75rem', borderRadius: 8 }}>{error}</div> : null}
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <label style={{ fontSize: '0.875rem', color: '#1a1208', fontWeight: 500 }}>{t('email')}</label>
+            <label style={{ fontSize: '0.875rem', color: '#1e1b2e', fontWeight: 500 }}>{t('email')}</label>
             <input
               type="email"
               autoComplete="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              style={{ border: '1px solid #ede5dc', borderRadius: 12, padding: '0.75rem 1rem', fontFamily: 'Inter, sans-serif', fontSize: '0.95rem', outline: 'none' }}
+              style={{ border: '1px solid #e4d4f4', borderRadius: 12, padding: '0.75rem 1rem', fontFamily: 'Inter, sans-serif', fontSize: '0.95rem', outline: 'none' }}
             />
           </div>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <label style={{ fontSize: '0.875rem', color: '#1a1208', fontWeight: 500 }}>{t('password')}</label>
+            <label style={{ fontSize: '0.875rem', color: '#1e1b2e', fontWeight: 500 }}>{t('password')}</label>
             <input
               type="password"
               autoComplete="current-password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              style={{ border: '1px solid #ede5dc', borderRadius: 12, padding: '0.75rem 1rem', fontFamily: 'Inter, sans-serif', fontSize: '0.95rem', outline: 'none' }}
+              style={{ border: '1px solid #e4d4f4', borderRadius: 12, padding: '0.75rem 1rem', fontFamily: 'Inter, sans-serif', fontSize: '0.95rem', outline: 'none' }}
             />
           </div>
           
-          <button type="submit" disabled={loading} style={{ background: '#5c3d28', color: 'white', borderRadius: 12, padding: '0.875rem', fontSize: '1rem', fontWeight: 500, border: 'none', cursor: loading ? 'not-allowed' : 'pointer', marginTop: '0.5rem', opacity: loading ? 0.7 : 1 }}>
+          <button type="submit" disabled={loading} style={{ background: '#7c3aed', color: 'white', borderRadius: 12, padding: '0.875rem', fontSize: '1rem', fontWeight: 500, border: 'none', cursor: loading ? 'not-allowed' : 'pointer', marginTop: '0.5rem', opacity: loading ? 0.7 : 1 }}>
             {loading ? tc('loading') : t('loginBtn')}
           </button>
         </form>
         
         <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center', fontSize: '0.875rem' }}>
-          <a href="/forgot-password" style={{ color: '#9a8878', textDecoration: 'none' }}>{t('forgotPassword')}</a>
-          <p style={{ color: '#9a8878', margin: 0 }}>
-            {t('noAccount')} <a href="/register" style={{ color: '#1a1208', fontWeight: 500, textDecoration: 'none' }}>{t('register')}</a>
+          <a href="/forgot-password" style={{ color: '#7c6fa0', textDecoration: 'none' }}>{t('forgotPassword')}</a>
+          <p style={{ color: '#7c6fa0', margin: 0 }}>
+            {t('noAccount')} <a href="/register" style={{ color: '#1e1b2e', fontWeight: 500, textDecoration: 'none' }}>{t('register')}</a>
           </p>
         </div>
       </div>

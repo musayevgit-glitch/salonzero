@@ -1,18 +1,44 @@
 'use client';
 
-import { Alert, Breadcrumbs, Button, Card, ErrorState, FormField, Input, PermissionDeniedState, Select, Skeleton, Textarea, useToast } from '@salonomia/ui';
+import {
+  Alert,
+  Breadcrumbs,
+  Button,
+  Card,
+  ErrorState,
+  FormField,
+  Input,
+  PermissionDeniedState,
+  Select,
+  Skeleton,
+  Textarea,
+  useToast,
+} from '@salonomia/ui';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { apiFetch, ApiError } from '../../../../../../lib/api-client';
 
-interface StylistDetail { id: string; fullName: string; bio: string | null; isActive: boolean; salon: { id: string; name: string }; }
-type LoadState = { kind: 'loading' } | { kind: 'not-found' } | { kind: 'error'; message: string } | { kind: 'ready'; stylist: StylistDetail };
+interface StylistDetail {
+  id: string;
+  fullName: string;
+  bio: string | null;
+  isActive: boolean;
+  photoUrl: string | null;
+  salon: { id: string; name: string };
+}
+
+type LoadState =
+  | { kind: 'loading' }
+  | { kind: 'not-found' }
+  | { kind: 'error'; message: string }
+  | { kind: 'ready'; stylist: StylistDetail };
 
 export default function EditStylistPage() {
   const router = useRouter();
   const { stylistId } = useParams<{ stylistId: string }>();
   const { showToast } = useToast();
   const [state, setState] = useState<LoadState>({ kind: 'loading' });
+
   const [fullName, setFullName] = useState('');
   const [bio, setBio] = useState('');
   const [isActive, setIsActive] = useState(true);
@@ -28,10 +54,17 @@ export default function EditStylistPage() {
         setIsActive(s.isActive);
       })
       .catch((err: unknown) => {
-        if (err instanceof ApiError && err.status === 404) { setState({ kind: 'not-found' }); return; }
-        setState({ kind: 'error', message: err instanceof ApiError ? err.message : 'Xəta' });
+        if (err instanceof ApiError && err.status === 401) {
+          router.replace(`/login?returnTo=/superadmin/stylists/${stylistId}/edit`);
+          return;
+        }
+        if (err instanceof ApiError && (err.status === 404 || err.status === 403)) {
+          setState({ kind: 'not-found' });
+          return;
+        }
+        setState({ kind: 'error', message: err instanceof ApiError ? err.message : 'Xəta baş verdi.' });
       });
-  }, [stylistId]);
+  }, [stylistId, router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -42,7 +75,11 @@ export default function EditStylistPage() {
     try {
       await apiFetch(`/superadmin/stylists/${stylistId}`, {
         method: 'PATCH',
-        body: JSON.stringify({ fullName: fullName.trim(), bio: bio.trim() || null, isActive }),
+        body: JSON.stringify({
+          fullName: fullName.trim(),
+          bio: bio.trim() || null,
+          isActive,
+        }),
       });
       showToast('Stilist yeniləndi');
       router.push(`/superadmin/stylists/${stylistId}`);
@@ -53,39 +90,98 @@ export default function EditStylistPage() {
     }
   }
 
-  if (state.kind === 'loading') return <main style={{ padding: '2rem' }}><Skeleton className="h-64 w-full max-w-lg" /></main>;
-  if (state.kind === 'not-found') return <main style={{ padding: '2rem' }}><PermissionDeniedState /></main>;
-  if (state.kind === 'error') return <main style={{ padding: '2rem' }}><ErrorState title="Stilist yüklənmədi" description={state.message} /></main>;
+  if (state.kind === 'loading') return (
+    <main className="p-8"><Skeleton className="h-80 w-full max-w-lg" /></main>
+  );
+  if (state.kind === 'not-found') return (
+    <main className="p-8"><PermissionDeniedState /></main>
+  );
+  if (state.kind === 'error') return (
+    <main className="p-8"><ErrorState title="Stilist yüklənmədi" description={state.message} /></main>
+  );
 
   const { stylist } = state;
 
   return (
-    <main style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '1.5rem 2rem' }}>
-      <Breadcrumbs items={[{ label: 'Stilistlər', href: '/superadmin/stylists' }, { label: stylist.fullName, href: `/superadmin/stylists/${stylistId}` }, { label: 'Redaktə' }]} />
-      <Card style={{ maxWidth: 520 }}>
-        <h1 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.5rem' }}>Stilisti redaktə et</h1>
-        <p style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', marginBottom: '1.5rem' }}>Salon: <strong>{stylist.salon.name}</strong></p>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }} noValidate>
+    <main className="flex flex-col gap-6 p-6 lg:p-8">
+      <Breadcrumbs
+        items={[
+          { label: 'Stilistlər', href: '/superadmin/stylists' },
+          { label: stylist.fullName, href: `/superadmin/stylists/${stylistId}` },
+          { label: 'Redaktə' },
+        ]}
+      />
+
+      <div className="max-w-lg">
+        <h1 className="text-2xl font-bold text-text-primary mb-1">Stilisti redaktə et</h1>
+        <p className="text-sm text-text-secondary">
+          Salon: <span className="font-medium text-text-primary">{stylist.salon.name}</span>
+        </p>
+      </div>
+
+      <Card className="max-w-lg">
+        {stylist.photoUrl && (
+          <div className="flex items-center gap-3 mb-5 pb-5 border-b border-border">
+            <img
+              src={stylist.photoUrl}
+              alt={stylist.fullName}
+              className="h-12 w-12 rounded-full object-cover border border-border"
+            />
+            <div>
+              <p className="text-sm font-medium text-text-primary">{stylist.fullName}</p>
+              <p className="text-xs text-text-secondary">Foto profil səhifəsindən dəyişdirilə bilər</p>
+            </div>
+          </div>
+        )}
+
+        <form className="flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
           {error && <Alert tone="danger" title={error} />}
 
           <FormField label="Ad Soyad">
-            {(p) => <Input {...p} required value={fullName} onChange={(e) => setFullName(e.target.value)} />}
+            {(p) => (
+              <Input
+                {...p}
+                required
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Leyla Həsənova"
+              />
+            )}
           </FormField>
 
           <FormField label="Bioqrafiya" optional>
-            {(p) => <Textarea {...p} rows={3} value={bio} onChange={(e) => setBio(e.target.value)} />}
+            {(p) => (
+              <Textarea
+                {...p}
+                rows={4}
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Stilist haqqında qısa məlumat, ixtisas sahəsi..."
+              />
+            )}
           </FormField>
 
           <FormField label="Status">
             {(p) => (
-              <Select {...p} value={isActive ? 'ACTIVE' : 'INACTIVE'} onChange={(e) => setIsActive(e.target.value === 'ACTIVE')}>
-                <option value="ACTIVE">Aktiv</option>
-                <option value="INACTIVE">Deaktiv</option>
+              <Select
+                {...p}
+                value={isActive ? 'ACTIVE' : 'INACTIVE'}
+                onChange={(e) => setIsActive(e.target.value === 'ACTIVE')}
+              >
+                <option value="ACTIVE">Aktiv — müştərilərə görünür</option>
+                <option value="INACTIVE">Deaktiv — onlayn bronlamaya bağlı</option>
               </Select>
             )}
           </FormField>
 
-          <Button type="submit" loading={submitting} disabled={submitting}>Yadda saxla</Button>
+          <div className="flex gap-3 pt-1">
+            <Button type="submit" loading={submitting} disabled={submitting}>
+              Yadda saxla
+            </Button>
+            <Button type="button" variant="secondary" onClick={() => router.push(`/superadmin/stylists/${stylistId}`)}>
+              Ləğv et
+            </Button>
+          </div>
         </form>
       </Card>
     </main>

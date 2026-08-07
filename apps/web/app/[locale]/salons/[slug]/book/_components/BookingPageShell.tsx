@@ -31,7 +31,7 @@ export function BookingPageShell({ title, backHref, backLabel, children, footer 
           zIndex: 40,
           background: 'rgba(255,255,255,0.96)',
           backdropFilter: 'blur(12px)',
-          borderBottom: '1px solid #ede5dc',
+          borderBottom: '1px solid #e4d4f4',
         }}
       >
         <div
@@ -56,11 +56,11 @@ export function BookingPageShell({ title, backHref, backLabel, children, footer 
               height: 36,
               borderRadius: 10,
               background: 'white',
-              border: '1px solid #ede5dc',
-              color: '#1a1208',
+              border: '1px solid #e4d4f4',
+              color: '#1e1b2e',
               flexShrink: 0,
               textDecoration: 'none',
-              boxShadow: '0 1px 3px rgba(26,18,8,0.06)',
+              boxShadow: '0 1px 3px rgba(30,27,46,0.06)',
             }}
           >
             <ArrowLeftIcon />
@@ -71,7 +71,7 @@ export function BookingPageShell({ title, backHref, backLabel, children, footer 
               textAlign: 'center',
               fontSize: '0.95rem',
               fontWeight: 700,
-              color: '#1a1208',
+              color: '#1e1b2e',
               letterSpacing: '0.01em',
             }}
           >
@@ -111,7 +111,7 @@ export function BookingPageShell({ title, backHref, backLabel, children, footer 
             right: 0,
             background: 'rgba(255,255,255,0.97)',
             backdropFilter: 'blur(12px)',
-            borderTop: '1px solid #ede5dc',
+            borderTop: '1px solid #e4d4f4',
             padding: '0.875rem 1rem calc(0.875rem + env(safe-area-inset-bottom))',
             zIndex: 30,
           }}
@@ -149,7 +149,7 @@ export function BookingCTAButton({
         width: '100%',
         minHeight: 52,
         borderRadius: 14,
-        background: disabled || loading ? '#c5bbb2' : '#5c3d28',
+        background: disabled || loading ? '#c5bbb2' : '#7c3aed',
         color: 'white',
         fontSize: '1rem',
         fontWeight: 700,

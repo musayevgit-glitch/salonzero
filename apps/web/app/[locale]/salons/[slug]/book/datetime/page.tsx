@@ -99,8 +99,8 @@ function CalendarIcon() {
 function InfoIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-      <circle cx="7" cy="7" r="6" stroke="#c9a460" strokeWidth="1.3" />
-      <path d="M7 6.5v3.5M7 4.5v.5" stroke="#c9a460" strokeWidth="1.3" strokeLinecap="round" />
+      <circle cx="7" cy="7" r="6" stroke="#7c3aed" strokeWidth="1.3" />
+      <path d="M7 6.5v3.5M7 4.5v.5" stroke="#7c3aed" strokeWidth="1.3" strokeLinecap="round" />
     </svg>
   );
 }
@@ -232,7 +232,7 @@ export default function DatetimeStep() {
       <div
         style={{
           background: 'white',
-          border: '1px solid #ede5dc',
+          border: '1px solid #e4d4f4',
           borderRadius: 14,
           padding: '0.875rem 1rem',
           marginBottom: '1.5rem',
@@ -240,23 +240,23 @@ export default function DatetimeStep() {
           alignItems: 'center',
           justifyContent: 'space-between',
           gap: '0.75rem',
-          boxShadow: '0 1px 4px rgba(26,18,8,0.06)',
+          boxShadow: '0 1px 4px rgba(30,27,46,0.06)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
           <div style={{
             width: 44, height: 44, borderRadius: '50%',
-            background: '#f5ece4',
+            background: '#f3e8ff',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0, fontWeight: 700, color: '#9c5f49', fontSize: '1rem',
+            flexShrink: 0, fontWeight: 700, color: '#7c3aed', fontSize: '1rem',
           }}>
             {(selectedEmployee?.fullName ?? 'A').slice(0, 1).toUpperCase()}
           </div>
           <div style={{ minWidth: 0 }}>
-            <p style={{ fontWeight: 700, fontSize: '0.875rem', color: '#1a1208', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <p style={{ fontWeight: 700, fontSize: '0.875rem', color: '#1e1b2e', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {selectedEmployee?.fullName ?? 'İstənilən usta'}
             </p>
-            <p style={{ fontSize: '0.72rem', color: '#9a8878', marginTop: '0.1rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <p style={{ fontSize: '0.72rem', color: '#7c6fa0', marginTop: '0.1rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {selectedService?.name ?? 'Xidmət'} · {selectedService
                 ? formatMoney(selectedService.priceAmount)
                 : ''}
@@ -269,10 +269,10 @@ export default function DatetimeStep() {
             flexShrink: 0,
             padding: '0.3rem 0.75rem',
             borderRadius: 8,
-            border: '1px solid #ede5dc',
+            border: '1px solid #e4d4f4',
             fontSize: '0.72rem',
             fontWeight: 600,
-            color: '#c9a460',
+            color: '#7c3aed',
             textDecoration: 'none',
             whiteSpace: 'nowrap',
           }}
@@ -282,18 +282,18 @@ export default function DatetimeStep() {
       </div>
 
       {/* Calendar section */}
-      <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#1a1208', marginBottom: '0.875rem' }}>
+      <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#1e1b2e', marginBottom: '0.875rem' }}>
         Tarix seçin
       </h2>
 
       <div
         style={{
           background: 'white',
-          border: '1px solid #ede5dc',
+          border: '1px solid #e4d4f4',
           borderRadius: 16,
           padding: '1rem',
           marginBottom: '1.25rem',
-          boxShadow: '0 1px 4px rgba(26,18,8,0.05)',
+          boxShadow: '0 1px 4px rgba(30,27,46,0.05)',
         }}
       >
         {/* Month nav */}
@@ -304,23 +304,23 @@ export default function DatetimeStep() {
             disabled={prevMonthDisabled}
             aria-label="Əvvəlki ay"
             style={{
-              width: 32, height: 32, borderRadius: 8, border: '1px solid #ede5dc',
-              background: prevMonthDisabled ? '#faf5f0' : 'white',
-              color: prevMonthDisabled ? '#c5bbb2' : '#1a1208',
+              width: 32, height: 32, borderRadius: 8, border: '1px solid #e4d4f4',
+              background: prevMonthDisabled ? '#faf5ff' : 'white',
+              color: prevMonthDisabled ? '#c5bbb2' : '#1e1b2e',
               cursor: prevMonthDisabled ? 'not-allowed' : 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
           >
             <ChevronIcon dir="left" />
           </button>
-          <span style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1a1208' }}>{monthLabel}</span>
+          <span style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1e1b2e' }}>{monthLabel}</span>
           <button
             type="button"
             onClick={goNextMonth}
             aria-label="Növbəti ay"
             style={{
-              width: 32, height: 32, borderRadius: 8, border: '1px solid #ede5dc',
-              background: 'white', color: '#1a1208', cursor: 'pointer',
+              width: 32, height: 32, borderRadius: 8, border: '1px solid #e4d4f4',
+              background: 'white', color: '#1e1b2e', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
           >
@@ -331,7 +331,7 @@ export default function DatetimeStep() {
         {/* Weekday headers */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px', marginBottom: '0.5rem' }}>
           {AZ_WEEKDAYS.map((d) => (
-            <div key={d} style={{ textAlign: 'center', fontSize: '0.68rem', fontWeight: 600, color: '#9a8878', padding: '0.25rem 0' }}>{d}</div>
+            <div key={d} style={{ textAlign: 'center', fontSize: '0.68rem', fontWeight: 600, color: '#7c6fa0', padding: '0.25rem 0' }}>{d}</div>
           ))}
         </div>
 
@@ -361,8 +361,8 @@ export default function DatetimeStep() {
                   aria-pressed={isSelected}
                   style={{
                     height: 40, borderRadius: 8, border: isSelected ? '1.5px solid #4caf50' : 'none',
-                    background: isSelected ? 'rgba(76, 175, 80, 0.15)' : isToday ? '#f5ece4' : 'transparent',
-                    color: isSelected ? '#1b4332' : isDisabled ? '#d5ccc5' : isToday ? '#c9a460' : '#1a1208',
+                    background: isSelected ? 'rgba(76, 175, 80, 0.15)' : isToday ? '#f3e8ff' : 'transparent',
+                    color: isSelected ? '#1b4332' : isDisabled ? '#d5ccc5' : isToday ? '#7c3aed' : '#1e1b2e',
                     fontWeight: isSelected || isToday ? 700 : 500,
                     fontSize: '0.85rem',
                     cursor: isDisabled ? 'not-allowed' : 'pointer',
@@ -384,20 +384,20 @@ export default function DatetimeStep() {
 
         {/* Selected date label */}
         {selectedDate && selectedDateObj && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.875rem', paddingTop: '0.75rem', borderTop: '1px solid #ede5dc', color: '#6b5e4a', fontSize: '0.78rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.875rem', paddingTop: '0.75rem', borderTop: '1px solid #e4d4f4', color: '#6b5d8a', fontSize: '0.78rem' }}>
             <CalendarIcon />
-            <span>Seçilmiş tarix: <strong style={{ color: '#1a1208' }}>{formatAzDate(selectedDateObj)}</strong></span>
+            <span>Seçilmiş tarix: <strong style={{ color: '#1e1b2e' }}>{formatAzDate(selectedDateObj)}</strong></span>
           </div>
         )}
       </div>
 
       {/* Time slots section */}
-      <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#1a1208', marginBottom: '0.875rem' }}>
+      <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#1e1b2e', marginBottom: '0.875rem' }}>
         Saat seçin
       </h2>
 
       {!selectedDate && (
-        <p style={{ color: '#9a8878', fontSize: '0.85rem', textAlign: 'center', padding: '1.5rem 0' }}>
+        <p style={{ color: '#7c6fa0', fontSize: '0.85rem', textAlign: 'center', padding: '1.5rem 0' }}>
           Saatları görmək üçün yuxarıdan tarix seçin.
         </p>
       )}
@@ -412,15 +412,15 @@ export default function DatetimeStep() {
 
       {selectedDate && loadState === 'error' && (
         <div style={{ background: '#fff5f5', border: '1px solid #fecaca', borderRadius: 12, padding: '0.875rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <p style={{ fontSize: '0.82rem', color: '#6b5e4a' }}>{errorMsg}</p>
-          <button type="button" onClick={() => void fetchSlots(selectedDate)} style={{ fontSize: '0.78rem', fontWeight: 600, color: '#c9a460', background: 'none', border: 'none', cursor: 'pointer' }}>
+          <p style={{ fontSize: '0.82rem', color: '#6b5d8a' }}>{errorMsg}</p>
+          <button type="button" onClick={() => void fetchSlots(selectedDate)} style={{ fontSize: '0.78rem', fontWeight: 600, color: '#7c3aed', background: 'none', border: 'none', cursor: 'pointer' }}>
             Yenidən cəhd et
           </button>
         </div>
       )}
 
       {selectedDate && loadState === 'idle' && slots.length === 0 && (
-        <p style={{ color: '#9a8878', fontSize: '0.85rem', textAlign: 'center', padding: '1.5rem 0' }}>
+        <p style={{ color: '#7c6fa0', fontSize: '0.85rem', textAlign: 'center', padding: '1.5rem 0' }}>
           Bu gün üçün mövcud vaxt yoxdur. Başqa tarix seçin.
         </p>
       )}
@@ -431,7 +431,7 @@ export default function DatetimeStep() {
             style={{
               maxHeight: 180,
               overflowY: 'auto',
-              border: '1.5px dashed #ede5dc',
+              border: '1.5px dashed #e4d4f4',
               borderRadius: 14,
               padding: '0.6rem',
               background: '#fcfbfa',
@@ -455,14 +455,14 @@ export default function DatetimeStep() {
                     style={{
                       height: 44,
                       borderRadius: 10,
-                      border: isSelected ? '2px solid #c9a460' : '1.5px solid #ede5dc',
-                      background: isSelected ? '#c9a460' : 'white',
-                      color: isSelected ? 'white' : '#1a1208',
+                      border: isSelected ? '2px solid #7c3aed' : '1.5px solid #e4d4f4',
+                      background: isSelected ? '#7c3aed' : 'white',
+                      color: isSelected ? 'white' : '#1e1b2e',
                       fontSize: '0.88rem',
                       fontWeight: isSelected ? 700 : 500,
                       cursor: 'pointer',
                       transition: 'all 0.15s ease',
-                      boxShadow: isSelected ? '0 2px 8px rgba(201,164,96,0.3)' : '0 1px 2px rgba(26,18,8,0.04)',
+                      boxShadow: isSelected ? '0 2px 8px rgba(201,164,96,0.3)' : '0 1px 2px rgba(30,27,46,0.04)',
                     }}
                   >
                     {formatTime(slot.startAt, timezone)}
@@ -476,10 +476,10 @@ export default function DatetimeStep() {
           <div style={{ display: 'flex', gap: '1.25rem', marginBottom: '0.875rem' }}>
             {[
               { dot: '#4caf50', label: 'Mövcuddur' },
-              { dot: '#c9a460', label: 'Seçilmiş' },
+              { dot: '#7c3aed', label: 'Seçilmiş' },
               { dot: '#c5bbb2', label: 'Doludur' },
             ].map((item) => (
-              <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.72rem', color: '#6b5e4a' }}>
+              <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.72rem', color: '#6b5d8a' }}>
                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: item.dot, flexShrink: 0 }} />
                 {item.label}
               </div>

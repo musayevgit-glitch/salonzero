@@ -79,7 +79,7 @@ export default async function ReservationsListPage({
   return (
     <PageLayout activeNav="reservations" isAuthenticated={true}>
       <div style={{ maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '2rem', color: '#1a1208', margin: 0 }}>Rezervasiyalarım</h1>
+        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '2rem', color: '#1e1b2e', margin: 0 }}>Rezervasiyalarım</h1>
 
         {/* Filter tabs */}
         <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
@@ -95,9 +95,9 @@ export default async function ReservationsListPage({
                 fontWeight: 500,
                 textDecoration: 'none',
                 whiteSpace: 'nowrap',
-                background: isActive ? '#5c3d28' : 'white',
-                color: isActive ? 'white' : '#1a1208',
-                border: isActive ? '1px solid #5c3d28' : '1px solid #ede5dc',
+                background: isActive ? '#7c3aed' : 'white',
+                color: isActive ? 'white' : '#1e1b2e',
+                border: isActive ? '1px solid #7c3aed' : '1px solid #e4d4f4',
                 transition: 'all 0.2s',
               }}>
                 {isAll ? 'Hamısı' : STATUS_MAP[s]}
@@ -108,8 +108,8 @@ export default async function ReservationsListPage({
 
         {data.items.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '3rem 0' }}>
-            <p style={{ color: '#9a8878' }}>Heç bir rezervasiya yoxdur.</p>
-            <Link href="/salons" style={{ display: 'inline-block', marginTop: '1rem', color: '#c9a460', textDecoration: 'none', fontWeight: 500 }}>
+            <p style={{ color: '#7c6fa0' }}>Heç bir rezervasiya yoxdur.</p>
+            <Link href="/salons" style={{ display: 'inline-block', marginTop: '1rem', color: '#7c3aed', textDecoration: 'none', fontWeight: 500 }}>
               Salonları kəşf et
             </Link>
           </div>
@@ -125,7 +125,7 @@ export default async function ReservationsListPage({
               return (
                 <div key={r.id} style={{
                   background: 'white',
-                  border: '1px solid #ede5dc',
+                  border: '1px solid #e4d4f4',
                   borderRadius: 14,
                   padding: '1.25rem',
                   display: 'flex',
@@ -134,8 +134,8 @@ export default async function ReservationsListPage({
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div>
-                      <div style={{ fontWeight: 600, color: '#1a1208', fontSize: '1.05rem' }}>{r.salon.name}</div>
-                      <div style={{ color: '#6b5e4a', fontSize: '0.9rem', marginTop: '0.2rem' }}>{r.service.name}</div>
+                      <div style={{ fontWeight: 600, color: '#1e1b2e', fontSize: '1.05rem' }}>{r.salon.name}</div>
+                      <div style={{ color: '#6b5d8a', fontSize: '0.9rem', marginTop: '0.2rem' }}>{r.service.name}</div>
                     </div>
                     <span style={{
                       padding: '0.25rem 0.75rem',
@@ -150,20 +150,20 @@ export default async function ReservationsListPage({
                   
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '0.25rem' }}>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontSize: '0.75rem', color: '#9a8878' }}>Tarix və Saat</span>
-                      <span style={{ fontSize: '0.85rem', color: '#1a1208', fontWeight: 500 }}>{dateStr}</span>
+                      <span style={{ fontSize: '0.75rem', color: '#7c6fa0' }}>Tarix və Saat</span>
+                      <span style={{ fontSize: '0.85rem', color: '#1e1b2e', fontWeight: 500 }}>{dateStr}</span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontSize: '0.75rem', color: '#9a8878' }}>Usta</span>
-                      <span style={{ fontSize: '0.85rem', color: '#1a1208', fontWeight: 500 }}>{r.employee?.fullName || 'İstənilən'}</span>
+                      <span style={{ fontSize: '0.75rem', color: '#7c6fa0' }}>Usta</span>
+                      <span style={{ fontSize: '0.85rem', color: '#1e1b2e', fontWeight: 500 }}>{r.employee?.fullName || 'İstənilən'}</span>
                     </div>
                   </div>
 
-                  <div style={{ borderTop: '1px solid #ede5dc', margin: '0.5rem -1.25rem 0', padding: '1rem 1.25rem 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ fontSize: '1rem', fontWeight: 600, color: '#1a1208' }}>
+                  <div style={{ borderTop: '1px solid #e4d4f4', margin: '0.5rem -1.25rem 0', padding: '1rem 1.25rem 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ fontSize: '1rem', fontWeight: 600, color: '#1e1b2e' }}>
                       {formatMoney(r.priceAmount)}
                     </div>
-                    <Link href={`/account/reservations/${r.id}`} style={{ color: '#c9a460', fontSize: '0.9rem', fontWeight: 500, textDecoration: 'none' }}>
+                    <Link href={`/account/reservations/${r.id}`} style={{ color: '#7c3aed', fontSize: '0.9rem', fontWeight: 500, textDecoration: 'none' }}>
                       Ətraflı bax →
                     </Link>
                   </div>
@@ -176,11 +176,11 @@ export default async function ReservationsListPage({
         {totalPages > 1 && (
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', fontSize: '0.9rem' }}>
             {page > 1 ? (
-              <Link href={`?page=${page - 1}${status ? `&status=${status}` : ''}`} style={{ color: '#c9a460', textDecoration: 'none' }}>← Əvvəlki</Link>
+              <Link href={`?page=${page - 1}${status ? `&status=${status}` : ''}`} style={{ color: '#7c3aed', textDecoration: 'none' }}>← Əvvəlki</Link>
             ) : <span />}
-            <span style={{ color: '#9a8878' }}>Səhifə {page} / {totalPages}</span>
+            <span style={{ color: '#7c6fa0' }}>Səhifə {page} / {totalPages}</span>
             {page < totalPages ? (
-              <Link href={`?page=${page + 1}${status ? `&status=${status}` : ''}`} style={{ color: '#c9a460', textDecoration: 'none' }}>Növbəti →</Link>
+              <Link href={`?page=${page + 1}${status ? `&status=${status}` : ''}`} style={{ color: '#7c3aed', textDecoration: 'none' }}>Növbəti →</Link>
             ) : <span />}
           </div>
         )}

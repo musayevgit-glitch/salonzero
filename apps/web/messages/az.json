@@ -77,7 +77,10 @@
     "noServices": "Heç bir xidmət mövcud deyil.",
     "noStylists": "Heç bir stilist tapılmadı.",
     "portfolio": "Portfolio",
-    "loadError": "Salon məlumatları yüklənə bilmədi."
+    "loadError": "Salon məlumatları yüklənə bilmədi.",
+    "genderWomen": "Qadınlar",
+    "genderMen": "Kişilər",
+    "genderUnisex": "Uniseks"
   },
   "stylists": {
     "title": "Stilistlər",
@@ -139,7 +142,23 @@
     "min": "dəq",
     "noServiceSelected": "Xidmət seçilməyib",
     "loadingSlotsError": "Vaxt slotları yüklənə bilmədi. Yenidən cəhd edin.",
-    "slotsLoadError": "Mövcudluq yüklənə bilmədi."
+    "slotsLoadError": "Mövcudluq yüklənə bilmədi.",
+    "allCategories": "Hamısı",
+    "otherCategory": "Digər",
+    "noServicesAvailable": "Hal-hazırda heç bir xidmət mövcud deyil.",
+    "priceNote": "Qiymətlər ustaya görə dəyişə bilər.",
+    "noStylistsAvailable": "Heç bir usta əlavə edilməyib.",
+    "viewSalonProfile": "Salon profilinə bax",
+    "myInfo": "Məlumatlarınız",
+    "guestName": "Qonaq",
+    "noteLabel": "Salon üçün qeyd",
+    "noteOptional": "(istəyə bağlı)",
+    "paymentNote": "Ödəniş salon daxilində ediləcək.",
+    "termsText": "Rezervasiya yaratmaqla {link} qəbul etmiş olursunuz.",
+    "termsLink": "şərtlər və qaydaları",
+    "createReservation": "Rezervasiyanı yarat",
+    "prevMonth": "Əvvəlki ay",
+    "nextMonth": "Növbəti ay"
   },
   "auth": {
     "loginTitle": "Daxil olun",
@@ -163,7 +182,16 @@
     "backToLogin": "Girişə qayıt",
     "emailSent": "Link e-poçtunuza göndərildi.",
     "passwordMismatch": "Şifrələr uyğun gəlmir.",
-    "invalidLink": "Keçid etibarsız və ya müddəti bitib."
+    "invalidLink": "Keçid etibarsız və ya müddəti bitib.",
+    "passwordMinLength": "Ən azı 8 simvol.",
+    "submitting": "Gözləyin...",
+    "tagline": "Eksklüziv gözəllik təcrübəsi",
+    "checkEmail": "E-poçtunuzu yoxlayın",
+    "checkEmailDesc": "Həmin e-poçt ünvanı ilə hesab varsa, sıfırlama linki göndərildi.",
+    "resetSuccess": "Şifrə yeniləndi",
+    "redirecting": "Giriş səhifəsinə yönləndirilirsiniz…",
+    "invalidResetLink": "Bu sıfırlama linki etibarsız və ya müddəti bitib.",
+    "requestNewLink": "Yeni link tələb edin"
   },
   "account": {
     "title": "Hesabım",
@@ -189,6 +217,25 @@
     "cancelReason": "Ləğvetmə səbəbi",
     "cancelReasonPlaceholder": "Səbəb daxil edin...",
     "cancelBtn": "Ləğv et",
-    "backToReservations": "Rezervasiyalara qayıt"
+    "backToReservations": "Rezervasiyalara qayıt",
+    "profileInfo": "Profil məlumatları",
+    "savedSuccess": "Yadda saxlanıldı",
+    "fullName": "Ad və Soyad",
+    "phone": "Telefon (opsional)",
+    "marketing": "Marketinq e-poçtları almaq istəyirəm",
+    "saving": "Yadda saxlanılır...",
+    "salonAdminPanel": "Salon idarəetmə paneli",
+    "stylistAdminPanel": "Usta idarəetmə paneli",
+    "discoverSalons": "Salonları kəşf et",
+    "prevPage": "← Əvvəlki",
+    "nextPage": "Növbəti →",
+    "pageOf": "Səhifə {current} / {total}",
+    "reschedule": "Vaxtı dəyişdir",
+    "selectNewTime": "Yeni vaxt seçin",
+    "noSlotsForDay": "Bu gün üçün boş vaxt yoxdur.",
+    "selectDayFirst": "Uyğun saatları görmək üçün gün seçin.",
+    "saveBtn": "Saxla",
+    "cancelling": "Ləğv edilir...",
+    "confirmCancelBtn": "Bəli, ləğv et"
   }
 }

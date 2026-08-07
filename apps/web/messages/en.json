@@ -77,7 +77,10 @@
     "noServices": "No services available.",
     "noStylists": "No stylists found.",
     "portfolio": "Portfolio",
-    "loadError": "Failed to load salon details."
+    "loadError": "Failed to load salon details.",
+    "genderWomen": "Women",
+    "genderMen": "Men",
+    "genderUnisex": "Unisex"
   },
   "stylists": {
     "title": "Stylists",
@@ -139,7 +142,23 @@
     "min": "min",
     "noServiceSelected": "No service selected",
     "loadingSlotsError": "Failed to load time slots. Please try again.",
-    "slotsLoadError": "Failed to load availability."
+    "slotsLoadError": "Failed to load availability.",
+    "allCategories": "All",
+    "otherCategory": "Other",
+    "noServicesAvailable": "No services available yet.",
+    "priceNote": "Prices may vary by stylist.",
+    "noStylistsAvailable": "No stylists available yet.",
+    "viewSalonProfile": "View salon profile",
+    "myInfo": "Your details",
+    "guestName": "Guest",
+    "noteLabel": "Note for salon",
+    "noteOptional": "(optional)",
+    "paymentNote": "Payment will be made at the salon.",
+    "termsText": "By creating a booking, you agree to the {link}.",
+    "termsLink": "terms and conditions",
+    "createReservation": "Create reservation",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month"
   },
   "auth": {
     "loginTitle": "Sign in",
@@ -163,7 +182,16 @@
     "backToLogin": "Back to sign in",
     "emailSent": "Link sent to your email.",
     "passwordMismatch": "Passwords do not match.",
-    "invalidLink": "The link is invalid or has expired."
+    "invalidLink": "The link is invalid or has expired.",
+    "passwordMinLength": "At least 8 characters.",
+    "submitting": "Please wait...",
+    "tagline": "Exclusive beauty experience",
+    "checkEmail": "Check your email",
+    "checkEmailDesc": "If an account with that email exists, we've sent a password reset link.",
+    "resetSuccess": "Password updated",
+    "redirecting": "Redirecting to sign in…",
+    "invalidResetLink": "This reset link is invalid or has expired.",
+    "requestNewLink": "Request a new link"
   },
   "account": {
     "title": "My Account",
@@ -189,6 +217,25 @@
     "cancelReason": "Cancellation reason",
     "cancelReasonPlaceholder": "Enter reason...",
     "cancelBtn": "Cancel booking",
-    "backToReservations": "Back to bookings"
+    "backToReservations": "Back to bookings",
+    "profileInfo": "Profile information",
+    "savedSuccess": "Saved",
+    "fullName": "Full name",
+    "phone": "Phone (optional)",
+    "marketing": "I want to receive marketing emails",
+    "saving": "Saving...",
+    "salonAdminPanel": "Salon management panel",
+    "stylistAdminPanel": "Stylist management panel",
+    "discoverSalons": "Discover salons",
+    "prevPage": "← Previous",
+    "nextPage": "Next →",
+    "pageOf": "Page {current} / {total}",
+    "reschedule": "Reschedule",
+    "selectNewTime": "Select a new time",
+    "noSlotsForDay": "No slots available for this day.",
+    "selectDayFirst": "Select a day to see available slots.",
+    "saveBtn": "Save",
+    "cancelling": "Cancelling...",
+    "confirmCancelBtn": "Yes, cancel"
   }
 }

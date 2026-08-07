@@ -77,7 +77,10 @@
     "noServices": "Услуги не доступны.",
     "noStylists": "Стилисты не найдены.",
     "portfolio": "Портфолио",
-    "loadError": "Не удалось загрузить данные салона."
+    "loadError": "Не удалось загрузить данные салона.",
+    "genderWomen": "Женщины",
+    "genderMen": "Мужчины",
+    "genderUnisex": "Унисекс"
   },
   "stylists": {
     "title": "Стилисты",
@@ -139,7 +142,23 @@
     "min": "мин",
     "noServiceSelected": "Услуга не выбрана",
     "loadingSlotsError": "Не удалось загрузить временные слоты. Попробуйте снова.",
-    "slotsLoadError": "Не удалось загрузить доступность."
+    "slotsLoadError": "Не удалось загрузить доступность.",
+    "allCategories": "Все",
+    "otherCategory": "Другое",
+    "noServicesAvailable": "Пока услуг нет.",
+    "priceNote": "Цены могут варьироваться в зависимости от мастера.",
+    "noStylistsAvailable": "Пока мастеров нет.",
+    "viewSalonProfile": "Смотреть профиль салона",
+    "myInfo": "Ваши данные",
+    "guestName": "Гость",
+    "noteLabel": "Заметка для салона",
+    "noteOptional": "(необязательно)",
+    "paymentNote": "Оплата производится в салоне.",
+    "termsText": "Создавая бронирование, вы принимаете {link}.",
+    "termsLink": "условия использования",
+    "createReservation": "Создать запись",
+    "prevMonth": "Предыдущий месяц",
+    "nextMonth": "Следующий месяц"
   },
   "auth": {
     "loginTitle": "Войти",
@@ -163,7 +182,16 @@
     "backToLogin": "Вернуться к входу",
     "emailSent": "Ссылка отправлена на ваш email.",
     "passwordMismatch": "Пароли не совпадают.",
-    "invalidLink": "Ссылка недействительна или устарела."
+    "invalidLink": "Ссылка недействительна или устарела.",
+    "passwordMinLength": "Минимум 8 символов.",
+    "submitting": "Подождите...",
+    "tagline": "Эксклюзивный опыт красоты",
+    "checkEmail": "Проверьте вашу почту",
+    "checkEmailDesc": "Если аккаунт с таким email существует, мы отправили ссылку для сброса пароля.",
+    "resetSuccess": "Пароль обновлён",
+    "redirecting": "Перенаправление на страницу входа…",
+    "invalidResetLink": "Эта ссылка для сброса недействительна или истекла.",
+    "requestNewLink": "Запросить новую ссылку"
   },
   "account": {
     "title": "Мой аккаунт",
@@ -189,6 +217,25 @@
     "cancelReason": "Причина отмены",
     "cancelReasonPlaceholder": "Введите причину...",
     "cancelBtn": "Отменить",
-    "backToReservations": "К моим записям"
+    "backToReservations": "К моим записям",
+    "profileInfo": "Данные профиля",
+    "savedSuccess": "Сохранено",
+    "fullName": "Имя и фамилия",
+    "phone": "Телефон (необязательно)",
+    "marketing": "Я хочу получать маркетинговые письма",
+    "saving": "Сохраняется...",
+    "salonAdminPanel": "Панель управления салоном",
+    "stylistAdminPanel": "Панель управления мастером",
+    "discoverSalons": "Открыть для себя салоны",
+    "prevPage": "← Предыдущая",
+    "nextPage": "Следующая →",
+    "pageOf": "Страница {current} / {total}",
+    "reschedule": "Перенести",
+    "selectNewTime": "Выберите новое время",
+    "noSlotsForDay": "На этот день нет свободных слотов.",
+    "selectDayFirst": "Выберите день для просмотра свободных слотов.",
+    "saveBtn": "Сохранить",
+    "cancelling": "Отменяется...",
+    "confirmCancelBtn": "Да, отменить"
   }
 }

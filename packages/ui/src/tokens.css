@@ -5,35 +5,35 @@
  */
 
 @theme {
-  --color-surface: #faf7f5;
+  --color-surface: #faf8ff;
   --color-surface-raised: #ffffff;
-  --color-surface-subtle: #f3ede8;
-  --color-border: #e4ddd8;
-  --color-border-strong: #c9bdb6;
-  --color-text-primary: #241f1d;
-  --color-text-secondary: #6b615c;
-  --color-accent: #9c5f49;
-  --color-accent-muted: #f0e8e4;
+  --color-surface-subtle: #f3e8ff;
+  --color-border: #e4d4f4;
+  --color-border-strong: #c4b0e0;
+  --color-text-primary: #1e1b2e;
+  --color-text-secondary: #6b5d8a;
+  --color-accent: #7c3aed;
+  --color-accent-muted: #ede9fe;
   --color-accent-foreground: #ffffff;
   --color-success: #2f7d5a;
   --color-warning: #9a6a08;
   --color-danger: #b23b3b;
   /* Deliberately independent of --color-accent: focus must stay recognizable regardless of theme. */
-  --color-focus-ring: #2563eb;
+  --color-focus-ring: #7c3aed;
 
   --font-sans:
     'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --font-display: 'Playfair Display', Georgia, serif;
 
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
 
-  --shadow-sm: 0 1px 2px rgb(36 31 29 / 0.06);
-  --shadow-md: 0 4px 16px rgb(36 31 29 / 0.08);
-  --shadow-lg: 0 8px 40px rgb(36 31 29 / 0.12), 0 2px 8px rgb(36 31 29 / 0.06);
-  --shadow-accent: 0 4px 24px rgb(156 95 73 / 0.22);
+  --shadow-sm: 0 1px 2px rgb(30 27 46 / 0.06);
+  --shadow-md: 0 4px 16px rgb(30 27 46 / 0.08);
+  --shadow-lg: 0 8px 40px rgb(30 27 46 / 0.12), 0 2px 8px rgb(30 27 46 / 0.06);
+  --shadow-accent: 0 4px 24px rgb(124 58 237 / 0.30);
 
   --duration-fast: 120ms;
   --duration-normal: 220ms;

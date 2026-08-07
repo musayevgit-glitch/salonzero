@@ -15,8 +15,8 @@ interface CustomerProfile {
 function InfoIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-      <circle cx="7" cy="7" r="6" stroke="#6b5e4a" strokeWidth="1.3" />
-      <path d="M7 6.5v3.5M7 4.5v.5" stroke="#6b5e4a" strokeWidth="1.3" strokeLinecap="round" />
+      <circle cx="7" cy="7" r="6" stroke="#6b5d8a" strokeWidth="1.3" />
+      <path d="M7 6.5v3.5M7 4.5v.5" stroke="#6b5d8a" strokeWidth="1.3" strokeLinecap="round" />
     </svg>
   );
 }
@@ -103,15 +103,15 @@ export default function ConfirmStep() {
               padding: '0.75rem',
               borderRadius: 12,
               background: termsAccepted ? '#fffbf2' : 'white',
-              border: `1px solid ${termsAccepted ? '#c9a460' : '#ede5dc'}`,
+              border: `1px solid ${termsAccepted ? '#7c3aed' : '#e4d4f4'}`,
               transition: 'all 0.15s',
             }}
           >
             <div
               style={{
                 width: 20, height: 20, borderRadius: 6,
-                border: `2px solid ${termsAccepted ? '#c9a460' : '#c5bbb2'}`,
-                background: termsAccepted ? '#c9a460' : 'white',
+                border: `2px solid ${termsAccepted ? '#7c3aed' : '#c5bbb2'}`,
+                background: termsAccepted ? '#7c3aed' : 'white',
                 flexShrink: 0, marginTop: '0.05rem',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 transition: 'all 0.15s',
@@ -130,9 +130,9 @@ export default function ConfirmStep() {
               style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }}
               aria-label="Şərtlər və qaydaları qəbul edirəm"
             />
-            <span style={{ fontSize: '0.78rem', color: '#6b5e4a', lineHeight: 1.5 }}>
+            <span style={{ fontSize: '0.78rem', color: '#6b5d8a', lineHeight: 1.5 }}>
               Rezervasiya yaratmaqla{' '}
-              <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: '#c9a460', fontWeight: 600, textDecoration: 'none' }}>
+              <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: '#7c3aed', fontWeight: 600, textDecoration: 'none' }}>
                 şərtlər və qaydaları
               </a>{' '}
               qəbul etmiş olursunuz.
@@ -151,19 +151,19 @@ export default function ConfirmStep() {
             disabled={!termsAccepted || !profile}
             loading={submitting}
           />
-          <p style={{ textAlign: 'center', fontSize: '0.68rem', color: '#b8a898' }}>
+          <p style={{ textAlign: 'center', fontSize: '0.68rem', color: '#a994c9' }}>
             Rezervasiya yaratmaqla qaydaları qəbul etmiş olursunuz.
           </p>
         </form>
       }
     >
-      <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#1a1208', marginBottom: '1rem' }}>
+      <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#1e1b2e', marginBottom: '1rem' }}>
         Məlumatlarınız
       </h2>
 
       {/* Profile card */}
       {!profile ? (
-        <div style={{ background: 'white', border: '1px solid #ede5dc', borderRadius: 14, padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <div style={{ background: 'white', border: '1px solid #e4d4f4', borderRadius: 14, padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           <div style={{ height: 16, width: '60%', borderRadius: 8, background: '#f0e8e0', animation: 'pulse 1.5s ease-in-out infinite' }} />
           <div style={{ height: 14, width: '40%', borderRadius: 8, background: '#f0e8e0', animation: 'pulse 1.5s ease-in-out infinite' }} />
         </div>
@@ -171,16 +171,16 @@ export default function ConfirmStep() {
         <div
           style={{
             background: 'white',
-            border: '1px solid #ede5dc',
+            border: '1px solid #e4d4f4',
             borderRadius: 14,
             padding: '1rem 1.25rem',
-            boxShadow: '0 1px 4px rgba(26,18,8,0.05)',
+            boxShadow: '0 1px 4px rgba(30,27,46,0.05)',
             marginBottom: '1rem',
           }}
         >
-          <p style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1a1208' }}>{profile.fullName ?? 'Qonaq'}</p>
-          <p style={{ fontSize: '0.8rem', color: '#9a8878', marginTop: '0.2rem' }}>{profile.email}</p>
-          {profile.phone && <p style={{ fontSize: '0.8rem', color: '#9a8878', marginTop: '0.1rem' }}>{profile.phone}</p>}
+          <p style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1e1b2e' }}>{profile.fullName ?? 'Qonaq'}</p>
+          <p style={{ fontSize: '0.8rem', color: '#7c6fa0', marginTop: '0.2rem' }}>{profile.email}</p>
+          {profile.phone && <p style={{ fontSize: '0.8rem', color: '#7c6fa0', marginTop: '0.1rem' }}>{profile.phone}</p>}
         </div>
       )}
 
@@ -188,10 +188,10 @@ export default function ConfirmStep() {
       <div style={{ marginBottom: '0.75rem' }}>
         <label
           htmlFor="note"
-          style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#1a1208', marginBottom: '0.5rem' }}
+          style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#1e1b2e', marginBottom: '0.5rem' }}
         >
           Salon üçün qeyd{' '}
-          <span style={{ fontWeight: 400, color: '#9a8878' }}>(istəyə bağlı)</span>
+          <span style={{ fontWeight: 400, color: '#7c6fa0' }}>(istəyə bağlı)</span>
         </label>
         <textarea
           id="note"
@@ -205,10 +205,10 @@ export default function ConfirmStep() {
             width: '100%',
             padding: '0.75rem 1rem',
             borderRadius: 12,
-            border: '1.5px solid #ede5dc',
+            border: '1.5px solid #e4d4f4',
             background: 'white',
             fontSize: '0.85rem',
-            color: '#1a1208',
+            color: '#1e1b2e',
             resize: 'none',
             outline: 'none',
             fontFamily: 'inherit',
@@ -216,15 +216,15 @@ export default function ConfirmStep() {
             transition: 'border-color 0.15s',
             boxSizing: 'border-box',
           }}
-          onFocus={(e) => { (e.currentTarget as HTMLTextAreaElement).style.borderColor = '#c9a460'; }}
-          onBlur={(e) => { (e.currentTarget as HTMLTextAreaElement).style.borderColor = '#ede5dc'; }}
+          onFocus={(e) => { (e.currentTarget as HTMLTextAreaElement).style.borderColor = '#7c3aed'; }}
+          onBlur={(e) => { (e.currentTarget as HTMLTextAreaElement).style.borderColor = '#e4d4f4'; }}
         />
       </div>
 
       {/* Payment info note */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0 0.25rem' }}>
         <InfoIcon />
-        <p style={{ fontSize: '0.75rem', color: '#9a8878' }}>Ödəniş salon daxilində ediləcək.</p>
+        <p style={{ fontSize: '0.75rem', color: '#7c6fa0' }}>Ödəniş salon daxilində ediləcək.</p>
       </div>
     </BookingPageShell>
   );

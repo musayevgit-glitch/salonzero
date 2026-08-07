@@ -17,7 +17,6 @@ function LanguageSwitcher() {
   const currentLocale = (params && params.locale ? (params.locale as string) : 'az') || 'az';
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    // Set cookie so next-intl middleware picks the locale without touching the URL.
     document.cookie = `NEXT_LOCALE=${e.target.value};path=/;max-age=31536000;SameSite=Lax`;
     window.location.reload();
   }
@@ -30,13 +29,13 @@ function LanguageSwitcher() {
         aria-label="Select language"
         style={{
           appearance: 'none',
-          background: '#f5ece4',
-          border: '1px solid #ede5dc',
-          borderRadius: 8,
+          background: '#f3e8ff',
+          border: '1px solid #e4d4f4',
+          borderRadius: 10,
           padding: '0.3rem 1.8rem 0.3rem 0.6rem',
           fontSize: '0.78rem',
           fontWeight: 600,
-          color: '#1a1208',
+          color: '#1e1b2e',
           cursor: 'pointer',
           fontFamily: 'inherit',
         }}
@@ -47,7 +46,7 @@ function LanguageSwitcher() {
           </option>
         ))}
       </select>
-      <span style={{ position: 'absolute', right: '0.4rem', pointerEvents: 'none', fontSize: '0.6rem', color: '#9a8878' }}>▾</span>
+      <span style={{ position: 'absolute', right: '0.4rem', pointerEvents: 'none', fontSize: '0.6rem', color: '#7c6fa0' }}>▾</span>
     </div>
   );
 }
@@ -60,25 +59,23 @@ export function PageHeader({ isAuthenticated }: { isAuthenticated?: boolean }) {
         position: 'sticky',
         top: 0,
         zIndex: 40,
-        background: 'rgba(255,255,255,0.96)',
-        backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid #ede5dc',
+        background: 'rgba(255,255,255,0.94)',
+        backdropFilter: 'blur(16px)',
+        borderBottom: '1px solid #e4d4f4',
       }}
     >
-      <div
-        style={{ maxWidth: 1280, margin: '0 auto', padding: '0 1.25rem', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-      >
+      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 1.25rem', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <a href="/" style={{ textDecoration: 'none' }}>
-          <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.2rem', fontWeight: 700, letterSpacing: '0.05em', color: '#1a1208' }}>
+          <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.2rem', fontWeight: 700, letterSpacing: '0.05em', color: '#1e1b2e' }}>
             SALONOMIA
           </span>
         </a>
 
         <nav style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <a href="/salons" style={{ fontSize: '0.875rem', color: '#6b5e4a', textDecoration: 'none', fontWeight: 500, padding: '0.4rem 0.75rem', borderRadius: 8, display: 'none' }} className="md-show">
+          <a href="/salons" style={{ fontSize: '0.875rem', color: '#6b5d8a', textDecoration: 'none', fontWeight: 500, padding: '0.4rem 0.75rem', borderRadius: 10, display: 'none' }} className="md-show">
             {t('salons')}
           </a>
-          <a href="/stilistler" style={{ fontSize: '0.875rem', color: '#6b5e4a', textDecoration: 'none', fontWeight: 500, padding: '0.4rem 0.75rem', borderRadius: 8, display: 'none' }} className="md-show">
+          <a href="/stilistler" style={{ fontSize: '0.875rem', color: '#6b5d8a', textDecoration: 'none', fontWeight: 500, padding: '0.4rem 0.75rem', borderRadius: 10, display: 'none' }} className="md-show">
             {t('stylists')}
           </a>
           <LanguageSwitcher />
@@ -86,9 +83,10 @@ export function PageHeader({ isAuthenticated }: { isAuthenticated?: boolean }) {
             href={isAuthenticated ? '/account' : '/login'}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-              padding: '0.5rem 1rem', borderRadius: 10,
-              background: '#5c3d28', color: 'white',
+              padding: '0.5rem 1.1rem', borderRadius: 12,
+              background: '#7c3aed', color: 'white',
               fontSize: '0.85rem', fontWeight: 600, textDecoration: 'none',
+              boxShadow: '0 4px 14px rgba(124,58,237,0.35), inset 0 1px 0 rgba(255,255,255,0.18)',
             }}
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
@@ -110,17 +108,17 @@ export function PageHeader({ isAuthenticated }: { isAuthenticated?: boolean }) {
 export function PageFooter() {
   const t = useTranslations('common');
   return (
-    <footer style={{ background: 'white', borderTop: '1px solid #ede5dc', padding: '1.5rem 1.25rem', marginTop: 'auto' }}>
+    <footer style={{ background: 'white', borderTop: '1px solid #e4d4f4', padding: '1.5rem 1.25rem', marginTop: 'auto' }}>
       <div style={{ maxWidth: 1280, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
         <div>
-          <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '0.95rem', fontWeight: 700, letterSpacing: '0.05em', color: '#1a1208' }}>
+          <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '0.95rem', fontWeight: 700, letterSpacing: '0.05em', color: '#1e1b2e' }}>
             SALONOMIA
           </span>
-          <div style={{ fontSize: '0.6rem', color: '#c9a460', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: '2px' }}>
+          <div style={{ fontSize: '0.6rem', color: '#7c3aed', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: '2px' }}>
             {t('tagline')}
           </div>
         </div>
-        <p style={{ fontSize: '0.78rem', color: '#9a8878' }}>
+        <p style={{ fontSize: '0.78rem', color: '#7c6fa0' }}>
           {t('copyright', { year: new Date().getFullYear() })}
         </p>
       </div>

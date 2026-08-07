@@ -9,6 +9,7 @@ import {
   FormField,
   Input,
   PermissionDeniedState,
+  Select,
   Skeleton,
   Textarea,
   useToast,
@@ -20,9 +21,14 @@ import { apiFetch, ApiError } from '../../../../../../lib/api-client';
 interface SalonDetail {
   id: string;
   name: string;
+  slug: string;
   timezone: string;
   city: string | null;
   description: string | null;
+  addressLine: string | null;
+  phone: string | null;
+  email: string | null;
+  genderFocus: 'WOMEN' | 'MEN' | 'UNISEX' | null;
   updatedAt: string;
 }
 
@@ -42,6 +48,10 @@ export default function EditSalonPage() {
   const [timezone, setTimezone] = useState('');
   const [city, setCity] = useState('');
   const [description, setDescription] = useState('');
+  const [addressLine, setAddressLine] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [genderFocus, setGenderFocus] = useState<'WOMEN' | 'MEN' | 'UNISEX' | ''>('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -53,20 +63,21 @@ export default function EditSalonPage() {
         setTimezone(salon.timezone);
         setCity(salon.city ?? '');
         setDescription(salon.description ?? '');
+        setAddressLine(salon.addressLine ?? '');
+        setPhone(salon.phone ?? '');
+        setEmail(salon.email ?? '');
+        setGenderFocus(salon.genderFocus ?? '');
       })
       .catch((err: unknown) => {
         if (err instanceof ApiError && err.status === 401) {
           router.replace(`/login?returnTo=/superadmin/salons/${salonId}/edit`);
           return;
         }
-        if (err instanceof ApiError && err.status === 404) {
+        if (err instanceof ApiError && (err.status === 404 || err.status === 403)) {
           setState({ kind: 'permission-denied' });
           return;
         }
-        setState({
-          kind: 'error',
-          message: err instanceof ApiError ? err.message : 'Something went wrong.',
-        });
+        setState({ kind: 'error', message: err instanceof ApiError ? err.message : 'Xəta baş verdi.' });
       });
   }, [salonId, router]);
 
@@ -79,105 +90,122 @@ export default function EditSalonPage() {
       await apiFetch(`/salons/${salonId}`, {
         method: 'PATCH',
         body: JSON.stringify({
-          name,
-          timezone,
-          city: city || null,
-          description: description || null,
+          name: name.trim(),
+          timezone: timezone.trim(),
+          city: city.trim() || null,
+          description: description.trim() || null,
+          addressLine: addressLine.trim() || null,
+          phone: phone.trim() || null,
+          email: email.trim() || null,
+          genderFocus: genderFocus || null,
           expectedUpdatedAt: state.salon.updatedAt,
         }),
       });
-      showToast('Salon updated');
+      showToast('Salon yeniləndi');
       router.push(`/superadmin/salons/${salonId}`);
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
-        setError('This salon was changed by someone else. Reload the page and try again.');
+        setError('Salon başqa biri tərəfindən dəyişdirildi. Səhifəni yeniləyib yenidən cəhd edin.');
       } else {
-        setError(err instanceof ApiError ? err.message : 'Something went wrong. Please try again.');
+        setError(err instanceof ApiError ? err.message : 'Xəta baş verdi. Yenidən cəhd edin.');
       }
     } finally {
       setSubmitting(false);
     }
   }
 
-  if (state.kind === 'loading') {
-    return (
-      <main className="p-8">
-        <Skeleton className="h-64 w-full max-w-lg" />
-      </main>
-    );
-  }
-
-  if (state.kind === 'permission-denied') {
-    return (
-      <main className="p-8">
-        <PermissionDeniedState />
-      </main>
-    );
-  }
-
-  if (state.kind === 'error') {
-    return (
-      <main className="p-8">
-        <ErrorState title="Couldn't load this salon" description={state.message} />
-      </main>
-    );
-  }
+  if (state.kind === 'loading') return (
+    <main className="p-8"><Skeleton className="h-96 w-full max-w-2xl" /></main>
+  );
+  if (state.kind === 'permission-denied') return (
+    <main className="p-8"><PermissionDeniedState /></main>
+  );
+  if (state.kind === 'error') return (
+    <main className="p-8"><ErrorState title="Salon yüklənmədi" description={state.message} /></main>
+  );
 
   return (
-    <main className="flex flex-col gap-6 p-8">
+    <main className="flex flex-col gap-6 p-6 lg:p-8">
       <Breadcrumbs
         items={[
-          { label: 'Salons', href: '/superadmin/salons' },
+          { label: 'Salonlar', href: '/superadmin/salons' },
           { label: state.salon.name, href: `/superadmin/salons/${salonId}` },
-          { label: 'Edit' },
+          { label: 'Redaktə' },
         ]}
       />
-      <Card className="max-w-lg">
-        <h1 className="text-xl font-semibold text-text-primary">Edit salon</h1>
-        <form className="mt-6 flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
-          {error ? <Alert tone="danger" title={error} /> : null}
 
-          <FormField label="Salon name">
-            {(fieldProps) => (
-              <Input
-                {...fieldProps}
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            )}
-          </FormField>
+      <div className="max-w-2xl">
+        <h1 className="text-2xl font-bold text-text-primary mb-1">Salonu redaktə et</h1>
+        <p className="text-sm text-text-secondary">Slug: <code className="bg-surface px-1.5 py-0.5 rounded text-xs">{state.salon.slug}</code></p>
+      </div>
 
-          <FormField label="Timezone" description="An IANA time zone, e.g. Asia/Baku.">
-            {(fieldProps) => (
-              <Input
-                {...fieldProps}
-                required
-                value={timezone}
-                onChange={(e) => setTimezone(e.target.value)}
-              />
-            )}
-          </FormField>
+      <Card className="max-w-2xl">
+        <form className="flex flex-col gap-5" onSubmit={handleSubmit} noValidate>
+          {error && <Alert tone="danger" title={error} />}
 
-          <FormField label="City" optional>
-            {(fieldProps) => (
-              <Input {...fieldProps} value={city} onChange={(e) => setCity(e.target.value)} />
-            )}
-          </FormField>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <FormField label="Salon adı" className="sm:col-span-2">
+              {(p) => (
+                <Input {...p} required value={name} onChange={(e) => setName(e.target.value)} placeholder="Məs. Nova Beauty Studio" />
+              )}
+            </FormField>
 
-          <FormField label="Description" optional>
-            {(fieldProps) => (
-              <Textarea
-                {...fieldProps}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-            )}
-          </FormField>
+            <FormField label="Saat qurşağı" description="IANA format, məs. Asia/Baku">
+              {(p) => (
+                <Input {...p} required value={timezone} onChange={(e) => setTimezone(e.target.value)} placeholder="Asia/Baku" />
+              )}
+            </FormField>
 
-          <Button type="submit" loading={submitting} disabled={submitting}>
-            Save changes
-          </Button>
+            <FormField label="Şəhər" optional>
+              {(p) => (
+                <Input {...p} value={city} onChange={(e) => setCity(e.target.value)} placeholder="Bakı" />
+              )}
+            </FormField>
+
+            <FormField label="Ünvan" optional className="sm:col-span-2">
+              {(p) => (
+                <Input {...p} value={addressLine} onChange={(e) => setAddressLine(e.target.value)} placeholder="Neftçilər pr. 12, Bakı" />
+              )}
+            </FormField>
+
+            <FormField label="Telefon" optional>
+              {(p) => (
+                <Input {...p} type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+994 50 000 00 00" />
+              )}
+            </FormField>
+
+            <FormField label="E-poçt" optional>
+              {(p) => (
+                <Input {...p} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="info@salon.az" />
+              )}
+            </FormField>
+
+            <FormField label="Hədəf auditoriya" optional>
+              {(p) => (
+                <Select {...p} value={genderFocus} onChange={(e) => setGenderFocus(e.target.value as typeof genderFocus)}>
+                  <option value="">Seçilməyib</option>
+                  <option value="WOMEN">Qadınlar</option>
+                  <option value="MEN">Kişilər</option>
+                  <option value="UNISEX">Hamı üçün</option>
+                </Select>
+              )}
+            </FormField>
+
+            <FormField label="Açıqlama" optional className="sm:col-span-2">
+              {(p) => (
+                <Textarea {...p} rows={4} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Salon haqqında qısa məlumat..." />
+              )}
+            </FormField>
+          </div>
+
+          <div className="flex gap-3 pt-1">
+            <Button type="submit" loading={submitting} disabled={submitting}>
+              Dəyişiklikləri saxla
+            </Button>
+            <Button type="button" variant="secondary" onClick={() => router.push(`/superadmin/salons/${salonId}`)}>
+              Ləğv et
+            </Button>
+          </div>
         </form>
       </Card>
     </main>

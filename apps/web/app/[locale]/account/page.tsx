@@ -105,10 +105,10 @@ export default function AccountProfilePage() {
     return (
       <PageLayout activeNav="account" isAuthenticated={true}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: 600, margin: '0 auto' }}>
-          <div style={{ height: 40, width: 150, background: '#ede5dc', borderRadius: 8, animation: 'pulse 1.5s infinite' }} />
-          <div style={{ height: 100, width: '100%', background: '#ede5dc', borderRadius: 16, animation: 'pulse 1.5s infinite' }} />
-          <div style={{ height: 60, width: '100%', background: '#ede5dc', borderRadius: 16, animation: 'pulse 1.5s infinite' }} />
-          <div style={{ height: 60, width: '100%', background: '#ede5dc', borderRadius: 16, animation: 'pulse 1.5s infinite' }} />
+          <div style={{ height: 40, width: 150, background: '#e4d4f4', borderRadius: 8, animation: 'pulse 1.5s infinite' }} />
+          <div style={{ height: 100, width: '100%', background: '#e4d4f4', borderRadius: 16, animation: 'pulse 1.5s infinite' }} />
+          <div style={{ height: 60, width: '100%', background: '#e4d4f4', borderRadius: 16, animation: 'pulse 1.5s infinite' }} />
+          <div style={{ height: 60, width: '100%', background: '#e4d4f4', borderRadius: 16, animation: 'pulse 1.5s infinite' }} />
         </div>
       </PageLayout>
     );
@@ -118,8 +118,8 @@ export default function AccountProfilePage() {
     return (
       <PageLayout activeNav="account" isAuthenticated={true}>
         <div style={{ maxWidth: 600, margin: '0 auto', textAlign: 'center', padding: '2rem' }}>
-          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.5rem', color: '#1a1208', marginBottom: '1rem' }}>Xəta baş verdi</h1>
-          <p style={{ color: '#9a8878' }}>{state.message}</p>
+          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.5rem', color: '#1e1b2e', marginBottom: '1rem' }}>Xəta baş verdi</h1>
+          <p style={{ color: '#7c6fa0' }}>{state.message}</p>
         </div>
       </PageLayout>
     );
@@ -130,82 +130,82 @@ export default function AccountProfilePage() {
   return (
     <PageLayout activeNav="account" isAuthenticated={true}>
       <div style={{ maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '2rem', color: '#1a1208', margin: 0 }}>Hesabım</h1>
+        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '2rem', color: '#1e1b2e', margin: 0 }}>Hesabım</h1>
         
         {/* User profile card */}
-        <div style={{ background: 'white', border: '1px solid #ede5dc', borderRadius: 16, padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#1a1208', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', fontWeight: 600 }}>
+        <div style={{ background: 'white', border: '1px solid #e4d4f4', borderRadius: 16, padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#1e1b2e', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', fontWeight: 600 }}>
             {getInitials(profile.fullName || profile.email)}
           </div>
           <div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#1a1208', margin: 0 }}>{profile.fullName}</h2>
-            <p style={{ color: '#9a8878', margin: '0.25rem 0 0 0', fontSize: '0.9rem' }}>{profile.email}</p>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#1e1b2e', margin: 0 }}>{profile.fullName}</h2>
+            <p style={{ color: '#7c6fa0', margin: '0.25rem 0 0 0', fontSize: '0.9rem' }}>{profile.email}</p>
           </div>
         </div>
 
         {/* Edit profile form */}
-        <form onSubmit={handleSubmit} style={{ background: 'white', border: '1px solid #ede5dc', borderRadius: 16, padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, color: '#1a1208' }}>Profil məlumatları</h3>
+        <form onSubmit={handleSubmit} style={{ background: 'white', border: '1px solid #e4d4f4', borderRadius: 16, padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, color: '#1e1b2e' }}>Profil məlumatları</h3>
           {saveError && <div style={{ color: '#dc2626', fontSize: '0.85rem' }}>{saveError}</div>}
           {savedAt && <div style={{ color: '#16a34a', fontSize: '0.85rem' }}>Yadda saxlanıldı</div>}
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <label style={{ fontSize: '0.85rem', color: '#9a8878' }}>Ad və Soyad</label>
-            <input required value={fullName} onChange={e => setFullName(e.target.value)} disabled={saving} style={{ padding: '0.75rem', borderRadius: 8, border: '1px solid #ede5dc', fontSize: '0.95rem', outline: 'none' }} />
+            <label style={{ fontSize: '0.85rem', color: '#7c6fa0' }}>Ad və Soyad</label>
+            <input required value={fullName} onChange={e => setFullName(e.target.value)} disabled={saving} style={{ padding: '0.75rem', borderRadius: 8, border: '1px solid #e4d4f4', fontSize: '0.95rem', outline: 'none' }} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <label style={{ fontSize: '0.85rem', color: '#9a8878' }}>Telefon (opsional)</label>
-            <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} disabled={saving} style={{ padding: '0.75rem', borderRadius: 8, border: '1px solid #ede5dc', fontSize: '0.95rem', outline: 'none' }} />
+            <label style={{ fontSize: '0.85rem', color: '#7c6fa0' }}>Telefon (opsional)</label>
+            <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} disabled={saving} style={{ padding: '0.75rem', borderRadius: 8, border: '1px solid #e4d4f4', fontSize: '0.95rem', outline: 'none' }} />
           </div>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#1a1208' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#1e1b2e' }}>
             <input type="checkbox" checked={marketingConsent} onChange={e => setMarketingConsent(e.target.checked)} disabled={saving} />
             Marketinq e-poçtları almaq istəyirəm
           </label>
-          <button type="submit" disabled={saving} style={{ background: '#5c3d28', color: 'white', border: 'none', borderRadius: 8, padding: '0.75rem', fontSize: '0.95rem', fontWeight: 500, cursor: saving ? 'not-allowed' : 'pointer', marginTop: '0.5rem' }}>
+          <button type="submit" disabled={saving} style={{ background: '#7c3aed', color: 'white', border: 'none', borderRadius: 8, padding: '0.75rem', fontSize: '0.95rem', fontWeight: 500, cursor: saving ? 'not-allowed' : 'pointer', marginTop: '0.5rem' }}>
             {saving ? 'Yadda saxlanılır...' : 'Yadda saxla'}
           </button>
         </form>
 
         {/* Navigation links */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          <Link href="/account/reservations" style={{ background: 'white', border: '1px solid #ede5dc', borderRadius: 16, padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', textDecoration: 'none', color: '#1a1208', fontWeight: 500 }}>
+          <Link href="/account/reservations" style={{ background: 'white', border: '1px solid #e4d4f4', borderRadius: 16, padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', textDecoration: 'none', color: '#1e1b2e', fontWeight: 500 }}>
             Rezervasiyalarım
-            <span style={{ color: '#c9a460' }}>→</span>
+            <span style={{ color: '#7c3aed' }}>→</span>
           </Link>
           
           {profile.isSuperadmin && (
             <Link
               href="/superadmin"
-              style={{ background: 'white', border: '1px solid #ede5dc', borderRadius: 16, padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', textDecoration: 'none', color: '#1a1208', fontWeight: 500 }}
+              style={{ background: 'white', border: '1px solid #e4d4f4', borderRadius: 16, padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', textDecoration: 'none', color: '#1e1b2e', fontWeight: 500 }}
             >
               Platform idarəetmə (Superadmin)
-              <span style={{ color: '#c9a460' }}>→</span>
+              <span style={{ color: '#7c3aed' }}>→</span>
             </Link>
           )}
 
           {profile.managedSalons && profile.managedSalons.length > 0 && (
             <Link
               href="/salonadmin"
-              style={{ background: 'white', border: '1px solid #ede5dc', borderRadius: 16, padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', textDecoration: 'none', color: '#1a1208', fontWeight: 500 }}
+              style={{ background: 'white', border: '1px solid #e4d4f4', borderRadius: 16, padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', textDecoration: 'none', color: '#1e1b2e', fontWeight: 500 }}
             >
               Salon idarəetmə paneli
-              <span style={{ color: '#c9a460' }}>→</span>
+              <span style={{ color: '#7c3aed' }}>→</span>
             </Link>
           )}
 
           {profile.isStylist && (
             <Link
               href="/stilistadmin"
-              style={{ background: 'white', border: '1px solid #ede5dc', borderRadius: 16, padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', textDecoration: 'none', color: '#1a1208', fontWeight: 500 }}
+              style={{ background: 'white', border: '1px solid #e4d4f4', borderRadius: 16, padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', textDecoration: 'none', color: '#1e1b2e', fontWeight: 500 }}
             >
               Usta idarəetmə paneli
-              <span style={{ color: '#c9a460' }}>→</span>
+              <span style={{ color: '#7c3aed' }}>→</span>
             </Link>
           )}
         </div>
 
         {/* Logout */}
-        <button onClick={handleLogout} disabled={loggingOut} style={{ background: 'transparent', border: '1px solid #ede5dc', borderRadius: 16, padding: '1rem', color: '#9a8878', fontSize: '0.95rem', fontWeight: 500, cursor: 'pointer', marginTop: '0.5rem' }}>
+        <button onClick={handleLogout} disabled={loggingOut} style={{ background: 'transparent', border: '1px solid #e4d4f4', borderRadius: 16, padding: '1rem', color: '#7c6fa0', fontSize: '0.95rem', fontWeight: 500, cursor: 'pointer', marginTop: '0.5rem' }}>
           {loggingOut ? 'Çıxış edilir...' : 'Çıxış et'}
         </button>
 

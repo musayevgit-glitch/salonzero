@@ -4,7 +4,8 @@ import { dirname, join, resolve, sep } from 'node:path';
 import type { ObjectStat, StorageAdapter, UploadTarget } from './adapter';
 import { signLocalToken, verifyLocalToken, type LocalTokenPayload } from './local-token';
 
-const OBJECT_KEY_PATTERN = /^employees\/[0-9a-f-]{36}\/[0-9a-f-]{36}\.(jpg|png|webp)$/;
+const OBJECT_KEY_PATTERN =
+  /^(employees|salons)\/[0-9a-f-]{36}\/(profile|portfolio|cover|logo)\/[0-9a-f-]{36}\.(jpg|png|webp)$/;
 
 export interface LocalDiskStorageAdapterOptions {
   baseDir: string;

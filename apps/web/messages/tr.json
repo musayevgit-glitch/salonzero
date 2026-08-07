@@ -77,7 +77,10 @@
     "noServices": "Hizmet mevcut değil.",
     "noStylists": "Stilist bulunamadı.",
     "portfolio": "Portfolyo",
-    "loadError": "Salon bilgileri yüklenemedi."
+    "loadError": "Salon bilgileri yüklenemedi.",
+    "genderWomen": "Kadınlar",
+    "genderMen": "Erkekler",
+    "genderUnisex": "Uniseks"
   },
   "stylists": {
     "title": "Stilistler",
@@ -139,7 +142,23 @@
     "min": "dak",
     "noServiceSelected": "Hizmet seçilmedi",
     "loadingSlotsError": "Zaman dilimleri yüklenemedi. Lütfen tekrar deneyin.",
-    "slotsLoadError": "Müsaitlik yüklenemedi."
+    "slotsLoadError": "Müsaitlik yüklenemedi.",
+    "allCategories": "Tümü",
+    "otherCategory": "Diğer",
+    "noServicesAvailable": "Henüz hizmet mevcut değil.",
+    "priceNote": "Fiyatlar stiliste göre değişebilir.",
+    "noStylistsAvailable": "Henüz stilist mevcut değil.",
+    "viewSalonProfile": "Salon profilini görüntüle",
+    "myInfo": "Bilgileriniz",
+    "guestName": "Misafir",
+    "noteLabel": "Salon için not",
+    "noteOptional": "(isteğe bağlı)",
+    "paymentNote": "Ödeme salonda yapılacak.",
+    "termsText": "Rezervasyon oluşturarak {link} kabul etmiş olursunuz.",
+    "termsLink": "kullanım koşullarını",
+    "createReservation": "Rezervasyon oluştur",
+    "prevMonth": "Önceki ay",
+    "nextMonth": "Sonraki ay"
   },
   "auth": {
     "loginTitle": "Giriş yap",
@@ -163,7 +182,16 @@
     "backToLogin": "Girişe dön",
     "emailSent": "Bağlantı e-postanıza gönderildi.",
     "passwordMismatch": "Şifreler eşleşmiyor.",
-    "invalidLink": "Bağlantı geçersiz veya süresi dolmuş."
+    "invalidLink": "Bağlantı geçersiz veya süresi dolmuş.",
+    "passwordMinLength": "En az 8 karakter.",
+    "submitting": "Lütfen bekleyin...",
+    "tagline": "Özel güzellik deneyimi",
+    "checkEmail": "E-postanızı kontrol edin",
+    "checkEmailDesc": "Bu e-posta ile bir hesap varsa, sıfırlama bağlantısı gönderdik.",
+    "resetSuccess": "Şifre güncellendi",
+    "redirecting": "Giriş sayfasına yönlendiriliyorsunuz…",
+    "invalidResetLink": "Bu sıfırlama bağlantısı geçersiz veya süresi dolmuş.",
+    "requestNewLink": "Yeni bağlantı talep edin"
   },
   "account": {
     "title": "Hesabım",
@@ -189,6 +217,25 @@
     "cancelReason": "İptal nedeni",
     "cancelReasonPlaceholder": "Neden girin...",
     "cancelBtn": "İptal et",
-    "backToReservations": "Rezervasyonlara dön"
+    "backToReservations": "Rezervasyonlara dön",
+    "profileInfo": "Profil bilgileri",
+    "savedSuccess": "Kaydedildi",
+    "fullName": "Ad Soyad",
+    "phone": "Telefon (isteğe bağlı)",
+    "marketing": "Pazarlama e-postaları almak istiyorum",
+    "saving": "Kaydediliyor...",
+    "salonAdminPanel": "Salon yönetim paneli",
+    "stylistAdminPanel": "Stilist yönetim paneli",
+    "discoverSalons": "Salonları keşfet",
+    "prevPage": "← Önceki",
+    "nextPage": "Sonraki →",
+    "pageOf": "Sayfa {current} / {total}",
+    "reschedule": "Yeniden planla",
+    "selectNewTime": "Yeni saat seçin",
+    "noSlotsForDay": "Bu gün için müsait saat yok.",
+    "selectDayFirst": "Uygun saatleri görmek için gün seçin.",
+    "saveBtn": "Kaydet",
+    "cancelling": "İptal ediliyor...",
+    "confirmCancelBtn": "Evet, iptal et"
   }
 }

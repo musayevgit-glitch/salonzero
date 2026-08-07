@@ -66,10 +66,10 @@ export default async function SalonsPage({
   return (
     <PageLayout isAuthenticated={isAuthenticated} activeNav="salons">
       <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '2.5rem', fontWeight: 700, color: '#1a1208', margin: '0 0 1rem 0' }}>
+        <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '2.5rem', fontWeight: 700, color: '#1e1b2e', margin: '0 0 1rem 0' }}>
           Salonlar
         </h1>
-        <p style={{ color: '#9a8878', fontSize: '1rem', margin: 0 }}>
+        <p style={{ color: '#7c6fa0', fontSize: '1rem', margin: 0 }}>
           Sizin üçün ən uyğun salonu tapın və rahat rezervasiya edin.
         </p>
       </div>
@@ -78,23 +78,23 @@ export default async function SalonsPage({
         style={{
           background: 'white',
           borderRadius: 16,
-          border: '1px solid #ede5dc',
+          border: '1px solid #e4d4f4',
           padding: '1.5rem',
           marginBottom: '2.5rem',
         }}
       >
         <form style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'flex-end' }}>
           <div style={{ flex: '1 1 200px', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1a1208' }}>Axtarış</label>
-            <input type="text" name="search" defaultValue={search} placeholder="Salon adı..." style={{ height: 44, boxSizing: 'border-box', padding: '0 1rem', borderRadius: 8, border: '1px solid #ede5dc', outline: 'none', fontSize: '0.9rem' }} />
+            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e1b2e' }}>Axtarış</label>
+            <input type="text" name="search" defaultValue={search} placeholder="Salon adı..." style={{ height: 44, boxSizing: 'border-box', padding: '0 1rem', borderRadius: 8, border: '1px solid #e4d4f4', outline: 'none', fontSize: '0.9rem' }} />
           </div>
           <div style={{ flex: '1 1 150px', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1a1208' }}>Şəhər</label>
-            <input type="text" name="city" defaultValue={city} placeholder="Bakı..." style={{ height: 44, boxSizing: 'border-box', padding: '0 1rem', borderRadius: 8, border: '1px solid #ede5dc', outline: 'none', fontSize: '0.9rem' }} />
+            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e1b2e' }}>Şəhər</label>
+            <input type="text" name="city" defaultValue={city} placeholder="Bakı..." style={{ height: 44, boxSizing: 'border-box', padding: '0 1rem', borderRadius: 8, border: '1px solid #e4d4f4', outline: 'none', fontSize: '0.9rem' }} />
           </div>
           <div style={{ flex: '1 1 150px', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1a1208' }}>Kimlər üçün</label>
-            <select name="genderFocus" defaultValue={genderFocus} style={{ height: 44, boxSizing: 'border-box', padding: '0 1rem', borderRadius: 8, border: '1px solid #ede5dc', outline: 'none', fontSize: '0.9rem', backgroundColor: 'white' }}>
+            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e1b2e' }}>Kimlər üçün</label>
+            <select name="genderFocus" defaultValue={genderFocus} style={{ height: 44, boxSizing: 'border-box', padding: '0 1rem', borderRadius: 8, border: '1px solid #e4d4f4', outline: 'none', fontSize: '0.9rem', backgroundColor: 'white' }}>
               <option value="">Hər kəs</option>
               <option value="Women">Qadın</option>
               <option value="Men">Kişi</option>
@@ -102,8 +102,8 @@ export default async function SalonsPage({
             </select>
           </div>
           <div style={{ flex: '1 1 150px', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1a1208' }}>Sıralama</label>
-            <select name="sort" defaultValue={sort} style={{ height: 44, boxSizing: 'border-box', padding: '0 1rem', borderRadius: 8, border: '1px solid #ede5dc', outline: 'none', fontSize: '0.9rem', backgroundColor: 'white' }}>
+            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e1b2e' }}>Sıralama</label>
+            <select name="sort" defaultValue={sort} style={{ height: 44, boxSizing: 'border-box', padding: '0 1rem', borderRadius: 8, border: '1px solid #e4d4f4', outline: 'none', fontSize: '0.9rem', backgroundColor: 'white' }}>
               <option value="name_asc">Ad A-Z</option>
               <option value="name_desc">Ad Z-A</option>
               <option value="newest">Ən yeni</option>
@@ -111,10 +111,10 @@ export default async function SalonsPage({
           </div>
           
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flex: '1 1 200px' }}>
-            <button type="submit" style={{ flex: 1, height: 44, boxSizing: 'border-box', background: '#5c3d28', color: 'white', border: 'none', padding: '0 1.5rem', borderRadius: 8, fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>
+            <button type="submit" style={{ flex: 1, height: 44, boxSizing: 'border-box', background: '#7c3aed', color: 'white', border: 'none', padding: '0 1.5rem', borderRadius: 8, fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>
               Filtrləri tətbiq et
             </button>
-            <Link href="/salons" style={{ color: '#9a8878', textDecoration: 'underline', fontSize: '0.9rem', fontWeight: 500 }}>
+            <Link href="/salons" style={{ color: '#7c6fa0', textDecoration: 'underline', fontSize: '0.9rem', fontWeight: 500 }}>
               Sıfırla
             </Link>
           </div>
@@ -122,11 +122,11 @@ export default async function SalonsPage({
       </div>
 
       {isError ? (
-        <div style={{ textAlign: 'center', padding: '4rem 1rem', color: '#9a8878' }}>
+        <div style={{ textAlign: 'center', padding: '4rem 1rem', color: '#7c6fa0' }}>
           Salonlar yüklənə bilmədi
         </div>
       ) : salons.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '4rem 1rem', color: '#9a8878' }}>
+        <div style={{ textAlign: 'center', padding: '4rem 1rem', color: '#7c6fa0' }}>
           Heç bir salon tapılmadı
         </div>
       ) : (
@@ -148,7 +148,7 @@ export default async function SalonsPage({
               {currentPage > 1 && (
                 <Link
                   href={`/salons?page=${currentPage - 1}${search ? `&search=${search}` : ''}${city ? `&city=${city}` : ''}${genderFocus ? `&genderFocus=${genderFocus}` : ''}${sort !== 'name_asc' ? `&sort=${sort}` : ''}`}
-                  style={{ padding: '0.6rem 1.5rem', border: '1px solid #ede5dc', borderRadius: 8, color: '#1a1208', textDecoration: 'none', fontWeight: 600, background: 'white' }}
+                  style={{ padding: '0.6rem 1.5rem', border: '1px solid #e4d4f4', borderRadius: 8, color: '#1e1b2e', textDecoration: 'none', fontWeight: 600, background: 'white' }}
                 >
                   Əvvəlki
                 </Link>
@@ -156,7 +156,7 @@ export default async function SalonsPage({
               {currentPage < totalPages && (
                 <Link
                   href={`/salons?page=${currentPage + 1}${search ? `&search=${search}` : ''}${city ? `&city=${city}` : ''}${genderFocus ? `&genderFocus=${genderFocus}` : ''}${sort !== 'name_asc' ? `&sort=${sort}` : ''}`}
-                  style={{ padding: '0.6rem 1.5rem', border: '1px solid #ede5dc', borderRadius: 8, color: '#1a1208', textDecoration: 'none', fontWeight: 600, background: 'white' }}
+                  style={{ padding: '0.6rem 1.5rem', border: '1px solid #e4d4f4', borderRadius: 8, color: '#1e1b2e', textDecoration: 'none', fontWeight: 600, background: 'white' }}
                 >
                   Növbəti
                 </Link>

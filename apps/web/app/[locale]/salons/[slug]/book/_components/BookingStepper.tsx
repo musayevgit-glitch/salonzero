@@ -57,7 +57,7 @@ export function BookingStepper() {
                     top: '14px',
                     width: '100%',
                     height: '2px',
-                    background: done || active ? '#c9a460' : '#e5ddd5',
+                    background: done || active ? '#7c3aed' : '#e5ddd5',
                     transition: 'background 0.3s ease',
                   }}
                 />
@@ -78,16 +78,16 @@ export function BookingStepper() {
                   fontSize: '0.75rem',
                   fontWeight: 700,
                   background: done
-                    ? '#c9a460'
+                    ? '#7c3aed'
                     : active
-                      ? '#1a1208'
+                      ? '#1e1b2e'
                       : 'transparent',
                   border: done
-                    ? '2px solid #c9a460'
+                    ? '2px solid #7c3aed'
                     : active
-                      ? '2px solid #1a1208'
+                      ? '2px solid #1e1b2e'
                       : '2px solid #c5bbb2',
-                  color: done || active ? '#fff' : '#9a8878',
+                  color: done || active ? '#fff' : '#7c6fa0',
                   transition: 'all 0.2s ease',
                 }}
               >
@@ -100,7 +100,7 @@ export function BookingStepper() {
                   marginTop: '0.35rem',
                   fontSize: '0.65rem',
                   fontWeight: active ? 600 : 400,
-                  color: active ? '#1a1208' : done ? '#c9a460' : '#9a8878',
+                  color: active ? '#1e1b2e' : done ? '#7c3aed' : '#7c6fa0',
                   textAlign: 'center',
                   transition: 'color 0.2s ease',
                   whiteSpace: 'nowrap',

@@ -31,8 +31,8 @@ function formatAzTime(iso: string, timezone: string) {
 function ShieldIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path d="M8 2L3 4.5v4.5c0 2.76 2.24 4.5 5 5 2.76-.5 5-2.24 5-5V4.5L8 2z" stroke="#c9a460" strokeWidth="1.2" strokeLinejoin="round" />
-      <path d="M6 8l1.5 1.5L11 7" stroke="#c9a460" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M8 2L3 4.5v4.5c0 2.76 2.24 4.5 5 5 2.76-.5 5-2.24 5-5V4.5L8 2z" stroke="#7c3aed" strokeWidth="1.2" strokeLinejoin="round" />
+      <path d="M6 8l1.5 1.5L11 7" stroke="#7c3aed" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -40,17 +40,17 @@ function ShieldIcon() {
 function InfoIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-      <circle cx="7" cy="7" r="6" stroke="#6b5e4a" strokeWidth="1.3" />
-      <path d="M7 6.5v3.5M7 4.5v.5" stroke="#6b5e4a" strokeWidth="1.3" strokeLinecap="round" />
+      <circle cx="7" cy="7" r="6" stroke="#6b5d8a" strokeWidth="1.3" />
+      <path d="M7 6.5v3.5M7 4.5v.5" stroke="#6b5d8a" strokeWidth="1.3" strokeLinecap="round" />
     </svg>
   );
 }
 
 function Row({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', padding: '0.75rem 0', borderBottom: '1px solid #f5ece4' }}>
-      <span style={{ fontSize: '0.85rem', color: '#9a8878', flexShrink: 0 }}>{label}</span>
-      <span style={{ fontSize: '0.85rem', color: '#1a1208', fontWeight: bold ? 700 : 500, textAlign: 'right' }}>{value}</span>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', padding: '0.75rem 0', borderBottom: '1px solid #f3e8ff' }}>
+      <span style={{ fontSize: '0.85rem', color: '#7c6fa0', flexShrink: 0 }}>{label}</span>
+      <span style={{ fontSize: '0.85rem', color: '#1e1b2e', fontWeight: bold ? 700 : 500, textAlign: 'right' }}>{value}</span>
     </div>
   );
 }
@@ -113,9 +113,9 @@ export default function SummaryStep() {
             <div style={{ height: 52, borderRadius: 14, background: '#f0e8e0', animation: 'pulse 1.5s ease-in-out infinite' }} />
           )}
           {authChecked && !isAuthenticated && (
-            <p style={{ textAlign: 'center', fontSize: '0.72rem', color: '#9a8878', marginTop: '0.6rem' }}>
+            <p style={{ textAlign: 'center', fontSize: '0.72rem', color: '#7c6fa0', marginTop: '0.6rem' }}>
               Hesabınız yoxdur?{' '}
-              <a href={`/register?returnTo=${encodeURIComponent(confirmHref)}`} style={{ color: '#c9a460', fontWeight: 600, textDecoration: 'none' }}>
+              <a href={`/register?returnTo=${encodeURIComponent(confirmHref)}`} style={{ color: '#7c3aed', fontWeight: 600, textDecoration: 'none' }}>
                 Qeydiyyatdan keçin
               </a>
             </p>
@@ -127,18 +127,18 @@ export default function SummaryStep() {
       <div
         style={{
           background: 'white',
-          border: '1px solid #ede5dc',
+          border: '1px solid #e4d4f4',
           borderRadius: 16,
           padding: '1.25rem',
           marginBottom: '1rem',
-          boxShadow: '0 2px 8px rgba(26,18,8,0.06)',
+          boxShadow: '0 2px 8px rgba(30,27,46,0.06)',
         }}
       >
-        <h2 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#1a1208', marginBottom: '0.25rem' }}>
+        <h2 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#1e1b2e', marginBottom: '0.25rem' }}>
           Rezervasiya məlumatları
         </h2>
 
-        <div style={{ borderTop: '1px solid #f5ece4', marginTop: '0.75rem' }}>
+        <div style={{ borderTop: '1px solid #f3e8ff', marginTop: '0.75rem' }}>
           <Row label="Salon" value={salon.name} />
           <Row label="Usta" value={selectedEmployee?.fullName ?? 'İstənilən usta'} />
           {selectedService && <Row label="Xidmət" value={selectedService.name} />}
@@ -157,16 +157,16 @@ export default function SummaryStep() {
       <div
         style={{
           background: 'white',
-          border: '1px solid #ede5dc',
+          border: '1px solid #e4d4f4',
           borderRadius: 16,
           padding: '1rem 1.25rem',
           marginBottom: '1rem',
-          boxShadow: '0 1px 4px rgba(26,18,8,0.04)',
+          boxShadow: '0 1px 4px rgba(30,27,46,0.04)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
           <ShieldIcon />
-          <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1a1208' }}>Rezervasiya qaydaları</h3>
+          <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1e1b2e' }}>Rezervasiya qaydaları</h3>
         </div>
         <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
           {[
@@ -175,8 +175,8 @@ export default function SummaryStep() {
             '24 saat qalmış ləğv edilərsə qeyd edilə bilər.',
             'Gecikməsi halında rezervasiya ləğv oluna bilər.',
           ].map((rule) => (
-            <li key={rule} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.4rem', fontSize: '0.78rem', color: '#6b5e4a', lineHeight: 1.5 }}>
-              <span style={{ marginTop: '0.2rem', flexShrink: 0, color: '#c9a460' }}>•</span>
+            <li key={rule} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.4rem', fontSize: '0.78rem', color: '#6b5d8a', lineHeight: 1.5 }}>
+              <span style={{ marginTop: '0.2rem', flexShrink: 0, color: '#7c3aed' }}>•</span>
               {rule}
             </li>
           ))}
@@ -187,18 +187,18 @@ export default function SummaryStep() {
       <div
         style={{
           background: 'white',
-          border: '1px solid #ede5dc',
+          border: '1px solid #e4d4f4',
           borderRadius: 16,
           padding: '1rem 1.25rem',
           marginBottom: '0.75rem',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          boxShadow: '0 1px 4px rgba(26,18,8,0.04)',
+          boxShadow: '0 1px 4px rgba(30,27,46,0.04)',
         }}
       >
-        <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#1a1208' }}>Ümumi məbləğ</span>
-        <span style={{ fontSize: '1.2rem', fontWeight: 800, color: '#1a1208' }}>
+        <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#1e1b2e' }}>Ümumi məbləğ</span>
+        <span style={{ fontSize: '1.2rem', fontWeight: 800, color: '#1e1b2e' }}>
           {selectedService ? formatMoney(selectedService.priceAmount) : '—'}
         </span>
       </div>
@@ -206,7 +206,7 @@ export default function SummaryStep() {
       {/* Payment note */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0 0.25rem', marginBottom: '0.5rem' }}>
         <InfoIcon />
-        <p style={{ fontSize: '0.75rem', color: '#9a8878' }}>Ödəniş salon daxilində ediləcək.</p>
+        <p style={{ fontSize: '0.75rem', color: '#7c6fa0' }}>Ödəniş salon daxilində ediləcək.</p>
       </div>
     </BookingPageShell>
   );

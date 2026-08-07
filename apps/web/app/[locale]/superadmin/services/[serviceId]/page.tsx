@@ -140,7 +140,7 @@ export default function ServiceDetailPage() {
                   href={`/superadmin/stylists/${s.id}`}
                   style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', textDecoration: 'none' }}
                 >
-                  <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#f5ece4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#9c5f49', fontSize: '0.8rem', overflow: 'hidden', flexShrink: 0 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#f3e8ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#7c3aed', fontSize: '0.8rem', overflow: 'hidden', flexShrink: 0 }}>
                     {s.photoUrl ? <img src={s.photoUrl} alt={s.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : s.fullName.slice(0, 1)}
                   </div>
                   <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-primary)' }}>{s.fullName}</span>

@@ -214,8 +214,8 @@ export default function ReservationDetailPage({
     return (
       <PageLayout activeNav="reservations" isAuthenticated={true}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: 600, margin: '0 auto' }}>
-          <div style={{ height: 40, width: 250, background: '#ede5dc', borderRadius: 8, animation: 'pulse 1.5s infinite' }} />
-          <div style={{ height: 300, width: '100%', background: '#ede5dc', borderRadius: 16, animation: 'pulse 1.5s infinite' }} />
+          <div style={{ height: 40, width: 250, background: '#e4d4f4', borderRadius: 8, animation: 'pulse 1.5s infinite' }} />
+          <div style={{ height: 300, width: '100%', background: '#e4d4f4', borderRadius: 16, animation: 'pulse 1.5s infinite' }} />
         </div>
         <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }`}</style>
       </PageLayout>
@@ -227,7 +227,7 @@ export default function ReservationDetailPage({
       <PageLayout activeNav="reservations" isAuthenticated={true}>
         <div style={{ maxWidth: 600, margin: '0 auto', textAlign: 'center', padding: '2rem' }}>
           <p style={{ color: '#dc2626', marginBottom: '1rem' }}>{error ?? 'Reservation not found.'}</p>
-          <Link href="/account/reservations" style={{ color: '#c9a460', textDecoration: 'none' }}>← Rezervasiyalara qayıt</Link>
+          <Link href="/account/reservations" style={{ color: '#7c3aed', textDecoration: 'none' }}>← Rezervasiyalara qayıt</Link>
         </div>
       </PageLayout>
     );
@@ -244,10 +244,10 @@ export default function ReservationDetailPage({
     <PageLayout activeNav="reservations" isAuthenticated={true}>
       <div style={{ maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         <div>
-          <Link href="/account/reservations" style={{ textDecoration: 'none', color: '#9a8878', fontSize: '0.9rem', display: 'inline-block', marginBottom: '1rem' }}>
+          <Link href="/account/reservations" style={{ textDecoration: 'none', color: '#7c6fa0', fontSize: '0.9rem', display: 'inline-block', marginBottom: '1rem' }}>
             ← Geri qayıt
           </Link>
-          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '2rem', color: '#1a1208', margin: 0 }}>
+          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '2rem', color: '#1e1b2e', margin: 0 }}>
             Rezervasiya #{shortId}
           </h1>
           <div style={{ marginTop: '0.75rem' }}>
@@ -264,39 +264,39 @@ export default function ReservationDetailPage({
           </div>
         </div>
 
-        <div style={{ background: 'white', border: '1px solid #ede5dc', borderRadius: 16, padding: '0 1.25rem' }}>
-          <div style={{ padding: '1rem 0', borderBottom: '1px solid #ede5dc', display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#9a8878' }}>Salon</span>
-            <span style={{ color: '#1a1208', fontWeight: 500 }}>{reservation.salon.name}</span>
+        <div style={{ background: 'white', border: '1px solid #e4d4f4', borderRadius: 16, padding: '0 1.25rem' }}>
+          <div style={{ padding: '1rem 0', borderBottom: '1px solid #e4d4f4', display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ color: '#7c6fa0' }}>Salon</span>
+            <span style={{ color: '#1e1b2e', fontWeight: 500 }}>{reservation.salon.name}</span>
           </div>
-          <div style={{ padding: '1rem 0', borderBottom: '1px solid #ede5dc', display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#9a8878' }}>Xidmət</span>
-            <span style={{ color: '#1a1208', fontWeight: 500 }}>{reservation.service.name}</span>
+          <div style={{ padding: '1rem 0', borderBottom: '1px solid #e4d4f4', display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ color: '#7c6fa0' }}>Xidmət</span>
+            <span style={{ color: '#1e1b2e', fontWeight: 500 }}>{reservation.service.name}</span>
           </div>
-          <div style={{ padding: '1rem 0', borderBottom: '1px solid #ede5dc', display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#9a8878' }}>Usta</span>
-            <span style={{ color: '#1a1208', fontWeight: 500 }}>{reservation.employee?.fullName ?? 'İstənilən'}</span>
+          <div style={{ padding: '1rem 0', borderBottom: '1px solid #e4d4f4', display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ color: '#7c6fa0' }}>Usta</span>
+            <span style={{ color: '#1e1b2e', fontWeight: 500 }}>{reservation.employee?.fullName ?? 'İstənilən'}</span>
           </div>
-          <div style={{ padding: '1rem 0', borderBottom: '1px solid #ede5dc', display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#9a8878' }}>Tarix</span>
-            <span style={{ color: '#1a1208', fontWeight: 500, textAlign: 'right' }}>{formatDateAZ(reservation.startAt, reservation.salon.timezone)}</span>
+          <div style={{ padding: '1rem 0', borderBottom: '1px solid #e4d4f4', display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ color: '#7c6fa0' }}>Tarix</span>
+            <span style={{ color: '#1e1b2e', fontWeight: 500, textAlign: 'right' }}>{formatDateAZ(reservation.startAt, reservation.salon.timezone)}</span>
           </div>
-          <div style={{ padding: '1rem 0', borderBottom: '1px solid #ede5dc', display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#9a8878' }}>Saat</span>
-            <span style={{ color: '#1a1208', fontWeight: 500 }}>{formatTimeAZ(reservation.startAt, reservation.salon.timezone)}</span>
+          <div style={{ padding: '1rem 0', borderBottom: '1px solid #e4d4f4', display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ color: '#7c6fa0' }}>Saat</span>
+            <span style={{ color: '#1e1b2e', fontWeight: 500 }}>{formatTimeAZ(reservation.startAt, reservation.salon.timezone)}</span>
           </div>
-          <div style={{ padding: '1rem 0', borderBottom: '1px solid #ede5dc', display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#9a8878' }}>Müddət</span>
-            <span style={{ color: '#1a1208', fontWeight: 500 }}>{reservation.service.durationMinutes} dəq</span>
+          <div style={{ padding: '1rem 0', borderBottom: '1px solid #e4d4f4', display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ color: '#7c6fa0' }}>Müddət</span>
+            <span style={{ color: '#1e1b2e', fontWeight: 500 }}>{reservation.service.durationMinutes} dəq</span>
           </div>
           <div style={{ padding: '1rem 0', display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#9a8878' }}>Qiymət</span>
-            <span style={{ color: '#1a1208', fontWeight: 600 }}>{formatMoney(reservation.priceAmount)}</span>
+            <span style={{ color: '#7c6fa0' }}>Qiymət</span>
+            <span style={{ color: '#1e1b2e', fontWeight: 600 }}>{formatMoney(reservation.priceAmount)}</span>
           </div>
           {reservation.customerNote && (
-            <div style={{ padding: '1rem 0', borderTop: '1px solid #ede5dc', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-              <span style={{ color: '#9a8878' }}>Qeydiniz</span>
-              <span style={{ color: '#1a1208', fontWeight: 500 }}>{reservation.customerNote}</span>
+            <div style={{ padding: '1rem 0', borderTop: '1px solid #e4d4f4', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <span style={{ color: '#7c6fa0' }}>Qeydiniz</span>
+              <span style={{ color: '#1e1b2e', fontWeight: 500 }}>{reservation.customerNote}</span>
             </div>
           )}
         </div>
@@ -308,13 +308,13 @@ export default function ReservationDetailPage({
               <button
                 type="button"
                 onClick={() => setShowReschedule(true)}
-                style={{ background: '#1a1208', color: 'white', border: 'none', borderRadius: 8, padding: '0.75rem 1.5rem', fontSize: '0.95rem', fontWeight: 500, cursor: 'pointer', width: '100%' }}
+                style={{ background: '#1e1b2e', color: 'white', border: 'none', borderRadius: 8, padding: '0.75rem 1.5rem', fontSize: '0.95rem', fontWeight: 500, cursor: 'pointer', width: '100%' }}
               >
                 Vaxtı dəyişdir
               </button>
             ) : (
-              <div style={{ background: 'white', border: '1px solid #ede5dc', borderRadius: 16, padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <p style={{ margin: 0, fontWeight: 600, color: '#1a1208' }}>Yeni vaxt seçin</p>
+              <div style={{ background: 'white', border: '1px solid #e4d4f4', borderRadius: 16, padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <p style={{ margin: 0, fontWeight: 600, color: '#1e1b2e' }}>Yeni vaxt seçin</p>
 
                 <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                   {dates.map((d) => {
@@ -333,9 +333,9 @@ export default function ReservationDetailPage({
                           alignItems: 'center',
                           borderRadius: 8,
                           padding: '0.5rem 0.25rem',
-                          border: active ? '1px solid #c9a460' : '1px solid #ede5dc',
-                          background: active ? '#c9a460' : 'white',
-                          color: active ? 'white' : '#1a1208',
+                          border: active ? '1px solid #7c3aed' : '1px solid #e4d4f4',
+                          background: active ? '#7c3aed' : 'white',
+                          color: active ? 'white' : '#1e1b2e',
                           cursor: 'pointer',
                         }}
                       >
@@ -351,13 +351,13 @@ export default function ReservationDetailPage({
                 </div>
 
                 {!rescheduleDate && (
-                  <p style={{ color: '#9a8878', fontSize: '0.9rem', margin: 0 }}>Uyğun saatları görmək üçün gün seçin.</p>
+                  <p style={{ color: '#7c6fa0', fontSize: '0.9rem', margin: 0 }}>Uyğun saatları görmək üçün gün seçin.</p>
                 )}
                 
                 {rescheduleDate && slotsLoading && (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem' }}>
                     {Array.from({ length: 8 }).map((_, i) => (
-                      <div key={i} style={{ height: 40, background: '#ede5dc', borderRadius: 8, animation: 'pulse 1.5s infinite' }} />
+                      <div key={i} style={{ height: 40, background: '#e4d4f4', borderRadius: 8, animation: 'pulse 1.5s infinite' }} />
                     ))}
                   </div>
                 )}
@@ -367,7 +367,7 @@ export default function ReservationDetailPage({
                 )}
                 
                 {rescheduleDate && !slotsLoading && !slotsError && slots.length === 0 && (
-                  <p style={{ color: '#9a8878', fontSize: '0.9rem', margin: 0 }}>Bu gün üçün boş vaxt yoxdur.</p>
+                  <p style={{ color: '#7c6fa0', fontSize: '0.9rem', margin: 0 }}>Bu gün üçün boş vaxt yoxdur.</p>
                 )}
                 
                 {rescheduleDate && !slotsLoading && slots.length > 0 && (
@@ -380,10 +380,10 @@ export default function ReservationDetailPage({
                         onClick={() => handleReschedule(slot.startAt)}
                         style={{
                           background: 'white',
-                          border: '1px solid #ede5dc',
+                          border: '1px solid #e4d4f4',
                           borderRadius: 8,
                           padding: '0.5rem',
-                          color: '#1a1208',
+                          color: '#1e1b2e',
                           fontSize: '0.9rem',
                           fontWeight: 500,
                           cursor: rescheduling ? 'not-allowed' : 'pointer',
@@ -403,7 +403,7 @@ export default function ReservationDetailPage({
                 <button
                   type="button"
                   onClick={() => setShowReschedule(false)}
-                  style={{ alignSelf: 'flex-start', background: 'none', border: 'none', color: '#9a8878', textDecoration: 'underline', cursor: 'pointer', padding: 0 }}
+                  style={{ alignSelf: 'flex-start', background: 'none', border: 'none', color: '#7c6fa0', textDecoration: 'underline', cursor: 'pointer', padding: 0 }}
                 >
                   Ləğv et
                 </button>
