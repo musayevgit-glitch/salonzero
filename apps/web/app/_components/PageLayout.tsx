@@ -1,11 +1,60 @@
 /* ── Shared Public page wrapper ─────────────────────────── */
-/* Used by /salons, /stilistler, salon detail, auth pages, account pages */
-
 'use client';
 
 import type { ReactNode } from 'react';
+import { useTranslations } from 'next-intl';
+import { usePathname, useRouter } from '../../i18n/navigation';
+import { useParams } from 'next/navigation';
+
+const LOCALE_LABELS: Record<string, { flag: string; code: string }> = {
+  az: { flag: '🇦🇿', code: 'AZ' },
+  en: { flag: '🇬🇧', code: 'EN' },
+  ru: { flag: '🇷🇺', code: 'RU' },
+  tr: { flag: '🇹🇷', code: 'TR' },
+};
+
+function LanguageSwitcher() {
+  const params = useParams();
+  const currentLocale = (params.locale as string) ?? 'az';
+  const router = useRouter();
+  const pathname = usePathname();
+
+  function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    router.push(pathname, { locale: e.target.value });
+  }
+
+  return (
+    <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
+      <select
+        value={currentLocale}
+        onChange={handleChange}
+        aria-label="Select language"
+        style={{
+          appearance: 'none',
+          background: '#f5ece4',
+          border: '1px solid #ede5dc',
+          borderRadius: 8,
+          padding: '0.3rem 1.8rem 0.3rem 0.6rem',
+          fontSize: '0.78rem',
+          fontWeight: 600,
+          color: '#1a1208',
+          cursor: 'pointer',
+          fontFamily: 'inherit',
+        }}
+      >
+        {Object.entries(LOCALE_LABELS).map(([locale, { flag, code }]) => (
+          <option key={locale} value={locale}>
+            {flag} {code}
+          </option>
+        ))}
+      </select>
+      <span style={{ position: 'absolute', right: '0.4rem', pointerEvents: 'none', fontSize: '0.6rem', color: '#9a8878' }}>▾</span>
+    </div>
+  );
+}
 
 export function PageHeader({ isAuthenticated }: { isAuthenticated?: boolean }) {
+  const t = useTranslations('nav');
   return (
     <header
       style={{
@@ -28,11 +77,12 @@ export function PageHeader({ isAuthenticated }: { isAuthenticated?: boolean }) {
 
         <nav style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <a href="/salons" style={{ fontSize: '0.875rem', color: '#6b5e4a', textDecoration: 'none', fontWeight: 500, padding: '0.4rem 0.75rem', borderRadius: 8, display: 'none' }} className="md-show">
-            Salonlar
+            {t('salons')}
           </a>
           <a href="/stilistler" style={{ fontSize: '0.875rem', color: '#6b5e4a', textDecoration: 'none', fontWeight: 500, padding: '0.4rem 0.75rem', borderRadius: 8, display: 'none' }} className="md-show">
-            Stilistlər
+            {t('stylists')}
           </a>
+          <LanguageSwitcher />
           <a
             href={isAuthenticated ? '/account' : '/login'}
             style={{
@@ -46,7 +96,7 @@ export function PageHeader({ isAuthenticated }: { isAuthenticated?: boolean }) {
               <circle cx="7" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.3" />
               <path d="M2 12.5c0-2.76 2.24-5 5-5s5 2.24 5 5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
             </svg>
-            {isAuthenticated ? 'Hesab' : 'Giriş'}
+            {isAuthenticated ? t('account') : t('login')}
           </a>
         </nav>
       </div>
@@ -59,14 +109,20 @@ export function PageHeader({ isAuthenticated }: { isAuthenticated?: boolean }) {
 }
 
 export function PageFooter() {
+  const t = useTranslations('common');
   return (
     <footer style={{ background: 'white', borderTop: '1px solid #ede5dc', padding: '1.5rem 1.25rem', marginTop: 'auto' }}>
       <div style={{ maxWidth: 1280, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
-        <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '0.95rem', fontWeight: 700, letterSpacing: '0.05em', color: '#1a1208' }}>
-          SALONOMIA
-        </span>
+        <div>
+          <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '0.95rem', fontWeight: 700, letterSpacing: '0.05em', color: '#1a1208' }}>
+            SALONOMIA
+          </span>
+          <div style={{ fontSize: '0.6rem', color: '#c9a460', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: '2px' }}>
+            {t('tagline')}
+          </div>
+        </div>
         <p style={{ fontSize: '0.78rem', color: '#9a8878' }}>
-          © {new Date().getFullYear()} Salonomia. Bütün hüquqlar qorunur.
+          {t('copyright', { year: new Date().getFullYear() })}
         </p>
       </div>
     </footer>
