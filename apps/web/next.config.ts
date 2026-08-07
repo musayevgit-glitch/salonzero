@@ -33,6 +33,22 @@ const nextConfig: NextConfig = {
         source: '/auth/:path*',
         destination: '/api/auth/:path*',
       },
+      {
+        source: '/customer/:path*',
+        destination: '/api/customer/:path*',
+      },
+      {
+        source: '/reservations/:path*',
+        destination: '/api/reservations/:path*',
+      },
+      {
+        source: '/salons/:path*',
+        destination: '/api/salons/:path*',
+      },
+      {
+        source: '/superadmin/:path*',
+        destination: '/api/superadmin/:path*',
+      },
     ];
   },
 };
