@@ -14,6 +14,8 @@ interface CustomerProfile {
   marketingConsent: boolean;
   isSuperadmin?: boolean;
   managedSalons?: { id: string; name: string }[];
+  isStylist?: boolean;
+  stylistSalonId?: string | null;
 }
 
 type LoadState =
@@ -173,24 +175,33 @@ export default function AccountProfilePage() {
           
           {profile.isSuperadmin && (
             <Link
-              href="/superadmin/salons"
+              href="/superadmin"
               style={{ background: 'white', border: '1px solid #ede5dc', borderRadius: 16, padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', textDecoration: 'none', color: '#1a1208', fontWeight: 500 }}
             >
-              Platform idarəetmə
+              Platform idarəetmə (Superadmin)
               <span style={{ color: '#c9a460' }}>→</span>
             </Link>
           )}
 
-          {profile.managedSalons?.map(salon => (
+          {profile.managedSalons && profile.managedSalons.length > 0 && (
             <Link
-              key={salon.id}
-              href={`/salon/${salon.id}/reservations`}
+              href="/salonadmin"
               style={{ background: 'white', border: '1px solid #ede5dc', borderRadius: 16, padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', textDecoration: 'none', color: '#1a1208', fontWeight: 500 }}
             >
-              Salon İdarəetmə: {salon.name}
+              Salon idarəetmə paneli
               <span style={{ color: '#c9a460' }}>→</span>
             </Link>
-          ))}
+          )}
+
+          {profile.isStylist && (
+            <Link
+              href="/stilistadmin"
+              style={{ background: 'white', border: '1px solid #ede5dc', borderRadius: 16, padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', textDecoration: 'none', color: '#1a1208', fontWeight: 500 }}
+            >
+              Usta idarəetmə paneli
+              <span style={{ color: '#c9a460' }}>→</span>
+            </Link>
+          )}
         </div>
 
         {/* Logout */}

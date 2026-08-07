@@ -10,10 +10,56 @@ export async function GET(req: NextRequest) {
   const payload = verifyRequest(req);
   if (!payload) return unauthorized();
 
-  const user = await prisma.user.findUnique({ where: { id: payload.sub }, select: PROFILE_SELECT });
+  const user = await prisma.user.findUnique({
+    where: { id: payload.sub },
+    select: {
+      id: true,
+      email: true,
+      fullName: true,
+      phone: true,
+      marketingConsent: true,
+      isSuperadmin: true,
+      memberships: {
+        where: {
+          status: 'ACTIVE',
+        },
+        select: {
+          role: true,
+          salon: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      },
+      employeeProfile: {
+        select: {
+          id: true,
+          salonId: true,
+        },
+      },
+    },
+  });
+
   if (!user) return NextResponse.json({ message: 'Not found.' }, { status: 404 });
 
-  return NextResponse.json(user);
+  // Map memberships where role is SALON_ADMIN or SALON_MANAGER to managedSalons
+  const managedSalons = user.memberships
+    .filter((m) => m.role === 'SALON_ADMIN' || m.role === 'SALON_MANAGER')
+    .map((m) => m.salon);
+
+  return NextResponse.json({
+    id: user.id,
+    email: user.email,
+    fullName: user.fullName,
+    phone: user.phone,
+    marketingConsent: user.marketingConsent,
+    isSuperadmin: user.isSuperadmin,
+    managedSalons,
+    isStylist: !!user.employeeProfile,
+    stylistSalonId: user.employeeProfile?.salonId ?? null,
+  });
 }
 
 export async function PATCH(req: NextRequest) {
