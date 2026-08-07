@@ -3,7 +3,6 @@
 
 import type { ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
-import { usePathname, useRouter } from '../../i18n/navigation';
 import { useParams } from 'next/navigation';
 
 const LOCALE_LABELS: Record<string, { flag: string; code: string }> = {
@@ -16,11 +15,11 @@ const LOCALE_LABELS: Record<string, { flag: string; code: string }> = {
 function LanguageSwitcher() {
   const params = useParams();
   const currentLocale = (params && params.locale ? (params.locale as string) : 'az') || 'az';
-  const router = useRouter();
-  const pathname = usePathname();
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    router.push(pathname, { locale: e.target.value });
+    // Set cookie so next-intl middleware picks the locale without touching the URL.
+    document.cookie = `NEXT_LOCALE=${e.target.value};path=/;max-age=31536000;SameSite=Lax`;
+    window.location.reload();
   }
 
   return (
