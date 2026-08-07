@@ -129,6 +129,23 @@ export default function DatetimeStep() {
   maxDate.setDate(maxDate.getDate() + maxAdvanceDays);
   const maxDateStr = toLocalDateString(maxDate, timezone);
 
+  const [bulkAvailability, setBulkAvailability] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    if (!draftLoaded || !draft.serviceId) return;
+    const params = new URLSearchParams({
+      serviceId: draft.serviceId,
+      startDate: todayStr,
+      endDate: maxDateStr,
+    });
+    if (draft.employeeId) params.set('employeeId', draft.employeeId);
+
+    fetch(`${API_URL}/public/salons/${salon.slug}/availability-bulk?${params}`)
+      .then((res) => res.json())
+      .then((data) => setBulkAvailability(data))
+      .catch((err) => console.error('Failed to load bulk availability:', err));
+  }, [draftLoaded, draft.serviceId, draft.employeeId, salon.slug, todayStr, maxDateStr]);
+
   const fetchSlots = useCallback(async (date: string) => {
     if (!draft.serviceId) return;
     abortRef.current?.abort();
@@ -325,6 +342,10 @@ export default function DatetimeStep() {
               const isDisabled = isPast || isBeyond;
               const isSelected = dateStr === selectedDate;
 
+              const hasSlots = bulkAvailability[dateStr];
+              const showDot = !isDisabled && bulkAvailability[dateStr] !== undefined;
+              const dotColor = hasSlots ? '#4caf50' : '#f44336';
+
               return (
                 <button
                   key={ci}
@@ -334,17 +355,22 @@ export default function DatetimeStep() {
                   aria-label={formatAzDate(day)}
                   aria-pressed={isSelected}
                   style={{
-                    height: 36, borderRadius: '50%', border: 'none',
-                    background: isSelected ? '#c9a460' : isToday ? '#f5ece4' : 'transparent',
-                    color: isSelected ? 'white' : isDisabled ? '#d5ccc5' : isToday ? '#c9a460' : '#1a1208',
-                    fontWeight: isSelected || isToday ? 700 : 400,
-                    fontSize: '0.82rem',
+                    height: 40, borderRadius: 8, border: isSelected ? '1.5px solid #4caf50' : 'none',
+                    background: isSelected ? 'rgba(76, 175, 80, 0.15)' : isToday ? '#f5ece4' : 'transparent',
+                    color: isSelected ? '#1b4332' : isDisabled ? '#d5ccc5' : isToday ? '#c9a460' : '#1a1208',
+                    fontWeight: isSelected || isToday ? 700 : 500,
+                    fontSize: '0.85rem',
                     cursor: isDisabled ? 'not-allowed' : 'pointer',
-                    transition: 'background 0.15s, color 0.15s',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    transition: 'all 0.15s ease',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    gap: '2px',
+                    position: 'relative',
                   }}
                 >
-                  {day.getDate()}
+                  <span style={{ marginTop: showDot ? '2px' : '0' }}>{day.getDate()}</span>
+                  {showDot && (
+                    <span style={{ width: 5, height: 5, borderRadius: '50%', background: dotColor }} />
+                  )}
                 </button>
               );
             })}
@@ -397,36 +423,48 @@ export default function DatetimeStep() {
       {selectedDate && loadState === 'idle' && slots.length > 0 && (
         <>
           <div
-            role="listbox"
-            aria-label="Mövcud saatlar"
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', marginBottom: '1rem' }}
+            style={{
+              maxHeight: 180,
+              overflowY: 'auto',
+              border: '1.5px dashed #ede5dc',
+              borderRadius: 14,
+              padding: '0.6rem',
+              background: '#fcfbfa',
+              marginBottom: '1rem',
+            }}
           >
-            {slots.map((slot) => {
-              const isSelected = draft.startAt === slot.startAt;
-              return (
-                <button
-                  key={slot.startAt}
-                  type="button"
-                  role="option"
-                  aria-selected={isSelected}
-                  onClick={() => handleSlotSelect(slot.startAt)}
-                  style={{
-                    height: 44,
-                    borderRadius: 10,
-                    border: isSelected ? '2px solid #c9a460' : '1.5px solid #ede5dc',
-                    background: isSelected ? '#c9a460' : 'white',
-                    color: isSelected ? 'white' : '#1a1208',
-                    fontSize: '0.88rem',
-                    fontWeight: isSelected ? 700 : 500,
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                    boxShadow: isSelected ? '0 2px 8px rgba(201,164,96,0.3)' : '0 1px 2px rgba(26,18,8,0.04)',
-                  }}
-                >
-                  {formatTime(slot.startAt, timezone)}
-                </button>
-              );
-            })}
+            <div
+              role="listbox"
+              aria-label="Mövcud saatlar"
+              style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}
+            >
+              {slots.map((slot) => {
+                const isSelected = draft.startAt === slot.startAt;
+                return (
+                  <button
+                    key={slot.startAt}
+                    type="button"
+                    role="option"
+                    aria-selected={isSelected}
+                    onClick={() => handleSlotSelect(slot.startAt)}
+                    style={{
+                      height: 44,
+                      borderRadius: 10,
+                      border: isSelected ? '2px solid #c9a460' : '1.5px solid #ede5dc',
+                      background: isSelected ? '#c9a460' : 'white',
+                      color: isSelected ? 'white' : '#1a1208',
+                      fontSize: '0.88rem',
+                      fontWeight: isSelected ? 700 : 500,
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                      boxShadow: isSelected ? '0 2px 8px rgba(201,164,96,0.3)' : '0 1px 2px rgba(26,18,8,0.04)',
+                    }}
+                  >
+                    {formatTime(slot.startAt, timezone)}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* Legend */}

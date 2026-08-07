@@ -58,62 +58,6 @@ export function PageHeader({ isAuthenticated }: { isAuthenticated?: boolean }) {
   );
 }
 
-export function MobileBottomNav({ active }: { active: 'home' | 'salons' | 'stilistler' | 'reservations' | 'account' }) {
-  const items = [
-    {
-      key: 'home', href: '/', label: 'Ana səhifə',
-      icon: <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 9.5L10 3l7 6.5V17H13v-4H7v4H3V9.5z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" /></svg>,
-    },
-    {
-      key: 'salons', href: '/salons', label: 'Salonlar',
-      icon: <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeWidth="1.4" /><path d="M7 10a3 3 0 0 1 6 0" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>,
-    },
-    {
-      key: 'reservations', href: '/account/reservations', label: 'Rezervasiyalarım',
-      icon: <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="4" width="14" height="13" rx="2" stroke="currentColor" strokeWidth="1.4" /><path d="M7 9h6M7 12h4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>,
-    },
-    {
-      key: 'account', href: '/account', label: 'Profil',
-      icon: <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3" stroke="currentColor" strokeWidth="1.4" /><path d="M4 17c0-3.31 2.69-6 6-6s6 2.69 6 6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>,
-    },
-  ];
-
-  return (
-    <>
-      <nav
-        aria-label="Əsas naviqasiya"
-        style={{
-          position: 'fixed', bottom: 0, left: 0, right: 0,
-          background: 'rgba(255,255,255,0.97)',
-          backdropFilter: 'blur(12px)',
-          borderTop: '1px solid #ede5dc',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-around',
-          padding: '0.5rem 0 calc(0.5rem + env(safe-area-inset-bottom))',
-          zIndex: 50,
-        }}
-      >
-        {items.map((item) => (
-          <a
-            key={item.key}
-            href={item.href}
-            aria-current={active === item.key ? 'page' : undefined}
-            style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem',
-              minWidth: 52, textDecoration: 'none',
-              color: active === item.key ? '#1a1208' : '#9a8878',
-              fontSize: '0.6rem', fontWeight: active === item.key ? 600 : 500,
-            }}
-          >
-            {item.icon}
-            {item.label}
-          </a>
-        ))}
-      </nav>
-      <style>{`@media (min-width: 768px) { nav[aria-label="Əsas naviqasiya"] { display: none; } }`}</style>
-    </>
-  );
-}
-
 export function PageFooter() {
   return (
     <footer style={{ background: 'white', borderTop: '1px solid #ede5dc', padding: '1.5rem 1.25rem', marginTop: 'auto' }}>
@@ -142,14 +86,12 @@ export function PageLayout({
   maxWidth?: number;
 }) {
   return (
-    <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', background: '#faf5f0', paddingBottom: 80 }}>
+    <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', background: '#faf5f0' }}>
       <PageHeader isAuthenticated={isAuthenticated} />
       <main style={{ flex: 1, maxWidth, margin: '0 auto', width: '100%', padding: '1.5rem 1.25rem 2rem' }}>
         {children}
       </main>
       <PageFooter />
-      <MobileBottomNav active={activeNav} />
-      <style>{`@media (min-width: 768px) { div[style*="paddingBottom: 80"] { padding-bottom: 0; } }`}</style>
     </div>
   );
 }

@@ -1,7 +1,7 @@
-import { PublicShell } from '@salonomia/ui';
 import { notFound, redirect } from 'next/navigation';
 import { fetchApiServer, ApiServerError } from '../../../../../../lib/fetch-api-server';
 import Link from 'next/link';
+import { PageLayout } from '../../../../../../app/_components/PageLayout';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,20 +17,47 @@ interface ReservationResult {
   salon: { name: string; slug: string; timezone: string };
 }
 
-function formatDateTime(iso: string, timezone: string) {
-  return new Intl.DateTimeFormat(undefined, {
-    weekday: 'long',
-    month: 'long',
+const AZ_MONTHS_SHORT = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'İyn', 'İyl', 'Avq', 'Sen', 'Okt', 'Noy', 'Dek'];
+const AZ_WEEKDAYS_SHORT = ['B.e', 'Ç.a', 'Çər', 'C.a', 'Cüm', 'Şən', 'Baz'];
+
+function formatDateTimeAz(iso: string, timezone: string) {
+  const d = new Date(iso);
+  // Convert date parts using timeZone
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: 'numeric',
     day: 'numeric',
     hour: 'numeric',
-    minute: '2-digit',
-    timeZone: timezone,
-    timeZoneName: 'short',
-  }).format(new Date(iso));
+    minute: 'numeric',
+    hour12: false
+  });
+  
+  try {
+    const parts = formatter.formatToParts(d);
+    const getPart = (type: string) => parts.find(p => p.type === type)?.value || '';
+    const day = getPart('day');
+    const monthIndex = parseInt(getPart('month')) - 1;
+    const year = getPart('year');
+    const hour = getPart('hour').padStart(2, '0');
+    const minute = getPart('minute').padStart(2, '0');
+    
+    // get weekday
+    const utcDate = new Date(d.toLocaleString('en-US', { timeZone: timezone }));
+    const weekdayIdx = (utcDate.getDay() + 6) % 7; // Monday = 0
+    
+    return `${day} ${AZ_MONTHS_SHORT[monthIndex]} ${year}, ${AZ_WEEKDAYS_SHORT[weekdayIdx]} saat ${hour}:${minute}`;
+  } catch {
+    return new Intl.DateTimeFormat('az-AZ', {
+      timeZone: timezone,
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(d);
+  }
 }
 
 function formatMoney(amount: number, currency: string) {
-  return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(amount / 100);
+  return new Intl.NumberFormat('az-AZ', { style: 'currency', currency }).format(amount / 100);
 }
 
 export default async function ResultPage({
@@ -55,68 +82,138 @@ export default async function ResultPage({
     notFound();
   }
 
+  const isAuthenticated = true;
   const isPending = reservation.status === 'PENDING';
 
   return (
-    <PublicShell>
-      <div className="mx-auto max-w-xl text-center">
-        <div className="mt-8 text-5xl" aria-hidden="true">
-          {isPending ? '🕐' : '✅'}
+    <PageLayout isAuthenticated={isAuthenticated} activeNav="reservations">
+      <div 
+        style={{ 
+          maxWidth: 550, 
+          margin: '3rem auto 5rem auto', 
+          background: 'white', 
+          borderRadius: 24, 
+          border: '1px solid #ede5dc', 
+          padding: '2.5rem 2rem',
+          textAlign: 'center',
+          boxShadow: '0 10px 30px rgba(26,18,8,0.03)'
+        }}
+      >
+        {/* Success Icon */}
+        <div 
+          style={{ 
+            width: 80, 
+            height: 80, 
+            borderRadius: '50%', 
+            background: isPending ? 'rgba(201, 164, 96, 0.12)' : 'rgba(76, 175, 80, 0.12)', 
+            color: isPending ? '#c9a460' : '#4caf50',
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            margin: '0 auto 1.5rem auto',
+            fontSize: '2rem'
+          }}
+        >
+          {isPending ? '🕐' : '✓'}
         </div>
 
-        <h1 className="mt-4 text-2xl font-semibold text-text-primary">
-          {isPending ? 'Booking received!' : 'Booking confirmed!'}
+        <h1 
+          style={{ 
+            fontFamily: "'Playfair Display', Georgia, serif", 
+            fontSize: '1.75rem', 
+            fontWeight: 700, 
+            color: '#1a1208',
+            margin: '0 0 0.5rem 0'
+          }}
+        >
+          {isPending ? 'Rezervasiya qəbul edildi!' : 'Rezervasiya təsdiqləndi!'}
         </h1>
-        <p className="mt-2 text-sm text-text-secondary">
+        
+        <p style={{ fontSize: '0.9rem', color: '#9a8878', lineHeight: 1.6, margin: '0 0 2rem 0' }}>
           {isPending
-            ? `Your request has been sent to ${reservation.salon.name}. You'll be notified once they confirm.`
-            : `Your appointment at ${reservation.salon.name} is confirmed.`}
+            ? `Rezervasiya sorğunuz ${reservation.salon.name} salonuna göndərildi. Salon təsdiqlədikdə sizə bildiriş göndəriləcək.`
+            : `${reservation.salon.name} salonundakı görüşünüz uğurla təsdiqləndi.`}
         </p>
 
-        <div className="mt-6 flex flex-col gap-3 rounded-[var(--radius-sm)] border border-border bg-surface-raised p-5 text-left text-sm">
-          <dl className="flex flex-col gap-3">
-            <div className="flex justify-between gap-4">
-              <dt className="text-text-secondary">Service</dt>
-              <dd className="text-right font-medium text-text-primary">
-                {reservation.service.name}
-              </dd>
+        {/* Details Card */}
+        <div 
+          style={{ 
+            background: '#faf5f0', 
+            borderRadius: 16, 
+            border: '1px solid #ede5dc', 
+            padding: '1.25rem 1.5rem', 
+            textAlign: 'left',
+            marginBottom: '2rem'
+          }}
+        >
+          <p style={{ margin: '0 0 1rem 0', fontSize: '0.8rem', fontWeight: 700, color: '#1a1208', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #ede5dc', paddingBottom: '0.5rem' }}>
+            Rezervasiya məlumatları
+          </p>
+          
+          <dl style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.88rem', margin: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
+              <dt style={{ color: '#9a8878' }}>Salon</dt>
+              <dd style={{ fontWeight: 600, color: '#1a1208', textAlign: 'right' }}>{reservation.salon.name}</dd>
             </div>
-            <div className="flex justify-between gap-4">
-              <dt className="text-text-secondary">Stylist</dt>
-              <dd className="text-right text-text-primary">
-                {reservation.employee?.fullName ?? 'Any available stylist'}
-              </dd>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
+              <dt style={{ color: '#9a8878' }}>Xidmət</dt>
+              <dd style={{ fontWeight: 600, color: '#1a1208', textAlign: 'right' }}>{reservation.service.name}</dd>
             </div>
-            <div className="flex justify-between gap-4">
-              <dt className="text-text-secondary">Date &amp; time</dt>
-              <dd className="text-right text-text-primary">
-                {formatDateTime(reservation.startAt, reservation.salon.timezone)}
-              </dd>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
+              <dt style={{ color: '#9a8878' }}>Stilist</dt>
+              <dd style={{ fontWeight: 600, color: '#1a1208', textAlign: 'right' }}>{reservation.employee?.fullName ?? 'İstənilən stilist'}</dd>
             </div>
-            <div className="flex justify-between gap-4">
-              <dt className="text-text-secondary">Price</dt>
-              <dd className="text-right font-semibold text-text-primary">
-                {formatMoney(reservation.priceAmount, reservation.currency)}
-              </dd>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
+              <dt style={{ color: '#9a8878' }}>Tarix və Saat</dt>
+              <dd style={{ fontWeight: 600, color: '#1a1208', textAlign: 'right' }}>{formatDateTimeAz(reservation.startAt, reservation.salon.timezone)}</dd>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', borderTop: '1px dashed #ede5dc', paddingTop: '0.75rem', marginTop: '0.25rem' }}>
+              <dt style={{ color: '#9a8878', fontWeight: 600 }}>Ödəniləcək məbləğ</dt>
+              <dd style={{ fontWeight: 700, color: '#c9a460', fontSize: '1.05rem', textAlign: 'right' }}>{formatMoney(reservation.priceAmount, reservation.currency)}</dd>
             </div>
           </dl>
         </div>
 
-        <div className="mt-6 flex flex-col gap-3">
+        {/* CTA Buttons */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
           <Link
             href="/account/reservations"
-            className="inline-flex w-full items-center justify-center rounded-[var(--radius-sm)] bg-accent px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '100%',
+              padding: '0.9rem',
+              background: '#1a1208',
+              color: 'white',
+              borderRadius: 12,
+              fontSize: '0.95rem',
+              fontWeight: 600,
+              textDecoration: 'none',
+              boxShadow: '0 4px 15px rgba(26,18,8,0.15)',
+              transition: 'opacity 0.2s'
+            }}
           >
-            View my bookings
+            Rezervasiyalarıma keç
           </Link>
+          
           <Link
             href={`/salons/${slug}`}
-            className="text-sm text-text-secondary hover:text-text-primary"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '0.85rem',
+              color: '#9a8878',
+              fontWeight: 600,
+              textDecoration: 'none',
+              transition: 'color 0.2s'
+            }}
           >
-            Back to salon
+            Salona geri qayıt
           </Link>
         </div>
       </div>
-    </PublicShell>
+    </PageLayout>
   );
 }

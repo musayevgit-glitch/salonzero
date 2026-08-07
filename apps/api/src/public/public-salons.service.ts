@@ -362,4 +362,119 @@ export class PublicSalonsService {
       slots: slots.map((s) => ({ startAt: s.startAt.toISOString(), endAt: s.endAt.toISOString() })),
     };
   }
+
+  async getAvailabilityBulk(
+    slug: string,
+    query: { serviceId: string; employeeId?: string; startDate: string; endDate: string },
+  ): Promise<Record<string, boolean>> {
+    const salon = await this.prisma.salon.findFirst({
+      where: { slug, status: 'ACTIVE' },
+      select: {
+        id: true,
+        timezone: true,
+        bookingPolicy: {
+          select: { minNoticeMinutes: true, maxAdvanceDays: true },
+        },
+      },
+    });
+    if (!salon) throw new NotFoundException('Salon not found.');
+
+    const service = await this.prisma.service.findFirst({
+      where: { id: query.serviceId, salonId: salon.id, isActive: true },
+      select: { durationMinutes: true, bufferMinutes: true },
+    });
+    if (!service) throw new NotFoundException('Service not found.');
+
+    const policy = salon.bookingPolicy;
+    const minNoticeMinutes = policy?.minNoticeMinutes ?? 60;
+    const maxAdvanceDays = policy?.maxAdvanceDays ?? 60;
+
+    const start = new Date(query.startDate);
+    const end = new Date(query.endDate);
+    const results: Record<string, boolean> = {};
+
+    const employeeWhere = {
+      salonId: salon.id,
+      isActive: true,
+      eligibleServices: { some: { serviceId: query.serviceId } },
+      ...(query.employeeId ? { id: query.employeeId } : {}),
+    };
+
+    const employeesData = await this.prisma.employeeProfile.findMany({
+      where: employeeWhere,
+      select: {
+        id: true,
+        workingSchedules: {
+          select: { weekday: true, startMinuteOfDay: true, endMinuteOfDay: true },
+        },
+        breaks: { select: { weekday: true, startMinuteOfDay: true, endMinuteOfDay: true } },
+      },
+    });
+
+    const now = new Date();
+
+    const current = new Date(start);
+    while (current <= end) {
+      const year = current.getFullYear();
+      const month = current.getMonth() + 1;
+      const day = current.getDate();
+      const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+      const localDate = { year, month, day };
+      const rangeStart = localWallTimeToUtc(localDate, 0, salon.timezone);
+      const rangeEnd = localWallTimeToUtc(localDate, 24 * 60, salon.timezone);
+
+      const employees = await Promise.all(
+        employeesData.map(async (e) => {
+          const [timeOff, reservations] = await Promise.all([
+            this.prisma.timeOff.findMany({
+              where: { employeeId: e.id, startAt: { lt: rangeEnd }, endAt: { gt: rangeStart } },
+              select: { startAt: true, endAt: true },
+            }),
+            this.prisma.reservation.findMany({
+              where: {
+                employeeId: e.id,
+                status: { in: ['PENDING', 'CONFIRMED', 'CHECKED_IN'] },
+                startAt: { lt: rangeEnd },
+                blockedUntil: { gt: rangeStart },
+              },
+              select: { startAt: true, endAt: true, blockedUntil: true },
+            }),
+          ]);
+
+          return {
+            employeeId: e.id,
+            isActive: true,
+            isEligibleForService: true,
+            workingSchedule: e.workingSchedules,
+            breaks: e.breaks,
+            timeOff,
+            blockingReservations: reservations,
+          };
+        }),
+      );
+
+      const input = {
+        salonTimezone: salon.timezone,
+        now,
+        rangeStart,
+        rangeEnd,
+        serviceDurationMinutes: service.durationMinutes,
+        bufferMinutes: service.bufferMinutes,
+        minNoticeMinutes,
+        maxAdvanceDays,
+        employees,
+      };
+
+      const slots = query.employeeId
+        ? computeAvailability(input)
+        : computeAnyStylistAvailability(input);
+
+      results[dateStr] = slots.length > 0;
+
+      current.setDate(current.getDate() + 1);
+    }
+
+    return results;
+  }
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { BadRequestException, Controller, Get, Param, Query } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import {
   listPublicSalonsQuerySchema,
@@ -20,6 +20,18 @@ export class PublicSalonsController {
   @Get()
   list(@Query(new ZodValidationPipe(listPublicSalonsQuerySchema)) query: ListPublicSalonsQuery) {
     return this.publicSalons.list(query);
+  }
+
+  @Get(':slug/availability-bulk')
+  @Throttle({ default: { ttl: 60_000, limit: 30 } })
+  availabilityBulk(
+    @Param('slug') slug: string,
+    @Query() query: { serviceId: string; employeeId?: string; startDate: string; endDate: string },
+  ) {
+    if (!query.serviceId || !query.startDate || !query.endDate) {
+      throw new BadRequestException('Missing query parameters: serviceId, startDate, and endDate are required.');
+    }
+    return this.publicSalons.getAvailabilityBulk(slug, query);
   }
 
   @Get(':slug/availability')

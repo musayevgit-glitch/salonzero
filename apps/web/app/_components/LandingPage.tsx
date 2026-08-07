@@ -563,41 +563,6 @@ function CTASection() {
   );
 }
 
-/* ─── Mobile bottom nav ──────────────────────────────────── */
-function MobileNav() {
-  return (
-    <nav className="mobile-nav" aria-label="Əsas naviqasiya">
-      <a href="/" className="mobile-nav-item active" aria-current="page">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <path d="M3 9.5L10 3l7 6.5V17H13v-4H7v4H3V9.5z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-        </svg>
-        Ana səhifə
-      </a>
-      <a href="/salons" className="mobile-nav-item">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeWidth="1.4" />
-          <path d="M7 10a3 3 0 0 1 6 0" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-        </svg>
-        Salonlar
-      </a>
-      <a href="/account/reservations" className="mobile-nav-item">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <rect x="3" y="4" width="14" height="13" rx="2" stroke="currentColor" strokeWidth="1.4" />
-          <path d="M7 9h6M7 12h4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-        </svg>
-        Rezervasiyalarım
-      </a>
-      <a href="/account" className="mobile-nav-item">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <circle cx="10" cy="7" r="3" stroke="currentColor" strokeWidth="1.4" />
-          <path d="M4 17c0-3.31 2.69-6 6-6s6 2.69 6 6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-        </svg>
-        Profil
-      </a>
-    </nav>
-  );
-}
-
 /* ─── Footer ─────────────────────────────────────────────── */
 function Footer() {
   return (
@@ -628,7 +593,7 @@ export function LandingPage({
   salons: SalonListItem[];
 }) {
   return (
-    <div className="has-mobile-nav" style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', background: '#faf5f0' }}>
+    <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', background: '#faf5f0' }}>
       <Header isAuthenticated={isAuthenticated} />
       <main style={{ flex: 1 }}>
         <Hero />
@@ -637,7 +602,6 @@ export function LandingPage({
         <CTASection />
       </main>
       <Footer />
-      <MobileNav />
     </div>
   );
 }
