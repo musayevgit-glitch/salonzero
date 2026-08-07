@@ -27,12 +27,12 @@ const DETAIL_SELECT = {
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ salonId: string }> }
 ) {
   const superadminCheck = requireSuperadmin(req);
   if (superadminCheck instanceof NextResponse) return superadminCheck;
 
-  const { id: salonId } = await params;
+  const { salonId } = await params;
 
   const salon = await prisma.salon.findUnique({
     where: { id: salonId },
@@ -50,12 +50,12 @@ export async function GET(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ salonId: string }> }
 ) {
   const superadminCheck = requireSuperadmin(req);
   if (superadminCheck instanceof NextResponse) return superadminCheck;
 
-  const { id: salonId } = await params;
+  const { salonId } = await params;
 
   const current = await prisma.salon.findUnique({ where: { id: salonId } });
   if (!current) return notFound();

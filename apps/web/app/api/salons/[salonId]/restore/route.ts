@@ -25,12 +25,12 @@ const DETAIL_SELECT = {
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ salonId: string }> }
 ) {
   const superadminCheck = requireSuperadmin(req);
   if (superadminCheck instanceof NextResponse) return superadminCheck;
 
-  const { id: salonId } = await params;
+  const { salonId } = await params;
 
   const current = await prisma.salon.findUnique({ where: { id: salonId } });
   if (!current) return notFound();
@@ -51,7 +51,7 @@ export async function POST(
 
   const updated = await prisma.salon.update({
     where: { id: salonId },
-    data: { status: 'SUSPENDED' },
+    data: { status: 'ACTIVE' },
     select: {
       ...DETAIL_SELECT,
       _count: { select: { memberships: { where: { status: 'ACTIVE' } } } },
@@ -60,7 +60,7 @@ export async function POST(
 
   await recordAudit({
     actorUserId: superadminCheck.userId,
-    action: 'salon.suspended',
+    action: 'salon.restored',
     targetType: 'Salon',
     targetId: salonId,
     salonId,
