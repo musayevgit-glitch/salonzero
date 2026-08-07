@@ -12,7 +12,7 @@ export interface AuditEventInput {
   userAgent?: string | null;
   requestId?: string | null;
   // Safe, small metadata only — never secrets/tokens/passwords (docs/security/security-requirements.md).
-  metadata?: Prisma.InputJsonValue;
+  metadata?: Prisma.NullableJsonNullValueInput | Prisma.InputJsonValue;
 }
 
 @Injectable()
@@ -30,7 +30,7 @@ export class AuditService {
         ipAddress: event.ipAddress ?? null,
         userAgent: event.userAgent ?? null,
         requestId: event.requestId ?? null,
-        metadata: event.metadata,
+        metadata: event.metadata ?? Prisma.JsonNull,
       },
     });
   }
