@@ -4,6 +4,8 @@ import { getIsAuthenticated } from '../../lib/fetch-api-server';
 import { fetchPublicApi } from '../../lib/public-api';
 import { StilistlerClient, type Stylist } from './StilistlerClient';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Stilistlər — Salonomia',
   description: 'Salonomia platformasındakı peşəkar stilistlər və onların əl işləri ilə tanış olun.',
@@ -38,13 +40,13 @@ export default async function StilistlerPage() {
 
   try {
     // 1. Fetch all salons
-    const salonsRes = await fetchPublicApi<{ items: PublicSalonListItem[] }>('/public/salons?pageSize=100');
-    
+    const salonsRes = await fetchPublicApi<{ items: PublicSalonListItem[] }>('/public/salons?pageSize=50', { noStore: true });
+
     // 2. Fetch details for each salon to get their employees
     const details = await Promise.all(
       (salonsRes?.items || []).map(async (s) => {
         try {
-          return await fetchPublicApi<PublicSalonDetail>(`/public/salons/${s.slug}`);
+          return await fetchPublicApi<PublicSalonDetail>(`/public/salons/${s.slug}`, { noStore: true });
         } catch {
           return null;
         }

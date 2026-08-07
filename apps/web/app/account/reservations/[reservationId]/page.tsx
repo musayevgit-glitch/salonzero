@@ -56,9 +56,7 @@ const BADGE_STYLE: Record<string, React.CSSProperties> = {
   NO_SHOW: { background: '#f3f4f6', color: '#4b5563' },
 };
 
-function formatMoney(amount: number, currency: string) {
-  return new Intl.NumberFormat('az-AZ', { style: 'currency', currency }).format(amount / 100);
-}
+import { formatMoney } from '../../../../lib/format-money';
 
 function formatDateAZ(iso: string, timezone: string) {
   return new Intl.DateTimeFormat('az-AZ', {
@@ -293,7 +291,7 @@ export default function ReservationDetailPage({
           </div>
           <div style={{ padding: '1rem 0', display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ color: '#9a8878' }}>Qiymət</span>
-            <span style={{ color: '#1a1208', fontWeight: 600 }}>{formatMoney(reservation.priceAmount, reservation.currency)}</span>
+            <span style={{ color: '#1a1208', fontWeight: 600 }}>{formatMoney(reservation.priceAmount)}</span>
           </div>
           {reservation.customerNote && (
             <div style={{ padding: '1rem 0', borderTop: '1px solid #ede5dc', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>

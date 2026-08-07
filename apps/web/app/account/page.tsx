@@ -159,7 +159,7 @@ export default function AccountProfilePage() {
             <input type="checkbox" checked={marketingConsent} onChange={e => setMarketingConsent(e.target.checked)} disabled={saving} />
             Marketinq e-poçtları almaq istəyirəm
           </label>
-          <button type="submit" disabled={saving} style={{ background: '#1a1208', color: 'white', border: 'none', borderRadius: 8, padding: '0.75rem', fontSize: '0.95rem', fontWeight: 500, cursor: saving ? 'not-allowed' : 'pointer', marginTop: '0.5rem' }}>
+          <button type="submit" disabled={saving} style={{ background: '#5c3d28', color: 'white', border: 'none', borderRadius: 8, padding: '0.75rem', fontSize: '0.95rem', fontWeight: 500, cursor: saving ? 'not-allowed' : 'pointer', marginTop: '0.5rem' }}>
             {saving ? 'Yadda saxlanılır...' : 'Yadda saxla'}
           </button>
         </form>

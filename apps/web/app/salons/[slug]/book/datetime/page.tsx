@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useBookingContext } from '../_components/BookingContext';
 import { BookingCTAButton, BookingPageShell } from '../_components/BookingPageShell';
+import { formatMoney } from '../../../../../lib/format-money';
 
 interface Slot {
   startAt: string;
@@ -253,7 +254,7 @@ export default function DatetimeStep() {
             </p>
             <p style={{ fontSize: '0.72rem', color: '#9a8878', marginTop: '0.1rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {selectedService?.name ?? 'Xidmət'} · {selectedService
-                ? new Intl.NumberFormat('az-AZ', { style: 'currency', currency: selectedService.currency }).format(selectedService.priceAmount / 100)
+                ? formatMoney(selectedService.priceAmount)
                 : ''}
             </p>
           </div>

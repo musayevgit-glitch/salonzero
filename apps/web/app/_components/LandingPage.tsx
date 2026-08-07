@@ -22,11 +22,11 @@ const SERVICE_TAGS: Record<string, string[]> = {
   UNISEX: ['Saç', 'Dırnaq', 'Makeup'],
 };
 
+import { formatMoney } from '../../lib/format-money';
+
 function formatPrice(price: SalonListItem['startingPrice'] | null): string | null {
   if (!price) return null;
-  return new Intl.NumberFormat('az-AZ', { style: 'currency', currency: price.currency }).format(
-    price.amount / 100,
-  );
+  return formatMoney(price.amount);
 }
 
 function salonPhoto(index: number): string {
@@ -93,7 +93,7 @@ function Header({ isAuthenticated }: { isAuthenticated: boolean }) {
     <header
       className="sticky top-0 z-40"
       style={{
-        background: 'rgba(250,245,240,0.95)',
+        background: 'rgba(255,255,255,0.95)',
         backdropFilter: 'blur(12px)',
         borderBottom: '1px solid #ede5dc',
       }}
@@ -134,7 +134,7 @@ function Header({ isAuthenticated }: { isAuthenticated: boolean }) {
               gap: '0.4rem',
               padding: '0.5rem 1rem',
               borderRadius: '10px',
-              background: '#1a1208',
+              background: '#5c3d28',
               color: 'white',
               fontSize: '0.85rem',
               fontWeight: 600,
@@ -154,125 +154,223 @@ function Header({ isAuthenticated }: { isAuthenticated: boolean }) {
 }
 
 /* ─── Hero ───────────────────────────────────────────────── */
+const HERO_IMAGES = ['/images/salon-1.png', '/images/salon-2.png', '/images/salon-3.png'];
+
 function Hero() {
-  const [service, setService] = useState('');
+  const [query, setQuery] = useState('');
 
   return (
-    <section
-      style={{
-        background: 'linear-gradient(135deg, #f5ece3 0%, #faf5f0 60%)',
-        overflow: 'hidden',
-        position: 'relative',
-      }}
-    >
-      {/* Decorative circle behind image */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: 'absolute',
-          right: '10%',
-          top: '50%',
-          transform: 'translateY(-50%)',
-          width: '380px',
-          height: '380px',
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, #e8d0ba 0%, #f5e4d4 60%, transparent 100%)',
-          opacity: 0.6,
-        }}
-      />
+    <section style={{ position: 'relative', overflow: 'hidden', minHeight: '88vh', display: 'flex', flexDirection: 'column' }}>
+      <style>{`
+        @keyframes satinShift {
+          0%   { background-position: 0% 0%; }
+          33%  { background-position: 100% 50%; }
+          66%  { background-position: 50% 100%; }
+          100% { background-position: 0% 0%; }
+        }
+        @keyframes wordUp {
+          from { opacity: 0; transform: translateY(40px) skewY(3deg); }
+          to   { opacity: 1; transform: translateY(0) skewY(0deg); }
+        }
+        @keyframes floatImg {
+          0%, 100% { transform: translateY(0px); }
+          50%       { transform: translateY(-12px); }
+        }
+        @keyframes floatImg2 {
+          0%, 100% { transform: translateY(0px) rotate(-1deg); }
+          50%       { transform: translateY(-8px) rotate(1deg); }
+        }
+        @keyframes goldPulse {
+          0%, 100% { opacity: 0.12; transform: scale(1); }
+          50%       { opacity: 0.28; transform: scale(1.08); }
+        }
+        @keyframes sparkle {
+          0%, 100% { opacity: 0; transform: scale(0.5); }
+          50%       { opacity: 0.7; transform: scale(1); }
+        }
+        @keyframes marquee {
+          from { transform: translateX(0); }
+          to   { transform: translateX(-50%); }
+        }
+        @keyframes badgePop {
+          from { opacity: 0; transform: scale(0.8) translateY(-8px); }
+          to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes lineGrow {
+          from { width: 0; }
+          to   { width: 100%; }
+        }
+        @keyframes fadeSlide {
+          from { opacity: 0; transform: translateX(-20px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+        .hero-satin {
+          background: linear-gradient(
+            135deg,
+            #0f0603 0%,
+            #2a1008 12%,
+            #4a2010 22%,
+            #8b5020 33%,
+            #c9a460 44%,
+            #f0dfc0 50%,
+            #c9a460 56%,
+            #8b5020 67%,
+            #4a2010 78%,
+            #2a1008 88%,
+            #0f0603 100%
+          );
+          background-size: 500% 500%;
+          animation: satinShift 13s ease-in-out infinite;
+        }
+        .hw { display: inline-block; opacity: 0; animation: wordUp 0.65s cubic-bezier(.22,.68,0,1.2) forwards; }
+        .hw1 { animation-delay: 0.1s; }
+        .hw2 { animation-delay: 0.25s; }
+        .hw3 { animation-delay: 0.4s; }
+        .hbadge { opacity: 0; animation: badgePop 0.5s cubic-bezier(.34,1.56,.64,1) 0.05s forwards; }
+        .himg1 { animation: floatImg 7s ease-in-out 0.3s infinite; }
+        .himg2 { animation: floatImg2 9s ease-in-out 1s infinite; }
+        .himg3 { animation: floatImg 11s ease-in-out 2s infinite; }
+        .hform { opacity: 0; animation: fadeSlide 0.6s ease 0.7s forwards; }
+        .gold-line-anim { display: block; height: 3px; background: linear-gradient(90deg, #c9a460, #f0d080, #c9a460); border-radius: 2px; width: 0; animation: lineGrow 0.8s ease 0.6s forwards; }
+        @media (max-width: 767px) {
+          .hero-cols { flex-direction: column !important; }
+          .hero-right { display: none !important; }
+          .hero-left { max-width: 100% !important; }
+          .hero-h1 { font-size: 2.4rem !important; }
+        }
+      `}</style>
 
-      <div
-        style={{ maxWidth: 1280, margin: '0 auto', padding: '3rem 1.25rem 2rem' }}
-        className="flex items-center justify-between gap-8"
-      >
-        {/* Left content */}
-        <div style={{ maxWidth: 480, flex: '1 1 auto' }}>
-          <h1
-            className="font-display animate-fade-up"
-            style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: 700, lineHeight: 1.1, color: '#1a1208' }}
-          >
-            Gözəlliyiniz<br />bizimlə daha asandır
+      {/* Animated luxury gradient */}
+      <div className="hero-satin" aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }} />
+
+      {/* Left scrim — mətn oxunaqlığı üçün */}
+      <div aria-hidden="true" style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '60%', background: 'linear-gradient(90deg, rgba(10,4,2,0.72) 0%, rgba(10,4,2,0.4) 65%, transparent 100%)', pointerEvents: 'none' }} />
+
+      {/* Top + bottom vignette */}
+      <div aria-hidden="true" style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(8,3,1,0.35) 0%, transparent 30%, transparent 70%, rgba(8,3,1,0.25) 100%)', pointerEvents: 'none' }} />
+
+      {/* Gold sparkle dots */}
+      {[
+        { top: '12%', left: '8%', d: '0s', s: 7 },
+        { top: '22%', left: '48%', d: '0.8s', s: 4 },
+        { top: '65%', left: '5%', d: '1.4s', s: 5 },
+        { top: '78%', left: '52%', d: '0.3s', s: 3 },
+        { top: '40%', left: '30%', d: '2s', s: 6 },
+        { top: '88%', left: '22%', d: '1s', s: 4 },
+        { top: '18%', left: '70%', d: '1.6s', s: 5 },
+        { top: '55%', left: '62%', d: '0.5s', s: 3 },
+      ].map((p, i) => (
+        <div key={i} aria-hidden="true" style={{
+          position: 'absolute', top: p.top, left: p.left,
+          width: p.s, height: p.s, borderRadius: '50%',
+          background: '#c9a460',
+          animation: `sparkle ${3 + i * 0.4}s ease-in-out ${p.d} infinite`,
+          pointerEvents: 'none',
+        }} />
+      ))}
+
+      {/* Main content */}
+      <div className="hero-cols" style={{ maxWidth: 1280, margin: '0 auto', padding: '4rem 1.5rem 3rem', flex: 1, display: 'flex', alignItems: 'center', gap: '3rem', width: '100%', position: 'relative' }}>
+
+        {/* ── LEFT ── */}
+        <div className="hero-left" style={{ flex: '0 0 52%', maxWidth: 580 }}>
+
+          {/* Headline */}
+          <h1 className="hero-h1 font-display" style={{ fontSize: 'clamp(2.6rem, 5.5vw, 4rem)', fontWeight: 800, lineHeight: 1.08, color: 'white', margin: 0 }}>
+            <span className="hw hw1">Gözəlliyiniz</span>{' '}
+            <br />
+            <span className="hw hw2" style={{ background: 'linear-gradient(135deg, #f0d080 0%, #c9a460 50%, #e8c070 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>öz əlinizdə.</span>
           </h1>
-          <p
-            className="animate-fade-up-d1"
-            style={{ marginTop: '1rem', fontSize: '0.95rem', color: '#6b5e4a', lineHeight: 1.7 }}
-          >
-            Sevdiyiniz salonu və stilisti seçin,<br />rezervasiyanızı bir neçə klikdə edin.
+
+          {/* Gold underline */}
+          <span className="gold-line-anim" style={{ marginTop: '0.6rem', maxWidth: 260 }} />
+
+          {/* Subtitle */}
+          <p className="hw hw3" style={{ marginTop: '1.25rem', fontSize: '1rem', color: 'rgba(240,220,190,0.75)', lineHeight: 1.75, fontWeight: 400 }}>
+            Salon seçin, stilist tapın, bir neçə klikdə<br/>rezervasiyanızı tamamlayın.
           </p>
 
-          {/* Search bar */}
+          {/* Search */}
           <form
-            className="animate-fade-up-d2 search-bar"
-            style={{ marginTop: '1.75rem' }}
+            className="hform"
             method="get"
             action="/salons"
+            style={{ marginTop: '2rem', display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(201,164,96,0.3)', borderRadius: 16, padding: '0.4rem 0.4rem 0.4rem 1.1rem', gap: '0.5rem', backdropFilter: 'blur(20px)', maxWidth: 480, boxShadow: '0 4px 32px rgba(0,0,0,0.3)' }}
           >
-            <div className="search-bar-location">
-              <LocationPinIcon />
-              <span>Bakı, Azərbaycan</span>
-            </div>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ flexShrink: 0, color: '#c9a460' }}>
+              <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
             <input
-              className="search-bar-input"
               type="text"
               name="search"
-              placeholder="Xidmət və ya stilist axtarın"
-              value={service}
-              onChange={(e) => setService(e.target.value)}
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder="Xidmət, salon və ya stilist axtarın..."
+              style={{ flex: 1, background: 'none', border: 'none', outline: 'none', color: 'white', fontSize: '0.9rem' } as React.CSSProperties}
             />
-            <button type="submit" className="search-bar-btn" aria-label="Axtar">
-              <ArrowRightIcon size={16} />
+            <button
+              type="submit"
+              style={{ flexShrink: 0, background: 'linear-gradient(135deg, #c9a460, #a07030)', border: 'none', borderRadius: 12, width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'white', boxShadow: '0 4px 14px rgba(180,140,60,0.5)' }}
+              aria-label="Axtar"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </button>
           </form>
         </div>
 
-        {/* Hero image */}
-        <div
-          className="animate-fade-up-d1"
-          style={{
-            flexShrink: 0,
-            width: 'clamp(200px, 35vw, 360px)',
-            position: 'relative',
-            display: 'none',
-          }}
-          // Show on md+ via inline media query workaround — we use a wrapper
-        >
-          <Image
-            src="/images/hero-woman.png"
-            alt="Gözəl salon müştərisi"
-            width={360}
-            height={440}
-            style={{ objectFit: 'cover', borderRadius: '24px', width: '100%', height: 'auto' }}
-            priority
-          />
+        {/* ── RIGHT — image collage ── */}
+        <div className="hero-right" style={{ flex: 1, position: 'relative', minHeight: 480, display: 'flex' }}>
+
+          {/* Background glow behind images */}
+          <div aria-hidden="true" style={{ position: 'absolute', top: '15%', left: '10%', width: '70%', height: '70%', borderRadius: '50%', background: 'radial-gradient(circle, rgba(201,164,96,0.18) 0%, transparent 70%)', animation: 'goldPulse 6s ease-in-out infinite', pointerEvents: 'none' }} />
+
+          {/* Image 1 — large, top */}
+          <div className="himg1" style={{ position: 'absolute', top: 0, left: '5%', width: '58%', height: 280, borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(201,164,96,0.2)', boxShadow: '0 24px 64px rgba(0,0,0,0.5)' }}>
+            <img src={HERO_IMAGES[0]} alt="" aria-hidden="true" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 50%, rgba(13,8,5,0.4) 100%)' }} />
+            {/* Floating rating chip */}
+            <div style={{ position: 'absolute', bottom: 14, left: 14, background: 'rgba(13,8,5,0.85)', backdropFilter: 'blur(8px)', borderRadius: 999, padding: '0.35rem 0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem', border: '1px solid rgba(201,164,96,0.3)' }}>
+              <span style={{ color: '#f0d080', fontSize: '0.75rem' }}>★</span>
+              <span style={{ color: 'white', fontSize: '0.72rem', fontWeight: 600 }}>4.9 · Gözəl Xanım Beauty</span>
+            </div>
+          </div>
+
+          {/* Image 2 — smaller, top-right */}
+          <div className="himg2" style={{ position: 'absolute', top: 20, right: 0, width: '38%', height: 190, borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(201,164,96,0.2)', boxShadow: '0 16px 48px rgba(0,0,0,0.5)' }}>
+            <img src={HERO_IMAGES[1]} alt="" aria-hidden="true" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+          </div>
+
+          {/* Image 3 — bottom-right */}
+          <div className="himg3" style={{ position: 'absolute', bottom: 0, right: '5%', width: '50%', height: 200, borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(201,164,96,0.2)', boxShadow: '0 16px 48px rgba(0,0,0,0.4)' }}>
+            <img src={HERO_IMAGES[2]} alt="" aria-hidden="true" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 30%, rgba(13,8,5,0.35) 100%)' }} />
+          </div>
+
+          {/* Floating booking chip */}
+          <div className="hbadge" style={{ position: 'absolute', bottom: 18, left: '2%', background: 'rgba(13,8,5,0.9)', backdropFilter: 'blur(12px)', borderRadius: 14, padding: '0.7rem 1rem', border: '1px solid rgba(201,164,96,0.25)', boxShadow: '0 8px 32px rgba(0,0,0,0.4)', minWidth: 140 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.3rem' }}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#4ade80', boxShadow: '0 0 6px #4ade80' }} />
+              <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>İndi mövcud</span>
+            </div>
+            <div style={{ fontSize: '0.78rem', color: 'white', fontWeight: 700 }}>Bu gün rezervasiya</div>
+            <div style={{ fontSize: '0.65rem', color: '#c9a460', marginTop: '0.1rem' }}>5 stilist hazırdır →</div>
+          </div>
         </div>
       </div>
 
-      {/* Hero image shown md+ */}
-      <style>{`
-        @media (min-width: 640px) {
-          .hero-img-wrap { display: block !important; }
-        }
-      `}</style>
-      <div
-        className="hero-img-wrap animate-fade-up-d1"
-        style={{
-          position: 'absolute',
-          right: 'max(1.25rem, calc(50% - 600px))',
-          bottom: 0,
-          width: 'clamp(200px, 30vw, 320px)',
-          display: 'none',
-        }}
-      >
-        <Image
-          src="/images/hero-woman.png"
-          alt="Gözəl salon müştərisi"
-          width={320}
-          height={400}
-          style={{ objectFit: 'cover', objectPosition: 'top', borderRadius: '24px 24px 0 0', width: '100%', height: 'auto' }}
-          priority
-        />
+      {/* Marquee strip */}
+      <div style={{ background: 'rgba(8,3,1,0.55)', borderTop: '1px solid rgba(201,164,96,0.2)', padding: '0.65rem 0', overflow: 'hidden', position: 'relative', backdropFilter: 'blur(4px)' }}>
+        <div style={{ display: 'flex', animation: 'marquee 22s linear infinite', width: 'max-content', gap: 0 }}>
+          {['Saç Kəsimi', 'Manikür', 'Pedikür', 'Saç Boyası', 'Makeup', 'Qaş Laminasiyası', 'Üz Baxımı', 'Keratin', 'Gel-Lak', 'Ombre & Balayage', 'Saç Kəsimi', 'Manikür', 'Pedikür', 'Saç Boyası', 'Makeup', 'Qaş Laminasiyası', 'Üz Baxımı', 'Keratin', 'Gel-Lak', 'Ombre & Balayage'].map((t, i) => (
+            <span key={i} style={{ fontSize: '0.7rem', color: 'rgba(201,164,96,0.8)', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '0 2rem', whiteSpace: 'nowrap' }}>
+              {t} <span style={{ color: 'rgba(201,164,96,0.35)', margin: '0 0.5rem' }}>✦</span>
+            </span>
+          ))}
+        </div>
       </div>
-      <div style={{ height: '2.5rem' }} />
     </section>
   );
 }
@@ -376,7 +474,7 @@ function PopularSalons({ salons }: { salons: SalonListItem[] }) {
           const tags = SERVICE_TAGS[salon.genderFocus ?? 'UNISEX'] ?? ['Saç', 'Dırnaq', 'Makeup'];
 
           return (
-            <a key={salon.id} href={`/salons/${salon.slug}`} className="salon-card">
+            <div key={salon.id} role="article" className="salon-card" style={{ cursor: 'pointer' }} onClick={() => { window.location.href = `/salons/${salon.slug}`; }}>
               {/* Photo */}
               <div style={{ position: 'relative', height: 220, overflow: 'hidden' }}>
                 <img
@@ -465,6 +563,7 @@ function PopularSalons({ salons }: { salons: SalonListItem[] }) {
                 {/* Book button */}
                 <a
                   href={`/salons/${salon.slug}/book/service`}
+                  onClick={(e) => e.stopPropagation()}
                   style={{
                     display: 'block',
                     textAlign: 'center',
@@ -489,7 +588,7 @@ function PopularSalons({ salons }: { salons: SalonListItem[] }) {
                   Baxmaq
                 </a>
               </div>
-            </a>
+            </div>
           );
         })}
       </div>
@@ -593,7 +692,7 @@ export function LandingPage({
   salons: SalonListItem[];
 }) {
   return (
-    <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', background: '#faf5f0' }}>
+    <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', background: 'white' }}>
       <Header isAuthenticated={isAuthenticated} />
       <main style={{ flex: 1 }}>
         <Hero />

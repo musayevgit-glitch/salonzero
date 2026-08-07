@@ -86,15 +86,15 @@ export default async function SalonsPage({
         <form style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'flex-end' }}>
           <div style={{ flex: '1 1 200px', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
             <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1a1208' }}>Axtarış</label>
-            <input type="text" name="search" defaultValue={search} placeholder="Salon adı..." style={{ padding: '0.6rem 1rem', borderRadius: 8, border: '1px solid #ede5dc', outline: 'none', fontSize: '0.9rem' }} />
+            <input type="text" name="search" defaultValue={search} placeholder="Salon adı..." style={{ height: 44, boxSizing: 'border-box', padding: '0 1rem', borderRadius: 8, border: '1px solid #ede5dc', outline: 'none', fontSize: '0.9rem' }} />
           </div>
           <div style={{ flex: '1 1 150px', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
             <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1a1208' }}>Şəhər</label>
-            <input type="text" name="city" defaultValue={city} placeholder="Bakı..." style={{ padding: '0.6rem 1rem', borderRadius: 8, border: '1px solid #ede5dc', outline: 'none', fontSize: '0.9rem' }} />
+            <input type="text" name="city" defaultValue={city} placeholder="Bakı..." style={{ height: 44, boxSizing: 'border-box', padding: '0 1rem', borderRadius: 8, border: '1px solid #ede5dc', outline: 'none', fontSize: '0.9rem' }} />
           </div>
           <div style={{ flex: '1 1 150px', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
             <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1a1208' }}>Kimlər üçün</label>
-            <select name="genderFocus" defaultValue={genderFocus} style={{ padding: '0.6rem 1rem', borderRadius: 8, border: '1px solid #ede5dc', outline: 'none', fontSize: '0.9rem', backgroundColor: 'white' }}>
+            <select name="genderFocus" defaultValue={genderFocus} style={{ height: 44, boxSizing: 'border-box', padding: '0 1rem', borderRadius: 8, border: '1px solid #ede5dc', outline: 'none', fontSize: '0.9rem', backgroundColor: 'white' }}>
               <option value="">Hər kəs</option>
               <option value="Women">Qadın</option>
               <option value="Men">Kişi</option>
@@ -103,7 +103,7 @@ export default async function SalonsPage({
           </div>
           <div style={{ flex: '1 1 150px', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
             <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1a1208' }}>Sıralama</label>
-            <select name="sort" defaultValue={sort} style={{ padding: '0.6rem 1rem', borderRadius: 8, border: '1px solid #ede5dc', outline: 'none', fontSize: '0.9rem', backgroundColor: 'white' }}>
+            <select name="sort" defaultValue={sort} style={{ height: 44, boxSizing: 'border-box', padding: '0 1rem', borderRadius: 8, border: '1px solid #ede5dc', outline: 'none', fontSize: '0.9rem', backgroundColor: 'white' }}>
               <option value="name_asc">Ad A-Z</option>
               <option value="name_desc">Ad Z-A</option>
               <option value="newest">Ən yeni</option>
@@ -111,7 +111,7 @@ export default async function SalonsPage({
           </div>
           
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flex: '1 1 200px' }}>
-            <button type="submit" style={{ flex: 1, background: '#1a1208', color: 'white', border: 'none', padding: '0.7rem 1.5rem', borderRadius: 8, fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>
+            <button type="submit" style={{ flex: 1, height: 44, boxSizing: 'border-box', background: '#5c3d28', color: 'white', border: 'none', padding: '0 1.5rem', borderRadius: 8, fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>
               Filtrləri tətbiq et
             </button>
             <Link href="/salons" style={{ color: '#9a8878', textDecoration: 'underline', fontSize: '0.9rem', fontWeight: 500 }}>

@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { formatMoney } from '../../lib/format-money';
 
 interface SalonProps {
   id: string;
@@ -66,7 +67,7 @@ export function SalonCard({ salon, index }: { salon: SalonProps; index: number }
 
         {salon.startingPrice && (
           <div style={{ fontSize: '0.875rem', color: '#6b5e4a', fontWeight: 500 }}>
-            Qiymət: <span style={{ color: '#1a1208', fontWeight: 600 }}>{salon.startingPrice.amount} {salon.startingPrice.currency}</span>-dən
+            Qiymət: <span style={{ color: '#1a1208', fontWeight: 600 }}>{formatMoney(salon.startingPrice.amount)}</span>-dən
           </div>
         )}
 

@@ -55,7 +55,7 @@ interface BookingContextValue {
   salon: SalonBookingData;
   draft: Partial<BookingDraft>;
   draftLoaded: boolean;
-  setService: (serviceId: string) => void;
+  setService: (serviceId: string, employeeId?: string | null) => void;
   setStylist: (employeeId: string | null) => void;
   setStartAt: (startAt: string | undefined) => void;
   clearDraft: () => void;
@@ -105,10 +105,13 @@ export function BookingShell({
   }, [salonData.slug]);
 
   const setService = useCallback(
-    (serviceId: string) => {
-      setDraft((prev) => {
-        // Changing service resets stylist and time — they are no longer valid
-        const next: Partial<BookingDraft> = { serviceId, idempotencyKey: crypto.randomUUID() };
+    (serviceId: string, employeeId?: string | null) => {
+      setDraft(() => {
+        const next: Partial<BookingDraft> = {
+          serviceId,
+          idempotencyKey: crypto.randomUUID(),
+          ...(employeeId !== undefined ? { employeeId } : {}),
+        };
         writeDraft(salonData.slug, next);
         return next;
       });

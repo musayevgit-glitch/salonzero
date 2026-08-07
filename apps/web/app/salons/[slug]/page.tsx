@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { getIsAuthenticated } from '../../../lib/fetch-api-server';
 import { fetchPublicApi, PublicApiError } from '../../../lib/public-api';
 import { PageLayout } from '../../_components/PageLayout';
+import { StylistCard } from './StylistCard';
 
 interface PublicService {
   id: string;
@@ -65,11 +66,7 @@ function formatMinuteOfDay(minutes: number): string {
   return `${hours12}:${String(mins).padStart(2, '0')} ${period}`;
 }
 
-function formatMoney(amountMinorUnits: number, currency: string): string {
-  return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(
-    amountMinorUnits / 100,
-  );
-}
+import { formatMoney } from '../../../lib/format-money';
 
 async function loadSalon(slug: string): Promise<SalonDetail | null> {
   try {
@@ -171,7 +168,7 @@ export default async function SalonDetailPage({ params }: { params: Promise<{ sl
                               <span style={{ color: '#1a1208', fontWeight: 500 }}>{s.name}</span>
                               <span style={{ color: '#9a8878', fontSize: '0.85rem' }}>{s.durationMinutes} dəq</span>
                             </div>
-                            <span style={{ color: '#1a1208', fontWeight: 600 }}>{formatMoney(s.priceAmount, s.currency)}</span>
+                            <span style={{ color: '#1a1208', fontWeight: 600 }}>{formatMoney(s.priceAmount)}</span>
                           </li>
                         ))}
                       </ul>
@@ -187,7 +184,7 @@ export default async function SalonDetailPage({ params }: { params: Promise<{ sl
                               <span style={{ color: '#1a1208', fontWeight: 500 }}>{s.name}</span>
                               <span style={{ color: '#9a8878', fontSize: '0.85rem' }}>{s.durationMinutes} dəq</span>
                             </div>
-                            <span style={{ color: '#1a1208', fontWeight: 600 }}>{formatMoney(s.priceAmount, s.currency)}</span>
+                            <span style={{ color: '#1a1208', fontWeight: 600 }}>{formatMoney(s.priceAmount)}</span>
                           </li>
                         ))}
                       </ul>
@@ -202,26 +199,14 @@ export default async function SalonDetailPage({ params }: { params: Promise<{ sl
             <section style={{ background: 'white', borderRadius: 16, border: '1px solid #ede5dc', padding: '1.5rem' }}>
               <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.25rem', color: '#1a1208', marginBottom: '1rem', fontWeight: 600, margin: '0 0 1rem 0' }}>Ustalar</h2>
               {salon.employees.length > 0 ? (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1rem' }}>
                   {salon.employees.map(employee => (
-                    <div key={employee.id} style={{ border: '1px solid #ede5dc', borderRadius: 12, padding: '1rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-                        <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#faf5f0', color: '#c9a460', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', fontWeight: 600, flexShrink: 0 }}>
-                          {employee.fullName.charAt(0)}
-                        </div>
-                        <div>
-                          <p style={{ margin: 0, fontWeight: 600, color: '#1a1208' }}>{employee.fullName}</p>
-                          {employee.bio && <p style={{ margin: 0, fontSize: '0.85rem', color: '#9a8878', marginTop: '0.25rem' }}>{employee.bio}</p>}
-                        </div>
-                      </div>
-                      {employee.portfolio.length > 0 && (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
-                          {employee.portfolio.map(item => (
-                            <img key={item.id} src={item.imageUrl} alt={item.caption ?? ''} style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', borderRadius: 8 }} loading="lazy" />
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                    <StylistCard
+                      key={employee.id}
+                      employee={employee}
+                      salonName={salon.name}
+                      salonSlug={salon.slug}
+                    />
                   ))}
                 </div>
               ) : (
@@ -260,7 +245,7 @@ export default async function SalonDetailPage({ params }: { params: Promise<{ sl
             <div className="booking-card" style={{ background: 'white', borderRadius: 16, border: '1px solid #ede5dc', padding: '1.5rem', position: 'sticky', top: '5.5rem' }}>
               <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.25rem', color: '#1a1208', margin: '0 0 0.5rem 0', fontWeight: 600 }}>Rezervasiya</h2>
               <p style={{ color: '#6b5e4a', fontSize: '0.9rem', marginBottom: '1.5rem', marginTop: 0 }}>Uyğun vaxtı seçmək üçün davam edin.</p>
-              <a href={`/salons/${salon.slug}/book/service`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: 52, background: '#1a1208', color: 'white', borderRadius: 14, textDecoration: 'none', fontWeight: 500, fontSize: '1rem' }}>
+              <a href={`/salons/${salon.slug}/book/service`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: 52, background: '#5c3d28', color: 'white', borderRadius: 14, textDecoration: 'none', fontWeight: 500, fontSize: '1rem' }}>
                 Rezervasiya et
               </a>
             </div>

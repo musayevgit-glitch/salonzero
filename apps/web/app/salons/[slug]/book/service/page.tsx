@@ -1,14 +1,10 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import React from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useBookingContext } from '../_components/BookingContext';
 import { BookingCTAButton, BookingPageShell } from '../_components/BookingPageShell';
-
-function formatMoney(amountMinorUnits: number, currency: string): string {
-  return new Intl.NumberFormat('az-AZ', { style: 'currency', currency }).format(
-    amountMinorUnits / 100,
-  );
-}
+import { formatMoney } from '../../../../../lib/format-money';
 
 function LocationPinIcon() {
   return (
@@ -39,21 +35,35 @@ function InfoIcon() {
 export default function ServiceStep() {
   const { salon, draft, setService } = useBookingContext();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const [activeCategoryId, setActiveCategoryId] = React.useState<string | null>(null);
+
+  // Pre-selected employee from stylist card "Rezerv et" link
+  const preselectedEmployeeId = searchParams.get('employee');
 
   const allServices = [
     ...salon.serviceCategories.flatMap((c) => c.services),
     ...salon.uncategorizedServices,
   ];
 
+  const visibleServices = activeCategoryId === null
+    ? allServices
+    : activeCategoryId === '__uncategorized__'
+      ? salon.uncategorizedServices
+      : (salon.serviceCategories.find((c) => c.id === activeCategoryId)?.services ?? []);
+
   const selectedService = allServices.find((s) => s.id === draft.serviceId);
 
   function handleSelect(serviceId: string) {
-    setService(serviceId);
-    // Don't auto-navigate — let user press "Davam et"
+    setService(serviceId, preselectedEmployeeId ?? undefined);
   }
 
   function handleContinue() {
-    if (draft.serviceId) {
+    if (!draft.serviceId) return;
+    if (preselectedEmployeeId) {
+      // Stylist already chosen — skip stylist step, go straight to datetime
+      router.push(`/salons/${salon.slug}/book/datetime`);
+    } else {
       router.push(`/salons/${salon.slug}/book/stylist`);
     }
   }
@@ -138,9 +148,68 @@ export default function ServiceStep() {
         </h2>
       )}
 
+      {/* Category tabs */}
+      {hasServices && salon.serviceCategories.length > 0 && (
+        <div
+          style={{
+            display: 'flex',
+            gap: '0.4rem',
+            overflowX: 'auto',
+            marginBottom: '0.875rem',
+            paddingBottom: '0.25rem',
+            scrollbarWidth: 'none',
+          }}
+          role="tablist"
+          aria-label="Kateqoriyalar"
+        >
+          {[
+            { id: null, label: 'Hamısı', count: allServices.length },
+            ...salon.serviceCategories.map((c) => ({ id: c.id, label: c.name, count: c.services.length })),
+            ...(salon.uncategorizedServices.length > 0
+              ? [{ id: '__uncategorized__', label: 'Digər', count: salon.uncategorizedServices.length }]
+              : []),
+          ].map((tab) => {
+            const active = activeCategoryId === tab.id;
+            return (
+              <button
+                key={String(tab.id)}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => setActiveCategoryId(tab.id)}
+                style={{
+                  flexShrink: 0,
+                  padding: '0.4rem 0.9rem',
+                  borderRadius: 20,
+                  border: active ? '1.5px solid #5c3d28' : '1.5px solid #ede5dc',
+                  background: active ? '#5c3d28' : 'white',
+                  color: active ? 'white' : '#6b5e4a',
+                  fontSize: '0.8rem',
+                  fontWeight: active ? 600 : 500,
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  transition: 'all 0.15s',
+                }}
+              >
+                {tab.label}
+                <span
+                  style={{
+                    marginLeft: '0.35rem',
+                    fontSize: '0.7rem',
+                    opacity: 0.75,
+                  }}
+                >
+                  ({tab.count})
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {/* Service list */}
       <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', listStyle: 'none', padding: 0, margin: 0 }} role="listbox" aria-label="Xidmətlər">
-        {allServices.map((service) => {
+        {visibleServices.map((service) => {
           const selected = draft.serviceId === service.id;
           return (
             <li key={service.id}>
@@ -178,7 +247,7 @@ export default function ServiceStep() {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ fontWeight: 600, fontSize: '0.9rem', color: '#1a1208' }}>{service.name}</p>
                   <p style={{ fontSize: '0.8rem', fontWeight: 700, color: '#c9a460', marginTop: '0.15rem' }}>
-                    {formatMoney(service.priceAmount, service.currency)}
+                    {formatMoney(service.priceAmount)}
                   </p>
                   <p style={{ fontSize: '0.72rem', color: '#9a8878', marginTop: '0.1rem' }}>
                     {service.durationMinutes} dəq

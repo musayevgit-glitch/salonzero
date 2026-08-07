@@ -29,6 +29,7 @@ import { ZodValidationPipe } from '../common/zod-validation.pipe';
 import {
   bindSessionCsrfToken,
   clearCsrfCookie,
+  ensureSessionCsrfToken,
   getSessionCsrfToken,
   rotateSessionCsrfToken,
 } from '../common/csrf-token';
@@ -86,6 +87,14 @@ export class AuthController {
     });
     rotateSessionCsrfToken(req, res);
     return user;
+  }
+
+  // Returns the CSRF token in the JSON body so cross-origin clients (Next.js on a different port
+  // or domain) can read it — document.cookie only sees same-origin cookies.
+  @Get('csrf')
+  csrf(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const token = ensureSessionCsrfToken(req, res);
+    return { csrfToken: token ?? null };
   }
 
   @UseGuards(AuthenticatedGuard)

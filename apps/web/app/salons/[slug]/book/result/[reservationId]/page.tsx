@@ -56,9 +56,7 @@ function formatDateTimeAz(iso: string, timezone: string) {
   }
 }
 
-function formatMoney(amount: number, currency: string) {
-  return new Intl.NumberFormat('az-AZ', { style: 'currency', currency }).format(amount / 100);
-}
+import { formatMoney } from '../../../../../../../lib/format-money';
 
 export default async function ResultPage({
   params,
@@ -138,8 +136,8 @@ export default async function ResultPage({
         {/* Details Card */}
         <div 
           style={{ 
-            background: '#faf5f0', 
-            borderRadius: 16, 
+            background: '#f9f6f3',
+            borderRadius: 16,
             border: '1px solid #ede5dc', 
             padding: '1.25rem 1.5rem', 
             textAlign: 'left',
@@ -169,7 +167,7 @@ export default async function ResultPage({
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', borderTop: '1px dashed #ede5dc', paddingTop: '0.75rem', marginTop: '0.25rem' }}>
               <dt style={{ color: '#9a8878', fontWeight: 600 }}>Ödəniləcək məbləğ</dt>
-              <dd style={{ fontWeight: 700, color: '#c9a460', fontSize: '1.05rem', textAlign: 'right' }}>{formatMoney(reservation.priceAmount, reservation.currency)}</dd>
+              <dd style={{ fontWeight: 700, color: '#c9a460', fontSize: '1.05rem', textAlign: 'right' }}>{formatMoney(reservation.priceAmount)}</dd>
             </div>
           </dl>
         </div>
@@ -184,13 +182,13 @@ export default async function ResultPage({
               justifyContent: 'center',
               width: '100%',
               padding: '0.9rem',
-              background: '#1a1208',
+              background: '#5c3d28',
               color: 'white',
               borderRadius: 12,
               fontSize: '0.95rem',
               fontWeight: 600,
               textDecoration: 'none',
-              boxShadow: '0 4px 15px rgba(26,18,8,0.15)',
+              boxShadow: '0 4px 15px rgba(92,61,40,0.2)',
               transition: 'opacity 0.2s'
             }}
           >

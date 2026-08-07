@@ -2,6 +2,7 @@ import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { fetchApiServer, ApiServerError } from '../../../lib/fetch-api-server';
 import { PageLayout } from '../../_components/PageLayout';
+import { formatMoney } from '../../../lib/format-money';
 
 export const dynamic = 'force-dynamic';
 
@@ -94,9 +95,9 @@ export default async function ReservationsListPage({
                 fontWeight: 500,
                 textDecoration: 'none',
                 whiteSpace: 'nowrap',
-                background: isActive ? '#1a1208' : 'white',
+                background: isActive ? '#5c3d28' : 'white',
                 color: isActive ? 'white' : '#1a1208',
-                border: isActive ? '1px solid #1a1208' : '1px solid #ede5dc',
+                border: isActive ? '1px solid #5c3d28' : '1px solid #ede5dc',
                 transition: 'all 0.2s',
               }}>
                 {isAll ? 'Hamısı' : STATUS_MAP[s]}
@@ -160,7 +161,7 @@ export default async function ReservationsListPage({
 
                   <div style={{ borderTop: '1px solid #ede5dc', margin: '0.5rem -1.25rem 0', padding: '1rem 1.25rem 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ fontSize: '1rem', fontWeight: 600, color: '#1a1208' }}>
-                      {(r.priceAmount / 100).toFixed(2)} {r.currency}
+                      {formatMoney(r.priceAmount)}
                     </div>
                     <Link href={`/account/reservations/${r.id}`} style={{ color: '#c9a460', fontSize: '0.9rem', fontWeight: 500, textDecoration: 'none' }}>
                       Ətraflı bax →

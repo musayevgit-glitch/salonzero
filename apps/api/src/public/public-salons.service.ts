@@ -225,7 +225,9 @@ export class PublicSalonsService {
         portfolio: await Promise.all(
           e.portfolio.map(async (p) => ({
             id: p.id,
-            imageUrl: await this.storage.getObjectUrl(p.imageUrl),
+            imageUrl: p.imageUrl.startsWith('http://') || p.imageUrl.startsWith('https://')
+              ? p.imageUrl
+              : await this.storage.getObjectUrl(p.imageUrl),
             caption: p.caption,
           })),
         ),

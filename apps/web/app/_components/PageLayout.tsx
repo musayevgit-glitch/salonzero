@@ -12,7 +12,7 @@ export function PageHeader({ isAuthenticated }: { isAuthenticated?: boolean }) {
         position: 'sticky',
         top: 0,
         zIndex: 40,
-        background: 'rgba(250,245,240,0.96)',
+        background: 'rgba(255,255,255,0.96)',
         backdropFilter: 'blur(12px)',
         borderBottom: '1px solid #ede5dc',
       }}
@@ -38,7 +38,7 @@ export function PageHeader({ isAuthenticated }: { isAuthenticated?: boolean }) {
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
               padding: '0.5rem 1rem', borderRadius: 10,
-              background: '#1a1208', color: 'white',
+              background: '#5c3d28', color: 'white',
               fontSize: '0.85rem', fontWeight: 600, textDecoration: 'none',
             }}
           >
@@ -86,7 +86,7 @@ export function PageLayout({
   maxWidth?: number;
 }) {
   return (
-    <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', background: '#faf5f0' }}>
+    <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', background: 'white' }}>
       <PageHeader isAuthenticated={isAuthenticated} />
       <main style={{ flex: 1, maxWidth, margin: '0 auto', width: '100%', padding: '1.5rem 1.25rem 2rem' }}>
         {children}

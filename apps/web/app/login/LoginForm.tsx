@@ -38,7 +38,7 @@ export function LoginForm() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#faf5f0', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+    <div style={{ minHeight: '100vh', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
       <div style={{ background: 'white', borderRadius: 20, padding: '2rem', width: '100%', maxWidth: 400, boxShadow: '0 10px 40px rgba(26,18,8,0.05)' }}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <a href="/" style={{ textDecoration: 'none' }}>
@@ -78,7 +78,7 @@ export function LoginForm() {
             />
           </div>
           
-          <button type="submit" disabled={loading} style={{ background: '#1a1208', color: 'white', borderRadius: 12, padding: '0.875rem', fontSize: '1rem', fontWeight: 500, border: 'none', cursor: loading ? 'not-allowed' : 'pointer', marginTop: '0.5rem', opacity: loading ? 0.7 : 1 }}>
+          <button type="submit" disabled={loading} style={{ background: '#5c3d28', color: 'white', borderRadius: 12, padding: '0.875rem', fontSize: '1rem', fontWeight: 500, border: 'none', cursor: loading ? 'not-allowed' : 'pointer', marginTop: '0.5rem', opacity: loading ? 0.7 : 1 }}>
             {loading ? 'Gözləyin...' : 'Daxil ol'}
           </button>
         </form>

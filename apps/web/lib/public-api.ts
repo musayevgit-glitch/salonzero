@@ -15,7 +15,7 @@ export class PublicApiError extends Error {
 
 export async function fetchPublicApi<T>(
   path: string,
-  opts?: { params?: Record<string, string> },
+  opts?: { params?: Record<string, string>; noStore?: boolean },
 ): Promise<T> {
   const url = new URL(`${API_URL}${path}`);
   if (opts?.params) {
@@ -23,11 +23,10 @@ export async function fetchPublicApi<T>(
       url.searchParams.set(k, v);
     }
   }
-  const res = await fetch(url.toString(), {
-    // Public discovery data changes rarely enough that a short revalidation window is a reasonable
-    // default; not user-specific, so no cookies/credentials are ever sent here.
-    next: { revalidate: 30 },
-  });
+  const res = await fetch(url.toString(), opts?.noStore
+    ? { cache: 'no-store' }
+    : { next: { revalidate: 30 } },
+  );
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({ message: 'Something went wrong.' }));

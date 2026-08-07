@@ -6,9 +6,7 @@ import { apiFetch } from '../../../../../lib/api-client';
 import { useBookingContext } from '../_components/BookingContext';
 import { BookingCTAButton, BookingPageShell } from '../_components/BookingPageShell';
 
-function formatMoney(amount: number, currency: string) {
-  return new Intl.NumberFormat('az-AZ', { style: 'currency', currency }).format(amount / 100);
-}
+import { formatMoney } from '../../../../../lib/format-money';
 
 function formatAzDateTime(iso: string, timezone: string) {
   const d = new Date(iso);
@@ -145,7 +143,7 @@ export default function SummaryStep() {
           <Row label="Usta" value={selectedEmployee?.fullName ?? 'İstənilən usta'} />
           {selectedService && <Row label="Xidmət" value={selectedService.name} />}
           {selectedService && (
-            <Row label="Qiymət" value={formatMoney(selectedService.priceAmount, selectedService.currency)} />
+            <Row label="Qiymət" value={formatMoney(selectedService.priceAmount)} />
           )}
           <Row label="Tarix" value={formatAzDateTime(draft.startAt, salon.timezone)} />
           <Row label="Saat" value={formatAzTime(draft.startAt, salon.timezone)} />
@@ -201,7 +199,7 @@ export default function SummaryStep() {
       >
         <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#1a1208' }}>Ümumi məbləğ</span>
         <span style={{ fontSize: '1.2rem', fontWeight: 800, color: '#1a1208' }}>
-          {selectedService ? formatMoney(selectedService.priceAmount, selectedService.currency) : '—'}
+          {selectedService ? formatMoney(selectedService.priceAmount) : '—'}
         </span>
       </div>
 

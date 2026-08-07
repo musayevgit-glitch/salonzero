@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
 
 export interface PortfolioItem {
@@ -22,131 +22,156 @@ export interface Stylist {
   };
 }
 
+const SORT_OPTIONS = [
+  { value: 'name_asc', label: 'Ad A-Z' },
+  { value: 'name_desc', label: 'Ad Z-A' },
+  { value: 'salon_asc', label: 'Salon A-Z' },
+];
+
 export function StilistlerClient({ stylists }: { stylists: Stylist[] }) {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [search, setSearch] = useState('');
+  const [city, setCity] = useState('');
+  const [sort, setSort] = useState('name_asc');
+  const [pendingSearch, setPendingSearch] = useState('');
+  const [pendingCity, setPendingCity] = useState('');
+  const [pendingSort, setPendingSort] = useState('name_asc');
   const [selectedStylist, setSelectedStylist] = useState<Stylist | null>(null);
 
-  // Filter stylists based on search
-  const filteredStylists = stylists.filter((s) => {
-    const query = searchQuery.toLowerCase();
-    return (
-      s.fullName.toLowerCase().includes(query) ||
-      s.salon.name.toLowerCase().includes(query) ||
-      (s.salon.city && s.salon.city.toLowerCase().includes(query))
-    );
-  });
+  const cities = useMemo(() => {
+    const set = new Set<string>();
+    for (const s of stylists) {
+      if (s.salon.city) set.add(s.salon.city);
+    }
+    return Array.from(set).sort();
+  }, [stylists]);
+
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase();
+    const c = city.toLowerCase();
+    let list = stylists.filter((s) => {
+      const matchQ =
+        !q ||
+        s.fullName.toLowerCase().includes(q) ||
+        s.salon.name.toLowerCase().includes(q);
+      const matchC = !c || (s.salon.city || '').toLowerCase().includes(c);
+      return matchQ && matchC;
+    });
+
+    if (sort === 'name_asc') list = list.slice().sort((a, b) => a.fullName.localeCompare(b.fullName, 'az'));
+    else if (sort === 'name_desc') list = list.slice().sort((a, b) => b.fullName.localeCompare(a.fullName, 'az'));
+    else if (sort === 'salon_asc') list = list.slice().sort((a, b) => a.salon.name.localeCompare(b.salon.name, 'az'));
+
+    return list;
+  }, [stylists, search, city, sort]);
+
+  function applyFilters(e: React.FormEvent) {
+    e.preventDefault();
+    setSearch(pendingSearch);
+    setCity(pendingCity);
+    setSort(pendingSort);
+  }
+
+  function resetFilters() {
+    setPendingSearch('');
+    setPendingCity('');
+    setPendingSort('name_asc');
+    setSearch('');
+    setCity('');
+    setSort('name_asc');
+  }
 
   return (
     <div style={{ position: 'relative' }}>
-      {/* Hero Section */}
-      <div
-        style={{
-          padding: '3rem 1.5rem',
-          textAlign: 'center',
-          background: 'linear-gradient(135deg, #1a1208 0%, #2b1f11 100%)',
-          borderRadius: 24,
-          marginBottom: '3rem',
-          color: 'white',
-          position: 'relative',
-          overflow: 'hidden',
-          boxShadow: '0 10px 30px rgba(26,18,8,0.15)',
-        }}
-      >
-        <div
-          style={{
-            position: 'absolute',
-            top: '-20%',
-            left: '-10%',
-            width: '50%',
-            height: '140%',
-            background: 'radial-gradient(ellipse at center, rgba(201,164,96,0.18) 0%, rgba(201,164,96,0) 70%)',
-            pointerEvents: 'none',
-          }}
-        />
-
-        <h1
-          style={{
-            fontFamily: "'Playfair Display', Georgia, serif",
-            fontSize: '2.5rem',
-            fontWeight: 700,
-            margin: '0 0 1rem 0',
-            position: 'relative',
-            zIndex: 1,
-            letterSpacing: '-0.02em',
-          }}
-        >
-          Stilistlərimiz
+      {/* Page heading */}
+      <div style={{ marginBottom: '2rem' }}>
+        <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '2.5rem', fontWeight: 700, color: '#1a1208', margin: '0 0 1rem 0' }}>
+          Stilistlər
         </h1>
-        <p
-          style={{
-            fontSize: '1rem',
-            color: '#ede5dc',
-            maxWidth: 600,
-            margin: '0 auto 2rem auto',
-            lineHeight: 1.6,
-            position: 'relative',
-            zIndex: 1,
-          }}
-        >
-          Salonomia platformasındakı peşəkar stilistlərin əl işlərinə baxın, portfoliosunu araşdırın və sizə ən uyğun olan mütəxəssisi seçin.
+        <p style={{ color: '#9a8878', fontSize: '1rem', margin: 0 }}>
+          Peşəkar stilistləri tapın, portfoliolarına baxın və rezervasiya edin.
         </p>
-
-        {/* Search Input */}
-        <div style={{ position: 'relative', maxWidth: 450, margin: '0 auto', zIndex: 2 }}>
-          <input
-            type="text"
-            placeholder="Stilist və ya salon axtarın..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '0.85rem 1.25rem 0.85rem 3rem',
-              borderRadius: 14,
-              border: 'none',
-              background: 'rgba(255,255,255,0.08)',
-              backdropFilter: 'blur(8px)',
-              color: 'white',
-              fontSize: '0.95rem',
-              fontFamily: 'inherit',
-              outline: 'none',
-              transition: 'all 0.3s ease',
-              borderBottom: '2px solid rgba(201,164,96,0.3)',
-            }}
-          />
-          <svg
-            style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: '#c9a460' }}
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-        </div>
       </div>
 
-      {/* Stylist Grid */}
-      {filteredStylists.length === 0 ? (
+      {/* Filter panel — matches Salonlar exactly */}
+      <div style={{ background: 'white', borderRadius: 16, border: '1px solid #ede5dc', padding: '1.5rem', marginBottom: '2.5rem' }}>
+        <form onSubmit={applyFilters} style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'flex-end' }}>
+          <div style={{ flex: '1 1 200px', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1a1208' }}>Axtarış</label>
+            <input
+              type="text"
+              value={pendingSearch}
+              onChange={(e) => setPendingSearch(e.target.value)}
+              placeholder="Stilist və ya salon adı..."
+              style={{ height: 44, boxSizing: 'border-box', padding: '0 1rem', borderRadius: 8, border: '1px solid #ede5dc', outline: 'none', fontSize: '0.9rem' }}
+            />
+          </div>
+
+          <div style={{ flex: '1 1 150px', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1a1208' }}>Şəhər</label>
+            {cities.length > 0 ? (
+              <select
+                value={pendingCity}
+                onChange={(e) => setPendingCity(e.target.value)}
+                style={{ height: 44, boxSizing: 'border-box', padding: '0 1rem', borderRadius: 8, border: '1px solid #ede5dc', outline: 'none', fontSize: '0.9rem', backgroundColor: 'white' }}
+              >
+                <option value="">Bütün şəhərlər</option>
+                {cities.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            ) : (
+              <input
+                type="text"
+                value={pendingCity}
+                onChange={(e) => setPendingCity(e.target.value)}
+                placeholder="Bakı..."
+                style={{ height: 44, boxSizing: 'border-box', padding: '0 1rem', borderRadius: 8, border: '1px solid #ede5dc', outline: 'none', fontSize: '0.9rem' }}
+              />
+            )}
+          </div>
+
+          <div style={{ flex: '1 1 150px', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1a1208' }}>Sıralama</label>
+            <select
+              value={pendingSort}
+              onChange={(e) => setPendingSort(e.target.value)}
+              style={{ height: 44, boxSizing: 'border-box', padding: '0 1rem', borderRadius: 8, border: '1px solid #ede5dc', outline: 'none', fontSize: '0.9rem', backgroundColor: 'white' }}
+            >
+              {SORT_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flex: '1 1 200px' }}>
+            <button
+              type="submit"
+              style={{ flex: 1, height: 44, boxSizing: 'border-box', background: '#5c3d28', color: 'white', border: 'none', padding: '0 1.5rem', borderRadius: 8, fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}
+            >
+              Filtrləri tətbiq et
+            </button>
+            <button
+              type="button"
+              onClick={resetFilters}
+              style={{ background: 'none', border: 'none', color: '#9a8878', textDecoration: 'underline', fontSize: '0.9rem', fontWeight: 500, cursor: 'pointer', padding: 0, whiteSpace: 'nowrap' }}
+            >
+              Sıfırla
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Results count */}
+      {stylists.length > 0 && (
+        <p style={{ color: '#9a8878', fontSize: '0.9rem', margin: '0 0 1.5rem 0' }}>
+          {filtered.length} stilist tapıldı
+        </p>
+      )}
+
+      {/* Grid */}
+      {filtered.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '4rem 1rem', color: '#9a8878' }}>
-          <svg
-            style={{ margin: '0 auto 1rem', color: '#c9a460' }}
-            width="48"
-            height="48"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="8" x2="12" y2="12" />
-            <line x1="12" y1="16" x2="12.01" y2="16" />
-          </svg>
-          <h3 style={{ fontSize: '1.2rem', color: '#1a1208', marginBottom: '0.5rem' }}>Stilist tapılmadı</h3>
+          <p style={{ fontSize: '1.1rem', margin: '0 0 0.5rem 0', color: '#1a1208' }}>Stilist tapılmadı</p>
           <p>Axtarış meyarlarına uyğun heç bir stilist tapılmadı.</p>
         </div>
       ) : (
@@ -155,16 +180,12 @@ export function StilistlerClient({ stylists }: { stylists: Stylist[] }) {
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
             gap: '1.5rem',
-            marginBottom: '4rem',
+            marginBottom: '3rem',
           }}
         >
-          {filteredStylists.map((s, idx) => {
+          {filtered.map((s, idx) => {
             const hasPortfolio = s.portfolio && s.portfolio.length > 0;
-            const coverImage = hasPortfolio
-              ? s.portfolio[0]!.imageUrl
-              : `/images/salon-${(idx % 3) + 1}.png`; // fallback image
-
-            // Get initials for avatar
+            const coverImage = hasPortfolio ? s.portfolio[0]!.imageUrl : `/images/salon-${(idx % 3) + 1}.png`;
             const initials = s.fullName
               .split(' ')
               .map((n) => n[0])
@@ -177,45 +198,42 @@ export function StilistlerClient({ stylists }: { stylists: Stylist[] }) {
                 key={s.id}
                 style={{
                   background: 'white',
-                  borderRadius: 20,
+                  borderRadius: 16,
                   border: '1px solid #ede5dc',
                   overflow: 'hidden',
                   display: 'flex',
                   flexDirection: 'column',
-                  transition: 'all 0.3s ease',
-                  boxShadow: '0 4px 12px rgba(26,18,8,0.02)',
+                  transition: 'box-shadow 0.2s',
+                  boxShadow: '0 2px 8px rgba(26,18,8,0.04)',
                 }}
               >
-                {/* Stylist Banner / Header Cover */}
+                {/* Cover + avatar */}
                 <div
                   style={{
-                    height: 140,
-                    background: `linear-gradient(to bottom, rgba(26,18,8,0.1), rgba(26,18,8,0.85)), url(${coverImage})`,
+                    height: 130,
+                    background: `linear-gradient(to bottom, rgba(26,18,8,0.05), rgba(26,18,8,0.7)), url(${coverImage})`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                     position: 'relative',
-                    display: 'flex',
-                    alignItems: 'flex-end',
-                    padding: '1rem',
                   }}
                 >
                   <div
                     style={{
-                      width: 54,
-                      height: 54,
+                      width: 52,
+                      height: 52,
                       borderRadius: '50%',
-                      background: '#1a1208',
+                      background: '#5c3d28',
                       color: '#c9a460',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       fontSize: '1.1rem',
-                      fontWeight: 600,
+                      fontWeight: 700,
                       border: '3px solid white',
-                      boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
                       position: 'absolute',
                       bottom: -22,
-                      left: 20,
+                      left: 18,
                       zIndex: 2,
                     }}
                   >
@@ -223,85 +241,42 @@ export function StilistlerClient({ stylists }: { stylists: Stylist[] }) {
                   </div>
                 </div>
 
-                <div style={{ padding: '2rem 1.25rem 1.25rem 1.25rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                <div style={{ padding: '2rem 1.25rem 1.25rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   <div>
-                    <h3
-                      style={{
-                        fontFamily: "'Playfair Display', Georgia, serif",
-                        fontSize: '1.25rem',
-                        color: '#1a1208',
-                        margin: '0 0 0.2rem 0',
-                        fontWeight: 700,
-                      }}
-                    >
+                    <h3 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.15rem', color: '#1a1208', margin: '0 0 0.2rem', fontWeight: 700 }}>
                       {s.fullName}
                     </h3>
-                    <p
-                      style={{
-                        fontSize: '0.8rem',
-                        color: '#9a8878',
-                        margin: 0,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.25rem',
-                      }}
-                    >
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <p style={{ fontSize: '0.8rem', color: '#9a8878', margin: 0, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                         <circle cx="12" cy="10" r="3" />
                       </svg>
-                      {s.salon.city || 'Bakı'} • {s.salon.name}
+                      {s.salon.city || 'Bakı'} · {s.salon.name}
                     </p>
                   </div>
 
                   {s.bio && (
-                    <p
-                      style={{
-                        fontSize: '0.85rem',
-                        color: '#6b5e4a',
-                        lineHeight: 1.5,
-                        margin: 0,
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                      }}
-                    >
+                    <p style={{ fontSize: '0.85rem', color: '#6b5e4a', lineHeight: 1.5, margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                       {s.bio}
                     </p>
                   )}
 
-                  <div style={{ marginTop: 'auto', paddingTop: '0.8rem', display: 'flex', gap: '0.5rem' }}>
+                  {hasPortfolio && (
+                    <p style={{ fontSize: '0.78rem', color: '#c9a460', fontWeight: 500, margin: 0 }}>
+                      {s.portfolio.length} portfolio şəkli
+                    </p>
+                  )}
+
+                  <div style={{ marginTop: 'auto', paddingTop: '0.75rem', display: 'flex', gap: '0.5rem' }}>
                     <button
                       onClick={() => setSelectedStylist(s)}
-                      style={{
-                        flex: 1,
-                        padding: '0.65rem',
-                        background: 'transparent',
-                        border: '1px solid #c9a460',
-                        color: '#1a1208',
-                        borderRadius: 10,
-                        fontSize: '0.85rem',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        transition: 'all 0.2s',
-                      }}
+                      style={{ flex: 1, padding: '0.6rem', background: 'transparent', border: '1px solid #ede5dc', color: '#1a1208', borderRadius: 8, fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}
                     >
-                      Portfolioma bax
+                      Portfolio
                     </button>
                     <Link
                       href={`/salons/${s.salon.slug}`}
-                      style={{
-                        padding: '0.65rem 1rem',
-                        background: '#1a1208',
-                        color: 'white',
-                        borderRadius: 10,
-                        fontSize: '0.85rem',
-                        fontWeight: 600,
-                        textDecoration: 'none',
-                        textAlign: 'center',
-                        cursor: 'pointer',
-                      }}
+                      style={{ padding: '0.6rem 1rem', background: '#5c3d28', color: 'white', borderRadius: 8, fontSize: '0.85rem', fontWeight: 600, textDecoration: 'none', textAlign: 'center' }}
                     >
                       Rezerv et
                     </Link>
@@ -313,167 +288,56 @@ export function StilistlerClient({ stylists }: { stylists: Stylist[] }) {
         </div>
       )}
 
-      {/* Detail & Portfolio Modal */}
+      {/* Portfolio Modal */}
       {selectedStylist && (
         <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(26,18,8,0.65)',
-            backdropFilter: 'blur(6px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 100,
-            padding: '1rem',
-          }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(26,18,8,0.6)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '1rem' }}
           onClick={() => setSelectedStylist(null)}
         >
           <div
-            style={{
-              background: '#faf5f0',
-              width: '100%',
-              maxWidth: 600,
-              maxHeight: '90dvh',
-              borderRadius: 24,
-              boxShadow: '0 20px 50px rgba(26,18,8,0.3)',
-              overflow: 'hidden',
-              display: 'flex',
-              flexDirection: 'column',
-              position: 'relative',
-            }}
+            style={{ background: 'white', width: '100%', maxWidth: 600, maxHeight: '90dvh', borderRadius: 20, boxShadow: '0 20px 50px rgba(26,18,8,0.25)', overflow: 'hidden', display: 'flex', flexDirection: 'column', position: 'relative' }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Close Button */}
             <button
               onClick={() => setSelectedStylist(null)}
-              style={{
-                position: 'absolute',
-                top: 16,
-                right: 16,
-                width: 32,
-                height: 32,
-                borderRadius: '50%',
-                background: 'rgba(26,18,8,0.8)',
-                color: 'white',
-                border: 'none',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                zIndex: 10,
-                fontSize: '1rem',
-              }}
+              style={{ position: 'absolute', top: 14, right: 14, width: 30, height: 30, borderRadius: '50%', background: 'rgba(26,18,8,0.7)', color: 'white', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10, fontSize: '0.85rem' }}
             >
               ✕
             </button>
 
-            {/* Modal Header */}
-            <div
-              style={{
-                padding: '2rem 2rem 1.5rem 2rem',
-                background: 'white',
-                borderBottom: '1px solid #ede5dc',
-              }}
-            >
-              <h2
-                style={{
-                  fontFamily: "'Playfair Display', Georgia, serif",
-                  fontSize: '1.75rem',
-                  color: '#1a1208',
-                  margin: '0 0 0.3rem 0',
-                  fontWeight: 700,
-                }}
-              >
+            <div style={{ padding: '1.75rem 2rem 1.25rem', borderBottom: '1px solid #ede5dc' }}>
+              <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.6rem', color: '#1a1208', margin: '0 0 0.25rem', fontWeight: 700 }}>
                 {selectedStylist.fullName}
               </h2>
-              <p
-                style={{
-                  fontSize: '0.85rem',
-                  color: '#9a8878',
-                  margin: '0 0 1rem 0',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.3rem',
-                }}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <p style={{ fontSize: '0.85rem', color: '#9a8878', margin: '0 0 1rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                   <circle cx="12" cy="10" r="3" />
                 </svg>
-                {selectedStylist.salon.name} • {selectedStylist.salon.city || 'Bakı'}
+                {selectedStylist.salon.name} · {selectedStylist.salon.city || 'Bakı'}
               </p>
-              
               {selectedStylist.bio && (
-                <div style={{ fontSize: '0.9rem', color: '#6b5e4a', lineHeight: 1.6, background: '#faf5f0', padding: '1rem', borderRadius: 12, border: '1px solid #ede5dc' }}>
-                  <p style={{ margin: 0, fontWeight: 500, color: '#1a1208', marginBottom: '0.25rem', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Stilist haqqında</p>
+                <div style={{ fontSize: '0.9rem', color: '#6b5e4a', lineHeight: 1.6, background: '#f9f6f3', padding: '0.85rem 1rem', borderRadius: 10, border: '1px solid #ede5dc' }}>
                   {selectedStylist.bio}
                 </div>
               )}
             </div>
 
-            {/* Modal Body / Scrollable Portfolio */}
-            <div style={{ padding: '1.5rem 2rem 2rem 2rem', overflowY: 'auto', flex: 1 }}>
-              <h3
-                style={{
-                  fontFamily: "'Playfair Display', Georgia, serif",
-                  fontSize: '1.25rem',
-                  color: '#1a1208',
-                  margin: '0 0 1rem 0',
-                  fontWeight: 700,
-                }}
-              >
-                Əl İşləri (Portfolio)
+            <div style={{ padding: '1.5rem 2rem 2rem', overflowY: 'auto', flex: 1 }}>
+              <h3 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.15rem', color: '#1a1208', margin: '0 0 1rem', fontWeight: 700 }}>
+                Portfolio
               </h3>
-
               {!selectedStylist.portfolio || selectedStylist.portfolio.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '3rem 1rem', background: 'white', borderRadius: 16, border: '1px dashed #ede5dc', color: '#9a8878' }}>
+                <div style={{ textAlign: 'center', padding: '2.5rem 1rem', borderRadius: 12, border: '1px dashed #ede5dc', color: '#9a8878' }}>
                   Bu stilist hələ portfolio şəkli yükləməyib.
                 </div>
               ) : (
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-                    gap: '1rem',
-                  }}
-                >
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '0.75rem' }}>
                   {selectedStylist.portfolio.map((item) => (
-                    <div
-                      key={item.id}
-                      style={{
-                        background: 'white',
-                        borderRadius: 12,
-                        border: '1px solid #ede5dc',
-                        overflow: 'hidden',
-                        display: 'flex',
-                        flexDirection: 'column',
-                      }}
-                    >
-                      <div
-                        style={{
-                          aspectRatio: '1',
-                          backgroundImage: `url(${item.imageUrl})`,
-                          backgroundSize: 'cover',
-                          backgroundPosition: 'center',
-                        }}
-                      />
+                    <div key={item.id} style={{ borderRadius: 10, border: '1px solid #ede5dc', overflow: 'hidden' }}>
+                      <div style={{ aspectRatio: '1', backgroundImage: `url(${item.imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
                       {item.caption && (
-                        <p
-                          style={{
-                            fontSize: '0.75rem',
-                            color: '#6b5e4a',
-                            margin: 0,
-                            padding: '0.5rem',
-                            textAlign: 'center',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                          }}
-                        >
+                        <p style={{ fontSize: '0.75rem', color: '#6b5e4a', margin: 0, padding: '0.4rem 0.5rem', textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {item.caption}
                         </p>
                       )}
@@ -483,54 +347,29 @@ export function StilistlerClient({ stylists }: { stylists: Stylist[] }) {
               )}
             </div>
 
-            {/* Modal Footer */}
-            <div
-              style={{
-                padding: '1rem 2rem calc(1rem + env(safe-area-inset-bottom)) 2rem',
-                background: 'white',
-                borderTop: '1px solid #ede5dc',
-                display: 'flex',
-                gap: '1rem',
-              }}
-            >
+            <div style={{ padding: '1rem 2rem calc(1rem + env(safe-area-inset-bottom))', borderTop: '1px solid #ede5dc', display: 'flex', gap: '0.75rem' }}>
               <button
                 onClick={() => setSelectedStylist(null)}
-                style={{
-                  flex: 1,
-                  padding: '0.85rem',
-                  background: 'transparent',
-                  border: '1px solid #ede5dc',
-                  color: '#9a8878',
-                  borderRadius: 12,
-                  fontSize: '0.95rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
+                style={{ flex: 1, padding: '0.8rem', background: 'transparent', border: '1px solid #ede5dc', color: '#9a8878', borderRadius: 10, fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer' }}
               >
                 Bağla
               </button>
               <Link
                 href={`/salons/${selectedStylist.salon.slug}`}
-                style={{
-                  flex: 2,
-                  padding: '0.85rem',
-                  background: '#1a1208',
-                  color: 'white',
-                  borderRadius: 12,
-                  fontSize: '0.95rem',
-                  fontWeight: 600,
-                  textDecoration: 'none',
-                  textAlign: 'center',
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 15px rgba(26,18,8,0.15)',
-                }}
+                style={{ flex: 2, padding: '0.8rem', background: '#5c3d28', color: 'white', borderRadius: 10, fontSize: '0.9rem', fontWeight: 600, textDecoration: 'none', textAlign: 'center', boxShadow: '0 4px 12px rgba(92,61,40,0.2)' }}
               >
-                Rezervasiya et
+                Salona keç · Rezervasiya et
               </Link>
             </div>
           </div>
         </div>
       )}
+
+      <style>{`
+        @media (min-width: 1024px) { div[style*="repeat(auto-fill, minmax(280px"] { grid-template-columns: repeat(3, 1fr) !important; } }
+        @media (min-width: 768px) and (max-width: 1023px) { div[style*="repeat(auto-fill, minmax(280px"] { grid-template-columns: repeat(2, 1fr) !important; } }
+        @media (max-width: 767px) { div[style*="repeat(auto-fill, minmax(280px"] { grid-template-columns: 1fr !important; } }
+      `}</style>
     </div>
   );
 }

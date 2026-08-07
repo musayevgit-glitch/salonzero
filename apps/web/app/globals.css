@@ -9,7 +9,7 @@ html { scroll-behavior: smooth; }
 
 body {
   color: var(--color-text-primary);
-  background-color: #faf5f0;
+  background-color: white;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

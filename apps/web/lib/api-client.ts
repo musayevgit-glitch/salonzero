@@ -2,11 +2,6 @@
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
-function readCookie(name: string): string | null {
-  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
-  return match ? decodeURIComponent(match[1] ?? '') : null;
-}
-
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -16,13 +11,32 @@ export class ApiError extends Error {
   }
 }
 
+// Fetch the CSRF token from the API (cross-origin safe — returned in JSON body, not a cookie).
+async function fetchCsrfToken(): Promise<string | null> {
+  try {
+    const res = await fetch(`${API_URL}/auth/csrf`, { credentials: 'include' });
+    if (!res.ok) return null;
+    const data = await res.json() as { csrfToken?: string };
+    return data.csrfToken ?? null;
+  } catch {
+    return null;
+  }
+}
+
 /**
- * Thin fetch wrapper: sends the session cookie, echoes the CSRF cookie as a header on
+ * Thin fetch wrapper: sends the session cookie, fetches and echoes the CSRF token as a header on
  * state-changing requests (docs/security/authentication.md), and normalizes error responses.
  * Never logs credentials/tokens.
  */
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const csrfToken = readCookie('csrfToken');
+  const method = (init?.method ?? 'GET').toUpperCase();
+  const isMutating = !['GET', 'HEAD', 'OPTIONS'].includes(method);
+
+  let csrfToken: string | null = null;
+  if (isMutating) {
+    csrfToken = await fetchCsrfToken();
+  }
+
   const res = await fetch(`${API_URL}${path}`, {
     ...init,
     credentials: 'include',

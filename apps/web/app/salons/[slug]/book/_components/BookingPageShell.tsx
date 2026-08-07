@@ -22,14 +22,14 @@ function ArrowLeftIcon() {
 
 export function BookingPageShell({ title, backHref, backLabel, children, footer }: BookingPageShellProps) {
   return (
-    <div style={{ minHeight: '100dvh', background: '#faf5f0', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100dvh', background: 'white', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
       <header
         style={{
           position: 'sticky',
           top: 0,
           zIndex: 40,
-          background: 'rgba(250,245,240,0.96)',
+          background: 'rgba(255,255,255,0.96)',
           backdropFilter: 'blur(12px)',
           borderBottom: '1px solid #ede5dc',
         }}
@@ -109,7 +109,7 @@ export function BookingPageShell({ title, backHref, backLabel, children, footer 
             bottom: 0,
             left: 0,
             right: 0,
-            background: 'rgba(250,245,240,0.97)',
+            background: 'rgba(255,255,255,0.97)',
             backdropFilter: 'blur(12px)',
             borderTop: '1px solid #ede5dc',
             padding: '0.875rem 1rem calc(0.875rem + env(safe-area-inset-bottom))',
@@ -149,7 +149,7 @@ export function BookingCTAButton({
         width: '100%',
         minHeight: 52,
         borderRadius: 14,
-        background: disabled || loading ? '#c5bbb2' : '#1a1208',
+        background: disabled || loading ? '#c5bbb2' : '#5c3d28',
         color: 'white',
         fontSize: '1rem',
         fontWeight: 700,
