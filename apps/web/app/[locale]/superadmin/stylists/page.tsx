@@ -1,7 +1,7 @@
 'use client';
 
 import {
-  Badge, Button, ConfirmDialog, EmptyState, ErrorState, Input, Link,
+  Badge, ConfirmDialog, DropdownMenu, EmptyState, ErrorState, Input, Link,
   MobileRecordList, Pagination, PermissionDeniedState, Select, Skeleton, Table, useToast,
 } from '@salonomia/ui';
 import { useRouter } from 'next/navigation';
@@ -38,7 +38,6 @@ export default function SuperadminStylistsPage() {
     if (search) query.set('search', search);
     if (status) query.set('status', status);
     if (salonFilter) query.set('salonId', salonFilter);
-
     apiFetch<StylistListResponse>(`/superadmin/stylists?${query}`)
       .then((data) => setState({ kind: 'ready', data }))
       .catch((err: unknown) => {
@@ -67,30 +66,35 @@ export default function SuperadminStylistsPage() {
     }
   }
 
-  if (state.kind === 'loading') return <main style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}><Skeleton className="h-10 w-full max-w-md" /><Skeleton className="h-64 w-full" /></main>;
-  if (state.kind === 'permission-denied') return <main style={{ padding: '2rem' }}><PermissionDeniedState /></main>;
-  if (state.kind === 'error') return <main style={{ padding: '2rem' }}><ErrorState title="Stilistlər yüklənmədi" description={state.message} /></main>;
+  if (state.kind === 'loading') return (
+    <main className="flex flex-col gap-4 p-8">
+      <Skeleton className="h-10 w-full max-w-md" />
+      <Skeleton className="h-64 w-full" />
+    </main>
+  );
+  if (state.kind === 'permission-denied') return <main className="p-8"><PermissionDeniedState /></main>;
+  if (state.kind === 'error') return <main className="p-8"><ErrorState title="Stilistlər yüklənmədi" description={state.message} /></main>;
 
   const { items, total, pageSize } = state.data;
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
 
   return (
-    <main style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '1.5rem 2rem' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+    <main className="flex flex-col gap-6 p-6 lg:p-8">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>Stilistlər</h1>
-          <p style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', marginTop: 2 }}>{total} stilist tapıldı</p>
+          <h1 className="text-2xl font-bold text-text-primary">Stilistlər</h1>
+          <p className="text-sm text-text-secondary mt-0.5">Cəmi {total} stilist</p>
         </div>
         <Link href="/superadmin/stylists/new">+ Yeni stilist</Link>
       </div>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
-        <Input placeholder="Stilist adı axtar..." value={search} onChange={(e) => { setPage(1); setSearch(e.target.value); }} style={{ maxWidth: 220 }} />
-        <Select value={salonFilter} onChange={(e) => { setPage(1); setSalonFilter(e.target.value); }} style={{ maxWidth: 180 }}>
+      <div className="flex flex-wrap gap-3">
+        <Input placeholder="Ad ilə axtar" value={search} onChange={(e) => { setPage(1); setSearch(e.target.value); }} className="max-w-xs" />
+        <Select value={salonFilter} onChange={(e) => { setPage(1); setSalonFilter(e.target.value); }} className="max-w-48">
           <option value="">Bütün salonlar</option>
           {salons.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
         </Select>
-        <Select value={status} onChange={(e) => { setPage(1); setStatus(e.target.value as '' | 'ACTIVE' | 'INACTIVE'); }} style={{ maxWidth: 160 }}>
+        <Select value={status} onChange={(e) => { setPage(1); setStatus(e.target.value as '' | 'ACTIVE' | 'INACTIVE'); }} className="max-w-40">
           <option value="">Bütün statuslar</option>
           <option value="ACTIVE">Aktiv</option>
           <option value="INACTIVE">Deaktiv</option>
@@ -104,31 +108,40 @@ export default function SuperadminStylistsPage() {
           <Table
             columns={[
               {
-                key: 'fullName', header: 'Stilist', render: (r: StylistListItem) => (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#f5ece4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#9c5f49', fontSize: '0.85rem', overflow: 'hidden', flexShrink: 0 }}>
-                      {r.photoUrl ? <img src={r.photoUrl} alt={r.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : r.fullName.slice(0, 1).toUpperCase()}
-                    </div>
-                    <div>
-                      <Link href={`/superadmin/stylists/${r.id}`} style={{ fontWeight: 500 }}>{r.fullName}</Link>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
+                key: 'fullName', header: 'Stilist',
+                render: (r: StylistListItem) => (
+                  <div className="flex items-center gap-3">
+                    {r.photoUrl
+                      ? <img src={r.photoUrl} alt={r.fullName} className="h-9 w-9 flex-shrink-0 rounded-full object-cover border border-border" />
+                      : (
+                        <span className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-surface border border-border text-sm font-bold text-text-secondary">
+                          {r.fullName.slice(0, 1).toUpperCase()}
+                        </span>
+                      )
+                    }
+                    <div className="min-w-0">
+                      <Link href={`/superadmin/stylists/${r.id}`} className="font-medium">{r.fullName}</Link>
+                      <p className="text-xs text-text-secondary truncate">
                         <Link href={`/superadmin/salons/${r.salonId}`}>{r.salonName}</Link>
-                      </div>
+                      </p>
                     </div>
                   </div>
                 ),
               },
-              { key: 'bio', header: 'Bioqrafiya', render: (r: StylistListItem) => <span style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', display: 'block', maxWidth: 240, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.bio ?? '—'}</span> },
+              { key: 'bio', header: 'Bioqrafiya', render: (r: StylistListItem) => <span className="text-sm text-text-secondary line-clamp-1 max-w-[200px]">{r.bio ?? '—'}</span> },
               { key: 'status', header: 'Status', render: (r: StylistListItem) => <Badge tone={r.isActive ? 'success' : 'neutral'}>{r.isActive ? 'Aktiv' : 'Deaktiv'}</Badge> },
-              { key: 'createdAt', header: 'Tarix', render: (r: StylistListItem) => new Date(r.createdAt).toLocaleDateString('az-AZ') },
+              { key: 'createdAt', header: 'Əlavə edilib', render: (r: StylistListItem) => new Date(r.createdAt).toLocaleDateString('az-AZ') },
               {
-                key: 'actions', header: '', render: (r: StylistListItem) => (
-                  <div style={{ display: 'flex', gap: '0.4rem' }}>
-                    <Link href={`/superadmin/stylists/${r.id}/edit`} style={{ fontSize: '0.8rem' }}>Redaktə</Link>
-                    <Button variant={r.isActive ? 'destructive' : 'secondary'} onClick={() => setActionStylist(r)} style={{ padding: '0.25rem 0.6rem', fontSize: '0.75rem' }}>
-                      {r.isActive ? 'Deaktiv' : 'Aktiv'}
-                    </Button>
-                  </div>
+                key: 'actions', header: '',
+                render: (r: StylistListItem) => (
+                  <DropdownMenu
+                    trigger={<button className="rounded p-1 text-text-secondary hover:bg-surface" aria-label="Əməliyyatlar">⋮</button>}
+                    items={[
+                      { label: 'Profilə keç', onSelect: () => router.push(`/superadmin/stylists/${r.id}`) },
+                      { label: 'Redaktə et', onSelect: () => router.push(`/superadmin/stylists/${r.id}/edit`) },
+                      { label: r.isActive ? 'Deaktiv et' : 'Aktivləşdir', onSelect: () => setActionStylist(r), destructive: r.isActive },
+                    ]}
+                  />
                 ),
               },
             ]}
@@ -138,16 +151,14 @@ export default function SuperadminStylistsPage() {
           <MobileRecordList
             rows={items}
             getRowKey={(r) => r.id}
-            renderPrimary={(r) => <div><div style={{ fontWeight: 600 }}>{r.fullName}</div><div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>{r.salonName}</div></div>}
-            renderSecondary={(r) => r.isActive ? 'Aktiv' : 'Deaktiv'}
-            renderAction={(r) => (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                <Link href={`/superadmin/stylists/${r.id}`} style={{ fontSize: '0.8rem', textAlign: 'center' }}>Bax</Link>
-                <Button variant={r.isActive ? 'destructive' : 'secondary'} onClick={() => setActionStylist(r)} style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }}>
-                  {r.isActive ? 'Deaktiv' : 'Aktiv'}
-                </Button>
+            renderPrimary={(r) => (
+              <div>
+                <Link href={`/superadmin/stylists/${r.id}`} className="font-medium">{r.fullName}</Link>
+                <p className="text-xs text-text-secondary">{r.salonName}</p>
               </div>
             )}
+            renderSecondary={(r) => r.bio ?? ''}
+            renderAction={(r) => <Badge tone={r.isActive ? 'success' : 'neutral'}>{r.isActive ? 'Aktiv' : 'Deaktiv'}</Badge>}
           />
         </>
       )}

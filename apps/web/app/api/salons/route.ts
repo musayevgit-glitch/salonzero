@@ -62,6 +62,7 @@ export async function GET(req: NextRequest) {
         status: true,
         city: true,
         timezone: true,
+        logoUrl: true,
         createdAt: true,
       },
       orderBy: { createdAt: 'desc' },
@@ -129,6 +130,7 @@ export async function POST(req: NextRequest) {
         status: true,
         city: true,
         timezone: true,
+        logoUrl: true,
         createdAt: true,
       },
     });

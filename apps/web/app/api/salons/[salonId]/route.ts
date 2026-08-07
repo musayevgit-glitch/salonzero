@@ -23,6 +23,8 @@ const DETAIL_SELECT = {
   subdomain: true,
   customDomain: true,
   genderFocus: true,
+  coverUrl: true,
+  logoUrl: true,
 } as const;
 
 export async function GET(

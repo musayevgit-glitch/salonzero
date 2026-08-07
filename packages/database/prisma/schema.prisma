@@ -147,6 +147,8 @@ model Salon {
   subdomain    String?      @unique
   customDomain String?      @unique
   genderFocus  GenderFocus?
+  coverUrl     String?
+  logoUrl      String?
   createdAt    DateTime     @default(now()) @db.Timestamptz(3)
   updatedAt    DateTime     @updatedAt @db.Timestamptz(3)
 

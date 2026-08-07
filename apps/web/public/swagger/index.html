@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Salonomia API Docs</title>
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui.css" />
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #fafafa; font-family: sans-serif; }
+
+    .sa-header {
+      background: #1e1e2e;
+      color: #cdd6f4;
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: 0.875rem;
+    }
+    .sa-header strong { color: #89b4fa; font-size: 1rem; }
+    .sa-header .hint {
+      margin-left: auto;
+      background: #313244;
+      border-radius: 6px;
+      padding: 0.3rem 0.75rem;
+      font-size: 0.8rem;
+      color: #a6e3a1;
+    }
+
+    /* hide swagger topbar entirely — we have our own */
+    #swagger-ui .topbar { display: none; }
+  </style>
+</head>
+<body>
+
+<div class="sa-header">
+  <strong>Salonomia API</strong>
+  <span>·</span>
+  <span>İlk olaraq <code style="background:#313244;padding:2px 6px;border-radius:4px;">POST /api/auth/login</code> ilə daxil olun — cookie avtomatik set olur və bütün sorğular authenticated sayılır.</span>
+  <span class="hint">🍪 Cookie auth aktiv</span>
+</div>
+
+<div id="swagger-ui"></div>
+
+<script src="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui-bundle.js"></script>
+<script>
+  window.onload = function () {
+    SwaggerUIBundle({
+      url: '/api/openapi',
+      dom_id: '#swagger-ui',
+      deepLinking: true,
+      displayRequestDuration: true,
+      tryItOutEnabled: true,
+      requestCredentials: 'include',
+      persistAuthorization: true,
+      defaultModelsExpandDepth: -1,
+      docExpansion: 'none',
+      filter: true,
+      tagsSorter: 'alpha',
+      requestInterceptor: function (request) {
+        // Forward CSRF token from cookie to header (required by Next.js CSRF middleware)
+        var match = document.cookie.match(/(?:^|; )csrfToken=([^;]*)/);
+        if (match) {
+          request.headers['x-csrf-token'] = decodeURIComponent(match[1]);
+        }
+        return request;
+      },
+    });
+  };
+</script>
+</body>
+</html>

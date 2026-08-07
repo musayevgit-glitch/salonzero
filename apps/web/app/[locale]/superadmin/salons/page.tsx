@@ -2,6 +2,7 @@
 
 import {
   Badge,
+  DropdownMenu,
   EmptyState,
   ErrorState,
   Input,
@@ -24,6 +25,7 @@ interface SalonListItem {
   status: 'ACTIVE' | 'SUSPENDED';
   city: string | null;
   timezone: string;
+  logoUrl: string | null;
   createdAt: string;
 }
 
@@ -56,94 +58,56 @@ export default function SuperadminSalonsPage() {
     if (status) query.set('status', status);
 
     apiFetch<SalonListResponse>(`/salons?${query.toString()}`)
-      .then((data) => {
-        if (!cancelled) setState({ kind: 'ready', data });
-      })
+      .then((data) => { if (!cancelled) setState({ kind: 'ready', data }); })
       .catch((err: unknown) => {
         if (cancelled) return;
-        if (err instanceof ApiError && err.status === 401) {
-          router.replace('/login?returnTo=/superadmin/salons');
-          return;
-        }
-        if (err instanceof ApiError && err.status === 404) {
-          setState({ kind: 'permission-denied' });
-          return;
-        }
-        setState({
-          kind: 'error',
-          message: err instanceof ApiError ? err.message : 'Something went wrong.',
-        });
+        if (err instanceof ApiError && err.status === 401) { router.replace('/login?returnTo=/superadmin/salons'); return; }
+        if (err instanceof ApiError && err.status === 404) { setState({ kind: 'permission-denied' }); return; }
+        setState({ kind: 'error', message: err instanceof ApiError ? err.message : 'Something went wrong.' });
       });
 
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [search, status, page, router]);
 
-  if (state.kind === 'loading') {
-    return (
-      <main className="flex flex-col gap-4 p-8">
-        <Skeleton className="h-10 w-full max-w-md" />
-        <Skeleton className="h-64 w-full" />
-      </main>
-    );
-  }
+  if (state.kind === 'loading') return (
+    <main className="flex flex-col gap-4 p-8">
+      <Skeleton className="h-10 w-full max-w-md" />
+      <Skeleton className="h-64 w-full" />
+    </main>
+  );
 
-  if (state.kind === 'permission-denied') {
-    return (
-      <main className="p-8">
-        <PermissionDeniedState />
-      </main>
-    );
-  }
-
-  if (state.kind === 'error') {
-    return (
-      <main className="p-8">
-        <ErrorState title="Couldn't load salons" description={state.message} />
-      </main>
-    );
-  }
+  if (state.kind === 'permission-denied') return <main className="p-8"><PermissionDeniedState /></main>;
+  if (state.kind === 'error') return <main className="p-8"><ErrorState title="Salonlar yüklənmədi" description={state.message} /></main>;
 
   const { items, total, pageSize } = state.data;
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
 
   return (
-    <main className="flex flex-col gap-6 p-8">
+    <main className="flex flex-col gap-6 p-6 lg:p-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-text-primary">Salons</h1>
-        <Link href="/superadmin/salons/new">+ New salon</Link>
+        <div>
+          <h1 className="text-2xl font-bold text-text-primary">Salonlar</h1>
+          <p className="text-sm text-text-secondary mt-0.5">Cəmi {total} salon</p>
+        </div>
+        <Link href="/superadmin/salons/new">+ Yeni salon</Link>
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row">
         <Input
-          placeholder="Search by name or slug"
+          placeholder="Ad və ya slug ilə axtar"
           value={search}
-          onChange={(e) => {
-            setPage(1);
-            setSearch(e.target.value);
-          }}
+          onChange={(e) => { setPage(1); setSearch(e.target.value); }}
           className="sm:max-w-xs"
         />
-        <Select
-          value={status}
-          onChange={(e) => {
-            setPage(1);
-            setStatus(e.target.value as typeof status);
-          }}
-          className="sm:max-w-40"
-        >
-          <option value="">All statuses</option>
-          <option value="ACTIVE">Active</option>
-          <option value="SUSPENDED">Suspended</option>
+        <Select value={status} onChange={(e) => { setPage(1); setStatus(e.target.value as typeof status); }} className="sm:max-w-40">
+          <option value="">Bütün statuslar</option>
+          <option value="ACTIVE">Aktiv</option>
+          <option value="SUSPENDED">Deaktiv</option>
         </Select>
       </div>
 
       {items.length === 0 ? (
-        <EmptyState
-          title="No salons found"
-          description="Try a different search or status filter."
-        />
+        <EmptyState title="Salon tapılmadı" description="Axtarış parametrlərini dəyişin." />
       ) : (
         <>
           <Table
@@ -152,15 +116,48 @@ export default function SuperadminSalonsPage() {
                 key: 'name',
                 header: 'Salon',
                 render: (row: SalonListItem) => (
-                  <Link href={`/superadmin/salons/${row.id}`}>{row.name}</Link>
+                  <div className="flex items-center gap-3">
+                    {row.logoUrl
+                      ? <img src={row.logoUrl} alt={row.name} className="h-8 w-8 rounded-full object-cover border border-border flex-shrink-0" />
+                      : (
+                        <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-surface border border-border text-xs font-bold text-text-secondary">
+                          {row.name.slice(0, 1)}
+                        </span>
+                      )
+                    }
+                    <div className="min-w-0">
+                      <Link href={`/superadmin/salons/${row.id}`} className="font-medium">{row.name}</Link>
+                      <p className="text-xs text-text-secondary truncate">{row.slug}</p>
+                    </div>
+                  </div>
                 ),
               },
-              { key: 'city', header: 'City', render: (row: SalonListItem) => row.city ?? '—' },
+              { key: 'city', header: 'Şəhər', render: (row: SalonListItem) => row.city ?? '—' },
               {
                 key: 'status',
                 header: 'Status',
                 render: (row: SalonListItem) => (
-                  <Badge tone={row.status === 'ACTIVE' ? 'success' : 'neutral'}>{row.status}</Badge>
+                  <Badge tone={row.status === 'ACTIVE' ? 'success' : 'neutral'}>
+                    {row.status === 'ACTIVE' ? 'Aktiv' : 'Deaktiv'}
+                  </Badge>
+                ),
+              },
+              {
+                key: 'created',
+                header: 'Yaradılıb',
+                render: (row: SalonListItem) => new Date(row.createdAt).toLocaleDateString('az-AZ'),
+              },
+              {
+                key: 'actions',
+                header: '',
+                render: (row: SalonListItem) => (
+                  <DropdownMenu
+                    trigger={<button className="rounded p-1 text-text-secondary hover:bg-surface" aria-label="Əməliyyatlar">⋮</button>}
+                    items={[
+                      { label: 'Detallar', onSelect: () => router.push(`/superadmin/salons/${row.id}`) },
+                      { label: 'Redaktə et', onSelect: () => router.push(`/superadmin/salons/${row.id}/edit`) },
+                    ]}
+                  />
                 ),
               },
             ]}
@@ -173,7 +170,7 @@ export default function SuperadminSalonsPage() {
             renderPrimary={(row) => <Link href={`/superadmin/salons/${row.id}`}>{row.name}</Link>}
             renderSecondary={(row) => row.city ?? row.timezone}
             renderAction={(row) => (
-              <Badge tone={row.status === 'ACTIVE' ? 'success' : 'neutral'}>{row.status}</Badge>
+              <Badge tone={row.status === 'ACTIVE' ? 'success' : 'neutral'}>{row.status === 'ACTIVE' ? 'Aktiv' : 'Deaktiv'}</Badge>
             )}
           />
         </>
