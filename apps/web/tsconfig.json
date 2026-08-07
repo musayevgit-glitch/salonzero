@@ -14,5 +14,11 @@
     "plugins": [{ "name": "next" }]
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    // NestJS API files are bundled into pages/api/[...catchAll].ts at runtime
+    // but type-checked by their own tsconfig — exclude here to avoid strict-mode
+    // mismatches between Next.js and NestJS TypeScript configurations.
+    "../api/src"
+  ]
 }
