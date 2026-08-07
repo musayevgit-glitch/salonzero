@@ -6,6 +6,8 @@ import { usePathname } from 'next/navigation';
 
 const NAV_ITEMS = [
   { label: 'Salons', href: '/superadmin/salons', section: 'Management' },
+  { label: 'Users', href: '/superadmin/users', section: 'Management' },
+  { label: 'Stylists', href: '/superadmin/stylists', section: 'Management' },
   { label: 'Reports', href: '/superadmin/reports', section: 'Analytics' },
   { label: 'Audit Log', href: '/superadmin/audit-logs', section: 'Analytics' },
 ];
