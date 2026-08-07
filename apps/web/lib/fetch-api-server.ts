@@ -48,7 +48,17 @@ export async function fetchApiServer<T>(path: string, init?: RequestInit): Promi
   // Cookie name must match the 'name' option in configure-app.ts session middleware.
   const sessionCookie = cookieStore.get('sid');
   const apiUrl = await getApiBaseUrl();
-  const res = await fetch(`${apiUrl}${path}`, buildApiServerFetchInit(init, sessionCookie));
+
+  // Next.js rewrites (public/:path*, auth/:path* → /api/*) only apply to browser requests.
+  // Server Components use Node's native fetch which bypasses rewrites entirely.
+  // So we must add /api prefix ourselves so the request hits the NestJS catchAll handler
+  // at pages/api/[...catchAll].ts directly.
+  // Paths already starting with /api/ or /public/ are left unchanged.
+  const resolvedPath = path.startsWith('/api/') || path.startsWith('/public/')
+    ? path
+    : `/api${path}`;
+
+  const res = await fetch(`${apiUrl}${resolvedPath}`, buildApiServerFetchInit(init, sessionCookie));
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({ message: 'Something went wrong.' }));
