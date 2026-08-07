@@ -20,8 +20,8 @@ export function configureApp(app: INestApplication, env: ApiEnv): void {
   // detect HTTPS correctly behind a TLS-terminating LB. Never pass `true` — that accepts any
   // X-Forwarded-For value the client sends, which an attacker can spoof.
   const httpAdapter = app.getHttpAdapter().getInstance() as import('express').Application;
-  if (env.TRUST_PROXY_HOPS > 0) {
-    httpAdapter.set('trust proxy', env.TRUST_PROXY_HOPS);
+  if (isProduction || env.TRUST_PROXY_HOPS > 0) {
+    httpAdapter.set('trust proxy', env.TRUST_PROXY_HOPS || 1);
   }
 
   // Helmet must come first so security headers are present on every response, including errors.
