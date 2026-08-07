@@ -41,14 +41,6 @@ const nextConfig: NextConfig = {
         source: '/reservations/:path*',
         destination: '/api/reservations/:path*',
       },
-      {
-        source: '/salons/:path*',
-        destination: '/api/salons/:path*',
-      },
-      {
-        source: '/superadmin/:path*',
-        destination: '/api/superadmin/:path*',
-      },
     ];
   },
 };
