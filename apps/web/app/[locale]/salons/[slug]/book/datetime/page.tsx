@@ -21,9 +21,13 @@ const API_URL = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_AP
 
 /* ── Helpers ─────────────────────────────────────────────── */
 function toLocalDateString(date: Date, timezone: string): string {
-  return new Intl.DateTimeFormat('en-CA', {
+  const parts = new Intl.DateTimeFormat('en-US', {
     year: 'numeric', month: '2-digit', day: '2-digit', timeZone: timezone,
-  }).format(date);
+  }).formatToParts(date);
+  const year = parts.find(p => p.type === 'year')?.value || '1970';
+  const month = parts.find(p => p.type === 'month')?.value || '01';
+  const day = parts.find(p => p.type === 'day')?.value || '01';
+  return `${year}-${month}-${day}`;
 }
 
 function formatTime(iso: string, timezone: string): string {
@@ -181,7 +185,6 @@ export default function DatetimeStep() {
 
   function handleSlotSelect(startAt: string) {
     setStartAt(startAt);
-    router.push(`/salons/${salon.slug}/book/summary`);
   }
 
   if (!draftLoaded || !draft.serviceId) return null;
@@ -221,6 +224,7 @@ export default function DatetimeStep() {
         <BookingCTAButton
           label="Davam et"
           disabled={!draft.startAt}
+          onClick={() => router.push(`/salons/${salon.slug}/book/summary`)}
         />
       }
     >

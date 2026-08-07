@@ -74,7 +74,7 @@ export default function ConfirmStep() {
         }),
       });
       clearDraft();
-      router.push(`/salons/${salon.slug}/book/result/${res.id}`);
+      router.push('/account/reservations');
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
         setStartAt(undefined);
