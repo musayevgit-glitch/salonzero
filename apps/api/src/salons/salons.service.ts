@@ -107,7 +107,7 @@ export class SalonsService {
     const { token, tokenHash } = this.tokens.generate();
     const expiresAt = new Date(Date.now() + INVITATION_TTL_MS);
 
-    const salon = await this.prisma.$transaction(async (tx) => {
+    const salon = await this.prisma.$transaction(async (tx: import('@salonomia/database').Prisma.TransactionClient) => {
       const created = await tx.salon.create({
         data: {
           name: input.name,

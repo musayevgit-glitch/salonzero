@@ -179,7 +179,7 @@ export class ReservationsService {
 
     let reservation: ReservationDetail;
     try {
-      reservation = await this.prisma.$transaction(async (tx) => {
+      reservation = await this.prisma.$transaction(async (tx: import('@salonomia/database').Prisma.TransactionClient) => {
         // Final re-check, inside the transaction, immediately before the write. This is a fast
         // clean-conflict path — the actual guarantee against a true race is the DB-level
         // `reservation_no_overlap_per_employee` EXCLUDE constraint (ADR-0005), caught below.
@@ -391,7 +391,7 @@ export class ReservationsService {
 
     let reservation: ReservationDetail;
     try {
-      reservation = await this.prisma.$transaction(async (tx) => {
+      reservation = await this.prisma.$transaction(async (tx: import('@salonomia/database').Prisma.TransactionClient) => {
         const conflicting = await tx.reservation.count({
           where: {
             employeeId: chosenEmployeeId!,

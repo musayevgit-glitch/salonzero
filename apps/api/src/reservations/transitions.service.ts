@@ -247,7 +247,7 @@ export class TransitionsService {
   ): Promise<ReservationDetail> {
     let updated: ReservationDetail;
     try {
-      updated = await this.prisma.$transaction(async (tx) => {
+      updated = await this.prisma.$transaction(async (tx: import('@salonomia/database').Prisma.TransactionClient) => {
         // The `status: current.status` filter makes this a compare-and-swap: a concurrent
         // transition on the same row will find zero matching rows and throw P2025, never silently
         // overwrite a state another request already moved past.
@@ -359,7 +359,7 @@ export class TransitionsService {
 
     let updated: ReservationDetail;
     try {
-      updated = await this.prisma.$transaction(async (tx) => {
+      updated = await this.prisma.$transaction(async (tx: import('@salonomia/database').Prisma.TransactionClient) => {
         // Release the old slot and acquire the new one in the same transaction/statement — the
         // EXCLUDE constraint (ADR-0005) still protects the new slot against a concurrent booking.
         const conflicting = await tx.reservation.count({

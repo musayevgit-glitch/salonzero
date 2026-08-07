@@ -134,7 +134,7 @@ export class AuthService {
 
     const passwordHash = await this.password.hash(newPassword);
 
-    await this.prisma.$transaction(async (tx) => {
+    await this.prisma.$transaction(async (tx: import('@salonomia/database').Prisma.TransactionClient) => {
       await tx.user.update({ where: { id: record.userId }, data: { passwordHash } });
       // SEC-004: invalidate ALL unused reset tokens for this user so an attacker who triggered a
       // parallel reset cannot redeem the other token after the password is changed.
@@ -195,7 +195,7 @@ export class AuthService {
       if (existingUser.status !== 'ACTIVE') {
         return null; // treat suspended existing account same as invalid token — no information leak
       }
-      await this.prisma.$transaction(async (tx) => {
+      await this.prisma.$transaction(async (tx: import('@salonomia/database').Prisma.TransactionClient) => {
         await tx.salonMembership.upsert({
           where: { userId_salonId: { userId: existingUser.id, salonId: invitation.salonId } },
           create: { userId: existingUser.id, salonId: invitation.salonId, role: invitation.role },
@@ -216,7 +216,7 @@ export class AuthService {
       return toAuthenticatedUser(existingUser);
     }
 
-    const newUser = await this.prisma.$transaction(async (tx) => {
+    const newUser = await this.prisma.$transaction(async (tx: import('@salonomia/database').Prisma.TransactionClient) => {
       const created = await tx.user.create({
         data: {
           email: invitation.email,
