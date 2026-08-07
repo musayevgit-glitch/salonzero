@@ -7,6 +7,7 @@ import {
   EmptyState,
   ErrorState,
   Input,
+  Link,
   MobileRecordList,
   Pagination,
   PermissionDeniedState,
@@ -223,12 +224,34 @@ export default function SuperadminStylistsPage() {
                 key: 'actions',
                 header: 'Əməliyyatlar',
                 render: (row: StylistListItem) => (
-                  <Button
-                    variant={row.isActive ? 'destructive' : 'secondary'}
-                    onClick={() => setActionStylist(row)}
-                  >
-                    {row.isActive ? 'Deaktiv et' : 'Aktivləşdir'}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Link
+                      href={`/salon/${row.salonId}/employees/${row.id}`}
+                      style={{
+                        background: '#5c3d28',
+                        color: 'white',
+                        borderRadius: 8,
+                        padding: '0.5rem 1rem',
+                        fontSize: '0.875rem',
+                        fontWeight: 550,
+                        textDecoration: 'none',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'opacity 0.15s',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.88')}
+                      onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+                    >
+                      İdarə Et (Portfolio/Qrafik)
+                    </Link>
+                    <Button
+                      variant={row.isActive ? 'destructive' : 'secondary'}
+                      onClick={() => setActionStylist(row)}
+                    >
+                      {row.isActive ? 'Deaktiv et' : 'Aktivləşdir'}
+                    </Button>
+                  </div>
                 ),
               },
             ]}
@@ -250,12 +273,30 @@ export default function SuperadminStylistsPage() {
               </div>
             )}
             renderAction={(row) => (
-              <Button
-                variant={row.isActive ? 'destructive' : 'secondary'}
-                onClick={() => setActionStylist(row)}
-              >
-                {row.isActive ? 'Deaktiv' : 'Aktiv'}
-              </Button>
+              <div className="flex flex-col gap-1 items-stretch">
+                <Link
+                  href={`/salon/${row.salonId}/employees/${row.id}`}
+                  style={{
+                    background: '#5c3d28',
+                    color: 'white',
+                    borderRadius: 8,
+                    padding: '0.4rem 0.8rem',
+                    fontSize: '0.75rem',
+                    fontWeight: 550,
+                    textDecoration: 'none',
+                    textAlign: 'center',
+                  }}
+                >
+                  İdarə et
+                </Link>
+                <Button
+                  variant={row.isActive ? 'destructive' : 'secondary'}
+                  onClick={() => setActionStylist(row)}
+                  style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem' }}
+                >
+                  {row.isActive ? 'Deaktiv' : 'Aktiv'}
+                </Button>
+              </div>
             )}
           />
         </>

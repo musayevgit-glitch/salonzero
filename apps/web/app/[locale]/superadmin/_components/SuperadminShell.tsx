@@ -5,10 +5,10 @@ import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const NAV_ITEMS = [
+  { label: 'Dashboard', href: '/superadmin', section: 'Overview' },
   { label: 'Salons', href: '/superadmin/salons', section: 'Management' },
   { label: 'Users', href: '/superadmin/users', section: 'Management' },
   { label: 'Stylists', href: '/superadmin/stylists', section: 'Management' },
-  { label: 'Reports', href: '/superadmin/reports', section: 'Analytics' },
   { label: 'Audit Log', href: '/superadmin/audit-logs', section: 'Analytics' },
 ];
 
@@ -16,7 +16,10 @@ export function SuperadminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   const activeHref =
-    NAV_ITEMS.find((item) => pathname.startsWith(item.href))?.href ?? NAV_ITEMS[0]?.href ?? '';
+    pathname === '/superadmin'
+      ? '/superadmin'
+      : NAV_ITEMS.find((item) => item.href !== '/superadmin' && pathname.startsWith(item.href))?.href ??
+        '/superadmin';
 
   return (
     <DashboardShell

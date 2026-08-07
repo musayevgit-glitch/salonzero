@@ -153,14 +153,31 @@ export default function SuperadminSalonDetailPage() {
           <p className="mt-4 text-sm text-text-secondary">{salon.description}</p>
         ) : null}
 
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Link href={`/superadmin/salons/${salon.id}/edit`}>Edit</Link>
+        <div className="mt-6 flex flex-wrap gap-3 items-center">
+          <Link href={`/superadmin/salons/${salon.id}/edit`}>Redaktə et</Link>
           <Button
             variant={isActive ? 'destructive' : 'secondary'}
             onClick={() => setConfirmOpen(true)}
           >
-            {isActive ? 'Suspend' : 'Restore'}
+            {isActive ? 'Deaktiv et (Suspend)' : 'Aktivləşdir (Restore)'}
           </Button>
+          <Link
+            href={`/salon/${salon.id}/reservations`}
+            style={{
+              background: '#5c3d28',
+              color: 'white',
+              borderRadius: 8,
+              padding: '0.5rem 1rem',
+              fontSize: '0.875rem',
+              fontWeight: 550,
+              textDecoration: 'none',
+              transition: 'opacity 0.15s',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.88')}
+            onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+          >
+            Salonu İdarə Et (Rezervasiya, Usta, Xidmət) →
+          </Link>
         </div>
       </Card>
 
