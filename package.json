@@ -16,7 +16,7 @@
     "format:check": "prettier --check .",
     "db:generate": "pnpm --filter @salonomia/database generate",
     "test:e2e": "playwright test",
-    "postinstall": "prisma generate --schema=packages/database/prisma/schema.prisma && pnpm --filter @salonomia/database build && pnpm --filter @salonomia/validation build"
+    "postinstall": "pnpm turbo run build --filter=\"./packages/*\""
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.1",
