@@ -2,8 +2,7 @@ import { randomBytes, timingSafeEqual } from 'node:crypto';
 import type { Request, Response } from 'express';
 import type { Session } from 'express-session';
 
-export const CSRF_COOKIE_NAME =
-  process.env.NODE_ENV === 'production' ? '__Host-csrfToken' : 'csrfToken';
+export const CSRF_COOKIE_NAME = 'csrfToken';
 export const LEGACY_CSRF_COOKIE_NAME = 'csrfToken';
 export const CSRF_HEADER_NAME = 'x-csrf-token';
 
