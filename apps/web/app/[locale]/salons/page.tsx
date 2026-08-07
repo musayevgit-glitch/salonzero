@@ -47,7 +47,7 @@ export default async function SalonsPage({
   };
   if (search) params.search = search;
   if (city) params.city = city;
-  if (genderFocus) params.genderFocus = genderFocus;
+  if (genderFocus) params.genderFocus = genderFocus.toUpperCase();
   if (minPrice) params.minPrice = minPrice;
   if (maxPrice) params.maxPrice = maxPrice;
 

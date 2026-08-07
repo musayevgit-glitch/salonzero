@@ -28,6 +28,10 @@ export const config = {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // Next.js catch-all route adds 'catchAll' key to query, which breaks strict Zod validations in NestJS.
+  if (req.query) {
+    delete req.query.catchAll;
+  }
   const expressApp = await bootstrap();
   return expressApp(req, res);
 }
