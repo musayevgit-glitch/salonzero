@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@salonomia/database';
 import { PrismaService } from '../prisma/prisma.service';
 
 export interface AuditEventInput {
@@ -12,7 +11,8 @@ export interface AuditEventInput {
   userAgent?: string | null;
   requestId?: string | null;
   // Safe, small metadata only — never secrets/tokens/passwords (docs/security/security-requirements.md).
-  metadata?: Prisma.NullableJsonNullValueInput | Prisma.InputJsonValue;
+  // Using Record<string,unknown> instead of Prisma.InputJsonValue which was removed in Prisma 6.
+  metadata?: Record<string, unknown> | null;
 }
 
 @Injectable()
@@ -30,7 +30,8 @@ export class AuditService {
         ipAddress: event.ipAddress ?? null,
         userAgent: event.userAgent ?? null,
         requestId: event.requestId ?? null,
-        metadata: event.metadata ?? Prisma.JsonNull,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        metadata: (event.metadata ?? null) as any,
       },
     });
   }
