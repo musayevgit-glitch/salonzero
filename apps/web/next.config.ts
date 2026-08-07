@@ -15,6 +15,18 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: '/(.*)', headers: securityHeaders }];
   },
+  async rewrites() {
+    return [
+      {
+        source: '/public/:path*',
+        destination: '/api/public/:path*',
+      },
+      {
+        source: '/auth/:path*',
+        destination: '/api/auth/:path*',
+      },
+    ];
+  },
 };
 
 export default withNextIntl(nextConfig);
