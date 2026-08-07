@@ -17,7 +17,7 @@ interface AvailabilityResponse {
   slots: Slot[];
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+const API_URL = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000');
 
 /* ── Helpers ─────────────────────────────────────────────── */
 function toLocalDateString(date: Date, timezone: string): string {
