@@ -172,24 +172,24 @@ export default function AccountProfilePage() {
           </Link>
           
           {profile.isSuperadmin && (
-            <a
-              href={`${process.env.NEXT_PUBLIC_DASHBOARD_URL ?? 'http://localhost:3001'}/superadmin/salons`}
+            <Link
+              href="/superadmin/salons"
               style={{ background: 'white', border: '1px solid #ede5dc', borderRadius: 16, padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', textDecoration: 'none', color: '#1a1208', fontWeight: 500 }}
             >
               Platform idarəetmə
               <span style={{ color: '#c9a460' }}>→</span>
-            </a>
+            </Link>
           )}
 
           {profile.managedSalons?.map(salon => (
-            <a
+            <Link
               key={salon.id}
-              href={`${process.env.NEXT_PUBLIC_DASHBOARD_URL ?? 'http://localhost:3001'}/salon/${salon.id}/reservations`}
+              href={`/salon/${salon.id}/reservations`}
               style={{ background: 'white', border: '1px solid #ede5dc', borderRadius: 16, padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', textDecoration: 'none', color: '#1a1208', fontWeight: 500 }}
             >
               Salon İdarəetmə: {salon.name}
               <span style={{ color: '#c9a460' }}>→</span>
-            </a>
+            </Link>
           ))}
         </div>
 
