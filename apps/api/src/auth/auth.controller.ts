@@ -108,7 +108,7 @@ export class AuthController {
       req.logout((err) => (err ? reject(err) : resolve())),
     );
     await new Promise<void>((resolve) => req.session.destroy(() => resolve()));
-    res.clearCookie('connect.sid');
+    res.clearCookie('sid');
     clearCsrfCookie(res);
     return res.status(200).json({ ok: true });
   }

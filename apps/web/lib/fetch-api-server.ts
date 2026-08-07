@@ -1,6 +1,18 @@
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+// In production on Vercel, the NestJS API lives inside the same Next.js deployment
+// served via pages/api/[...catchAll].ts. Server Components must call it using an
+// absolute URL. We prefer NEXT_PUBLIC_API_URL when set (e.g. custom domain). Otherwise
+// we fall back to constructing the URL from the incoming request's host header so we
+// always hit the same Vercel deployment (no cross-region cold starts on a separate API).
+async function getApiBaseUrl(): Promise<string> {
+  if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
+  // Inside a Server Component, headers() gives us the current request host.
+  const headerStore = await headers();
+  const host = headerStore.get('host') ?? 'localhost:3000';
+  const proto = host.startsWith('localhost') ? 'http' : 'https';
+  return `${proto}://${host}`;
+}
 
 export class ApiServerError extends Error {
   constructor(
@@ -33,8 +45,10 @@ export function buildApiServerFetchInit(
  */
 export async function fetchApiServer<T>(path: string, init?: RequestInit): Promise<T> {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get('connect.sid');
-  const res = await fetch(`${API_URL}${path}`, buildApiServerFetchInit(init, sessionCookie));
+  // Cookie name must match the 'name' option in configure-app.ts session middleware.
+  const sessionCookie = cookieStore.get('sid');
+  const apiUrl = await getApiBaseUrl();
+  const res = await fetch(`${apiUrl}${path}`, buildApiServerFetchInit(init, sessionCookie));
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({ message: 'Something went wrong.' }));

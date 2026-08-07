@@ -38,14 +38,20 @@ export function configureApp(app: INestApplication, env: ApiEnv): void {
   app.use(
     session({
       store: new PgSession({ pool, tableName: 'session', createTableIfMissing: true }),
+      name: 'sid',
       secret: env.SESSION_SECRET,
       resave: false,
       saveUninitialized: false,
+      // proxy:true tells express-session to trust X-Forwarded-Proto even independently of
+      // Express's own trust-proxy setting — belt-and-suspenders for Vercel serverless where
+      // each cold start may not inherit the httpAdapter trust setting in time.
+      proxy: isProduction,
+      rolling: true, // reset maxAge on every response so active users never get logged out
       cookie: {
         httpOnly: true,
         sameSite: 'lax',
         secure: isProduction,
-        maxAge: 7 * 24 * 60 * 60 * 1000,
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       },
     }),
   );
