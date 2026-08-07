@@ -12,35 +12,18 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  transpilePackages: [
-    '@salonomia/api',
-    '@salonomia/database',
-    '@salonomia/validation',
-    '@salonomia/auth',
-    '@salonomia/storage',
-    '@salonomia/contracts',
-  ],
+  transpilePackages: ['@salonomia/database', '@salonomia/validation', '@salonomia/ui'],
   async headers() {
     return [{ source: '/(.*)', headers: securityHeaders }];
   },
+  // Rewrites map the paths that client-side JS uses (without /api prefix) to Route Handlers.
+  // Server Components call /api/* paths directly (rewrites don't apply to Node fetch).
   async rewrites() {
     return [
-      {
-        source: '/public/:path*',
-        destination: '/api/public/:path*',
-      },
-      {
-        source: '/auth/:path*',
-        destination: '/api/auth/:path*',
-      },
-      {
-        source: '/customer/:path*',
-        destination: '/api/customer/:path*',
-      },
-      {
-        source: '/reservations/:path*',
-        destination: '/api/reservations/:path*',
-      },
+      { source: '/public/:path*', destination: '/api/public/:path*' },
+      { source: '/auth/:path*', destination: '/api/auth/:path*' },
+      { source: '/customer/:path*', destination: '/api/customer/:path*' },
+      { source: '/reservations/:path*', destination: '/api/reservations/:path*' },
     ];
   },
 };
