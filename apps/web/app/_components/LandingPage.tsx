@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useState } from 'react';
+import { PageHeader, PageFooter } from './PageLayout';
 
 interface SalonListItem {
   id: string;
@@ -87,71 +88,6 @@ function ArrowRightIcon({ size = 14 }: { size?: number }) {
   );
 }
 
-/* ─── Header ─────────────────────────────────────────────── */
-function Header({ isAuthenticated }: { isAuthenticated: boolean }) {
-  return (
-    <header
-      className="sticky top-0 z-40"
-      style={{
-        background: 'rgba(255,255,255,0.95)',
-        backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid #ede5dc',
-      }}
-    >
-      <div
-        style={{ maxWidth: 1280, margin: '0 auto', padding: '0 1.25rem' }}
-        className="flex h-16 items-center justify-between"
-      >
-        {/* Logo */}
-        <a href="/" style={{ textDecoration: 'none' }}>
-          <div>
-            <span
-              className="font-display"
-              style={{ fontSize: '1.3rem', fontWeight: 700, letterSpacing: '0.05em', color: '#1a1208' }}
-            >
-              SALONOMIA
-            </span>
-            <div style={{ fontSize: '0.55rem', fontWeight: 600, letterSpacing: '0.12em', color: '#c9a460', textTransform: 'uppercase', marginTop: '-2px' }}>
-              Gözəlliyinizə zaman ayırın
-            </div>
-          </div>
-        </a>
-
-        {/* Nav */}
-        <div className="flex items-center gap-3">
-          <a
-            href="/salons"
-            className="hidden md:block"
-            style={{ fontSize: '0.875rem', color: '#6b5e4a', textDecoration: 'none', fontWeight: 500 }}
-          >
-            Salonlar
-          </a>
-          <a
-            href={isAuthenticated ? '/account' : '/login'}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              padding: '0.5rem 1rem',
-              borderRadius: '10px',
-              background: '#5c3d28',
-              color: 'white',
-              fontSize: '0.85rem',
-              fontWeight: 600,
-              textDecoration: 'none',
-            }}
-          >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-              <circle cx="7" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.3" />
-              <path d="M2 12.5c0-2.76 2.24-5 5-5s5 2.24 5 5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-            </svg>
-            {isAuthenticated ? 'Hesab' : 'Giriş'}
-          </a>
-        </div>
-      </div>
-    </header>
-  );
-}
 
 /* ─── Hero ───────────────────────────────────────────────── */
 const HERO_IMAGES = ['/images/salon-1.png', '/images/salon-2.png', '/images/salon-3.png'];
@@ -662,26 +598,6 @@ function CTASection() {
   );
 }
 
-/* ─── Footer ─────────────────────────────────────────────── */
-function Footer() {
-  return (
-    <footer style={{ background: 'white', borderTop: '1px solid #ede5dc', padding: '1.5rem 1.25rem' }}>
-      <div style={{ maxWidth: 1280, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
-        <div>
-          <span className="font-display" style={{ fontSize: '1rem', fontWeight: 700, letterSpacing: '0.05em', color: '#1a1208' }}>
-            SALONOMIA
-          </span>
-          <div style={{ fontSize: '0.6rem', color: '#c9a460', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-            Gözəlliyinizə zaman ayırın
-          </div>
-        </div>
-        <p style={{ fontSize: '0.8rem', color: '#9a8878' }}>
-          © {new Date().getFullYear()} Salonomia. Bütün hüquqlar qorunur.
-        </p>
-      </div>
-    </footer>
-  );
-}
 
 /* ─── Main export ────────────────────────────────────────── */
 export function LandingPage({
@@ -693,14 +609,14 @@ export function LandingPage({
 }) {
   return (
     <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', background: 'white' }}>
-      <Header isAuthenticated={isAuthenticated} />
+      <PageHeader isAuthenticated={isAuthenticated} />
       <main style={{ flex: 1 }}>
         <Hero />
         <Features />
         <PopularSalons salons={salons} />
         <CTASection />
       </main>
-      <Footer />
+      <PageFooter />
     </div>
   );
 }
