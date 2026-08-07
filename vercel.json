@@ -1,34 +1,20 @@
 {
-  "version": 2,
-  "builds": [
+  "buildCommand": "pnpm turbo run build --filter=@salonomia/web...",
+  "outputDirectory": "apps/web/.next",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "framework": "nextjs",
+  "rewrites": [
     {
-      "src": "apps/web/package.json",
-      "use": "@vercel/next"
+      "source": "/public/(.*)",
+      "destination": "/api"
     },
     {
-      "src": "apps/api/src/vercel.ts",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": ["packages/database/prisma/schema.prisma"]
-      }
-    }
-  ],
-  "routes": [
-    {
-      "src": "/public/(.*)",
-      "dest": "apps/api/src/vercel.ts"
+      "source": "/auth/(.*)",
+      "destination": "/api"
     },
     {
-      "src": "/auth/(.*)",
-      "dest": "apps/api/src/vercel.ts"
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "apps/api/src/vercel.ts"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "apps/web/next.config.ts"
+      "source": "/api/(.*)",
+      "destination": "/api"
     }
   ]
 }

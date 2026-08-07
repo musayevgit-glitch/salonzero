@@ -1,8 +1,8 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { configureApp } from './configure-app';
-import { validateApiEnv } from './config/env';
+import { AppModule } from '../apps/api/src/app.module';
+import { configureApp } from '../apps/api/src/configure-app';
+import { validateApiEnv } from '../apps/api/src/config/env';
 import serverlessExpress from '@codegenie/serverless-express';
 
 let cachedServer: any;
@@ -19,7 +19,7 @@ async function bootstrap() {
   return cachedServer;
 }
 
-export const handler = async (event: any, context: any, callback: any) => {
+export default async (req: any, res: any) => {
   const server = await bootstrap();
-  return server(event, context, callback);
+  return server(req, res);
 };
