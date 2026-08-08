@@ -131,7 +131,12 @@ export default function EmployeeDetailPage() {
         {employee.bio ? <p className="mt-4 text-sm text-text-secondary">{employee.bio}</p> : null}
 
         <div className="mt-6 flex flex-wrap gap-3">
-          <Link href={`/salon/${salonId}/employees/${employee.id}/edit`}>Edit</Link>
+          <Link
+            href={`/salon/${salonId}/employees/${employee.id}/edit`}
+            className="btn-lg btn-lg-secondary inline-flex min-h-11 items-center justify-center px-5 text-sm font-medium rounded-[var(--radius-lg)] no-underline hover:no-underline"
+          >
+            Edit
+          </Link>
           <Button
             variant={employee.isActive ? 'destructive' : 'secondary'}
             onClick={() => setConfirmOpen(true)}

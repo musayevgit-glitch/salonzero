@@ -146,7 +146,12 @@ export default function ServiceDetailPage() {
         </dl>
 
         <div className="mt-6 flex flex-wrap gap-3">
-          <Link href={`/salon/${salonId}/services/${service.id}/edit`}>Edit</Link>
+          <Link
+            href={`/salon/${salonId}/services/${service.id}/edit`}
+            className="btn-lg btn-lg-secondary inline-flex min-h-11 items-center justify-center px-5 text-sm font-medium rounded-[var(--radius-lg)] no-underline hover:no-underline"
+          >
+            Edit
+          </Link>
           <Button
             variant={service.isActive ? 'destructive' : 'secondary'}
             onClick={() => setConfirmOpen(true)}
