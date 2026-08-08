@@ -19,7 +19,7 @@ export default function NewStylistPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    apiFetch<{ items: Salon[] }>('/salons?pageSize=200')
+    apiFetch<{ items: Salon[] }>('/salons?pageSize=100')
       .then((r) => setSalons(r.items))
       .catch(() => {});
   }, []);

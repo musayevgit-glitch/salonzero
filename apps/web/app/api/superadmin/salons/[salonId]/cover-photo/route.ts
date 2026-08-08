@@ -16,7 +16,7 @@ export async function POST(
   const salon = await prisma.salon.findUnique({ where: { id: salonId }, select: { id: true } });
   if (!salon) return notFound();
 
-  const result = await handleImageUpload(req, `salons/${salonId}/cover`, 10 * 1024 * 1024);
+  const result = await handleImageUpload(req, `salons/${salonId}/cover`, 5 * 1024 * 1024);
   if (result instanceof NextResponse) return result;
 
   await prisma.salon.update({ where: { id: salonId }, data: { coverUrl: result.url } });

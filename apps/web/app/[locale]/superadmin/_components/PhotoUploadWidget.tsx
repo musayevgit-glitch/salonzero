@@ -40,8 +40,8 @@ export function PhotoUploadWidget({
       showToast('Yalnız JPEG, PNG və ya WEBP şəkillər qəbul edilir.', 'danger');
       return;
     }
-    if (file.size > 10 * 1024 * 1024) {
-      showToast('Şəkil 10MB-dan böyük ola bilməz.', 'danger');
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('Şəkil 5MB-dan böyük ola bilməz.', 'danger');
       return;
     }
 
