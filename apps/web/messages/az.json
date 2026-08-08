@@ -115,6 +115,8 @@
     "selectTime": "Saat seçin",
     "selectedDate": "Seçilmiş tarix",
     "slotBlockedNote": "Seçilmiş saat 10 dəqiqəlik müddət üçün sizin üçün bloklanacaq.",
+    "holdingSlot": "Saat bronlaşdırılır...",
+    "slotNoLongerAvailable": "Bu saat artıq mövcud deyil. Başqa saat seçin.",
     "slotsAvailable": "Mövcuddur",
     "slotsSelected": "Seçilmiş",
     "slotsFull": "Doludur",
@@ -237,5 +239,27 @@
     "saveBtn": "Saxla",
     "cancelling": "Ləğv edilir...",
     "confirmCancelBtn": "Bəli, ləğv et"
+  },
+  "terms": {
+    "pageTitle": "İstifadə Şərtləri — Salonomia",
+    "title": "İstifadə Şərtləri",
+    "lastUpdated": "Son yenilənmə: Avqust 2026",
+    "acceptanceTitle": "1. Şərtlərin Qəbulu",
+    "acceptanceBody": "Salonomia xidmətindən istifadə etməklə siz bu istifadə şərtlərini tam qəbul etmiş olursunuz. Şərtlərlə razılaşmırsınızsa, xidmətdən istifadə etməyin.",
+    "servicesTitle": "2. Xidmətlər",
+    "servicesBody": "Salonomia salon rezervasiya platformasıdır. Biz müştəriləri gözəllik salonları ilə birləşdiririk. Rezervasiya xidməti salon tərəfindən birbaşa yerinə yetirilir.",
+    "reservationsTitle": "3. Rezervasiyalar",
+    "reservationsBody": "Rezervasiya etdikdən sonra salon ilə təsdiqləmə e-poçtu alacaqsınız. Əgər salon manual təsdiqləmə tələb edirsə, rezervasiyanız gözləmə vəziyyətinə keçəcək.",
+    "cancellationTitle": "4. Ləğvetmə və Dəyişiklik",
+    "cancellationBody": "Ləğvetmə qaydaları hər salon üçün fərqlidir. Salonun ləğvetmə müddətinə əməl etməyi tövsiyə edirik. Gecikmə halında salonla birbaşa əlaqə saxlayın.",
+    "privacyTitle": "5. Məxfilik",
+    "privacyBody": "Şəxsi məlumatlarınız məxfilik siyasətimizə uyğun qorunur. Məlumatlarınızı üçüncü tərəflərlə paylaşmırıq, xidmət göstərilməsi üçün zəruri hallar istisna olmaqla.",
+    "liabilityTitle": "6. Məsuliyyətin Məhdudlaşdırılması",
+    "liabilityBody": "Salonomia platforma kimi xidmət göstərir. Salonların xidmət keyfiyyəti üçün birbaşa məsuliyyət daşımırıq. Narazılıq olduğu halda salon ilə bilavasitə əlaqə saxlayın.",
+    "changesTitle": "7. Şərtlərdə Dəyişikliklər",
+    "changesBody": "Şərtlər istənilən vaxt yenilənsə bilər. Əhəmiyyətli dəyişikliklər barədə e-poçt vasitəsilə xəbərdar ediləcəksiniz. Dəyişiklikdən sonra istifadəni davam etdirməklə yeni şərtləri qəbul etmiş sayılırsınız.",
+    "contactTitle": "8. Əlaqə",
+    "contactBody": "Suallarınız üçün: support@salonomia.az ünvanına yazın. Biz ən qısa müddətdə cavab verməyə çalışacağıq.",
+    "footer": "Bu şərtlər Salonomia platformasında etdiyiniz bütün rezervasiyalara tətbiq edilir."
   }
 }

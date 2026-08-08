@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { useBookingContext } from '../_components/BookingContext';
 import { BookingCTAButton, BookingPageShell } from '../_components/BookingPageShell';
 import { formatMoney } from '../../../../../../lib/format-money';
@@ -63,17 +64,10 @@ function buildCalendarGrid(year: number, month: number): (Date | null)[][] {
   return rows;
 }
 
-const AZ_WEEKDAYS = ['B.e', 'Ç.a', 'Ç.', 'C.a', 'C.', 'Ş.', 'B'];
-const AZ_MONTHS = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'İyun', 'İyul', 'Avqust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'];
-const AZ_WEEKDAYS_FULL = ['Bazar ertəsi', 'Çərşənbə axşamı', 'Çərşənbə', 'Cümə axşamı', 'Cümə', 'Şənbə', 'Bazar'];
-
-function formatAzDate(date: Date): string {
-  const day = date.getDate();
-  const month = AZ_MONTHS[date.getMonth()]!;
-  const year = date.getFullYear();
-  const weekdayIdx = (date.getDay() + 6) % 7;
-  const weekday = AZ_WEEKDAYS_FULL[weekdayIdx]!;
-  return `${day} ${month} ${year}, ${weekday}`;
+function formatDateLocale(date: Date, locale: string): string {
+  return new Intl.DateTimeFormat(locale, {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+  }).format(date);
 }
 
 function ChevronIcon({ dir }: { dir: 'left' | 'right' }) {
@@ -107,8 +101,10 @@ function InfoIcon() {
 
 /* ── Component ───────────────────────────────────────────── */
 export default function DatetimeStep() {
-  const { salon, draft, draftLoaded, setStartAt } = useBookingContext();
+  const { salon, draft, draftLoaded, setStartAt, setHoldId } = useBookingContext();
   const router = useRouter();
+  const t = useTranslations('booking');
+  const locale = useLocale();
 
   const today = new Date();
   const [calYear, setCalYear] = useState(today.getFullYear());
@@ -116,6 +112,8 @@ export default function DatetimeStep() {
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [slots, setSlots] = useState<Slot[]>([]);
   const [loadState, setLoadState] = useState<'idle' | 'loading' | 'error'>('idle');
+  const [holdState, setHoldState] = useState<'idle' | 'loading' | 'error'>('idle');
+  const [holdError, setHoldError] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const abortRef = useRef<AbortController | null>(null);
 
@@ -165,13 +163,13 @@ export default function DatetimeStep() {
       const res = await fetch(`${API_URL}/public/salons/${salon.slug}/availability?${params}`, {
         signal: controller.signal,
       });
-      if (!res.ok) throw new Error('Mövcudluq yüklənə bilmədi.');
+      if (!res.ok) throw new Error(t('slotsLoadError'));
       const data = (await res.json()) as AvailabilityResponse;
       setSlots(data.slots);
       setLoadState('idle');
     } catch (err) {
       if ((err as { name?: string }).name === 'AbortError') return;
-      setErrorMsg('Vaxt slotları yüklənə bilmədi. Yenidən cəhd edin.');
+      setErrorMsg(t('loadingSlotsError'));
       setLoadState('error');
     }
   }, [draft.serviceId, draft.employeeId, salon.slug]);
@@ -200,7 +198,10 @@ export default function DatetimeStep() {
 
   /* Calendar grid */
   const grid = buildCalendarGrid(calYear, calMonth);
-  const monthLabel = `${AZ_MONTHS[calMonth]} ${calYear}`;
+  const monthLabel = new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(new Date(calYear, calMonth, 1));
+  const weekdayHeaders = Array.from({ length: 7 }, (_, i) =>
+    new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(new Date(2024, 0, i + 1))
+  );
 
   const prevMonthDisabled = calYear === today.getFullYear() && calMonth === today.getMonth();
   function goPrevMonth() {
@@ -215,16 +216,56 @@ export default function DatetimeStep() {
 
   const selectedDateObj = selectedDate ? new Date(selectedDate + 'T12:00:00') : null;
 
+  async function handleContinue() {
+    if (!draft.startAt || !draft.serviceId || !draft.employeeId) return;
+    setHoldState('loading');
+    setHoldError('');
+    try {
+      if (draft.holdId) {
+        await fetch(`/api/reservations/slot-holds/${draft.holdId}`, { method: 'DELETE' });
+      }
+
+      const slot = slots.find((s) => s.startAt === draft.startAt);
+      if (!slot) throw new Error('slot_not_found');
+
+      const res = await fetch('/api/reservations/slot-holds', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          salonId: salon.id,
+          employeeId: draft.employeeId,
+          startAt: draft.startAt,
+          endAt: slot.endAt,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = (await res.json()) as { message?: string };
+        throw new Error(data.message ?? 'hold_failed');
+      }
+
+      const holdData = (await res.json()) as { id: string; expiresAt: string };
+      setHoldId(holdData.id);
+      setHoldState('idle');
+      router.push(`/salons/${salon.slug}/book/summary`);
+    } catch (err) {
+      setHoldState('error');
+      setHoldError(err instanceof Error && err.message !== 'slot_not_found' && err.message !== 'hold_failed'
+        ? err.message
+        : t('slotNoLongerAvailable'));
+    }
+  }
+
   return (
     <BookingPageShell
-      title="Tarix və saat seçin"
+      title={t('selectDateTime')}
       backHref={`/salons/${salon.slug}/book/stylist`}
-      backLabel="Usta seçiminə qayıt"
+      backLabel={t('backToStylist')}
       footer={
         <BookingCTAButton
-          label="Davam et"
-          disabled={!draft.startAt}
-          onClick={() => router.push(`/salons/${salon.slug}/book/summary`)}
+          label={holdState === 'loading' ? t('holdingSlot') : t('continueBtn')}
+          disabled={!draft.startAt || holdState === 'loading'}
+          onClick={() => void handleContinue()}
         />
       }
     >
@@ -254,10 +295,10 @@ export default function DatetimeStep() {
           </div>
           <div style={{ minWidth: 0 }}>
             <p style={{ fontWeight: 700, fontSize: '0.875rem', color: '#1e1b2e', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {selectedEmployee?.fullName ?? 'İstənilən usta'}
+              {selectedEmployee?.fullName ?? t('anyStylist')}
             </p>
             <p style={{ fontSize: '0.72rem', color: '#7c6fa0', marginTop: '0.1rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {selectedService?.name ?? 'Xidmət'} · {selectedService
+              {selectedService?.name ?? t('serviceName')} · {selectedService
                 ? formatMoney(selectedService.priceAmount)
                 : ''}
             </p>
@@ -277,13 +318,13 @@ export default function DatetimeStep() {
             whiteSpace: 'nowrap',
           }}
         >
-          Edit
+          {t('editService')}
         </a>
       </div>
 
       {/* Calendar section */}
       <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#1e1b2e', marginBottom: '0.875rem' }}>
-        Tarix seçin
+        {t('selectDate')}
       </h2>
 
       <div
@@ -302,7 +343,7 @@ export default function DatetimeStep() {
             type="button"
             onClick={goPrevMonth}
             disabled={prevMonthDisabled}
-            aria-label="Əvvəlki ay"
+            aria-label={t('prevMonth')}
             style={{
               width: 32, height: 32, borderRadius: 8, border: '1px solid #e4d4f4',
               background: prevMonthDisabled ? '#faf5ff' : 'white',
@@ -317,7 +358,7 @@ export default function DatetimeStep() {
           <button
             type="button"
             onClick={goNextMonth}
-            aria-label="Növbəti ay"
+            aria-label={t('nextMonth')}
             style={{
               width: 32, height: 32, borderRadius: 8, border: '1px solid #e4d4f4',
               background: 'white', color: '#1e1b2e', cursor: 'pointer',
@@ -330,8 +371,8 @@ export default function DatetimeStep() {
 
         {/* Weekday headers */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px', marginBottom: '0.5rem' }}>
-          {AZ_WEEKDAYS.map((d) => (
-            <div key={d} style={{ textAlign: 'center', fontSize: '0.68rem', fontWeight: 600, color: '#7c6fa0', padding: '0.25rem 0' }}>{d}</div>
+          {weekdayHeaders.map((d, i) => (
+            <div key={i} style={{ textAlign: 'center', fontSize: '0.68rem', fontWeight: 600, color: '#7c6fa0', padding: '0.25rem 0' }}>{d}</div>
           ))}
         </div>
 
@@ -357,7 +398,7 @@ export default function DatetimeStep() {
                   type="button"
                   disabled={isDisabled}
                   onClick={() => !isDisabled && handleDateSelect(day)}
-                  aria-label={formatAzDate(day)}
+                  aria-label={formatDateLocale(day, locale)}
                   aria-pressed={isSelected}
                   style={{
                     height: 40, borderRadius: 8, border: isSelected ? '1.5px solid #4caf50' : 'none',
@@ -386,19 +427,19 @@ export default function DatetimeStep() {
         {selectedDate && selectedDateObj && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.875rem', paddingTop: '0.75rem', borderTop: '1px solid #e4d4f4', color: '#6b5d8a', fontSize: '0.78rem' }}>
             <CalendarIcon />
-            <span>Seçilmiş tarix: <strong style={{ color: '#1e1b2e' }}>{formatAzDate(selectedDateObj)}</strong></span>
+            <span>{t('selectedDate')}: <strong style={{ color: '#1e1b2e' }}>{formatDateLocale(selectedDateObj, locale)}</strong></span>
           </div>
         )}
       </div>
 
       {/* Time slots section */}
       <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#1e1b2e', marginBottom: '0.875rem' }}>
-        Saat seçin
+        {t('selectTime')}
       </h2>
 
       {!selectedDate && (
         <p style={{ color: '#7c6fa0', fontSize: '0.85rem', textAlign: 'center', padding: '1.5rem 0' }}>
-          Saatları görmək üçün yuxarıdan tarix seçin.
+          {t('selectDateFirst')}
         </p>
       )}
 
@@ -421,7 +462,7 @@ export default function DatetimeStep() {
 
       {selectedDate && loadState === 'idle' && slots.length === 0 && (
         <p style={{ color: '#7c6fa0', fontSize: '0.85rem', textAlign: 'center', padding: '1.5rem 0' }}>
-          Bu gün üçün mövcud vaxt yoxdur. Başqa tarix seçin.
+          {t('noSlotsAvailable')}
         </p>
       )}
 
@@ -475,9 +516,9 @@ export default function DatetimeStep() {
           {/* Legend */}
           <div style={{ display: 'flex', gap: '1.25rem', marginBottom: '0.875rem' }}>
             {[
-              { dot: '#4caf50', label: 'Mövcuddur' },
-              { dot: '#7c3aed', label: 'Seçilmiş' },
-              { dot: '#c5bbb2', label: 'Doludur' },
+              { dot: '#4caf50', label: t('slotsAvailable') },
+              { dot: '#7c3aed', label: t('slotsSelected') },
+              { dot: '#c5bbb2', label: t('slotsFull') },
             ].map((item) => (
               <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.72rem', color: '#6b5d8a' }}>
                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: item.dot, flexShrink: 0 }} />
@@ -503,9 +544,15 @@ export default function DatetimeStep() {
       >
         <span style={{ flexShrink: 0, marginTop: '0.05rem' }}><InfoIcon /></span>
         <p style={{ fontSize: '0.75rem', color: '#8a7355', lineHeight: 1.5 }}>
-          Seçilmiş saat 10 dəqiqəlik müddət üçün sizin üçün bloklanacaq.
+          {t('slotBlockedNote')}
         </p>
       </div>
+
+      {holdState === 'error' && holdError && (
+        <div style={{ background: '#fff5f5', border: '1px solid #fecaca', borderRadius: 12, padding: '0.75rem', marginTop: '0.5rem' }}>
+          <p style={{ fontSize: '0.82rem', color: '#dc2626' }}>{holdError}</p>
+        </div>
+      )}
     </BookingPageShell>
   );
 }

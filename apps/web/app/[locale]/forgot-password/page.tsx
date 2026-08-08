@@ -1,9 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { apiFetch, ApiError } from '../../../lib/api-client';
 
 export default function ForgotPasswordPage() {
+  const t = useTranslations('auth');
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'sent' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -32,16 +34,16 @@ export default function ForgotPasswordPage() {
                 SALONOMIA
               </span>
             </a>
-            <p style={{ color: '#7c3aed', fontSize: '0.875rem', margin: '0.5rem 0 0 0' }}>Eksklüziv gözəllik təcrübəsi</p>
+            <p style={{ color: '#7c3aed', fontSize: '0.875rem', margin: '0.5rem 0 0 0' }}>{t('tagline')}</p>
           </div>
           <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, padding: '1rem 1.25rem', marginBottom: '1.5rem' }}>
-            <p style={{ color: '#166534', fontSize: '0.9rem', margin: 0, fontWeight: 500 }}>E-poçtunuzu yoxlayın</p>
+            <p style={{ color: '#166534', fontSize: '0.9rem', margin: 0, fontWeight: 500 }}>{t('checkEmail')}</p>
             <p style={{ color: '#15803d', fontSize: '0.85rem', margin: '0.4rem 0 0 0' }}>
-              Həmin e-poçt ünvanı ilə hesab varsa, sıfırlama təlimatları göndərildi.
+              {t('checkEmailDesc')}
             </p>
           </div>
           <a href="/login" style={{ display: 'block', textAlign: 'center', color: '#7c3aed', fontSize: '0.875rem', textDecoration: 'none', fontWeight: 500 }}>
-            ← Girişə qayıt
+            {t('backToLogin')}
           </a>
         </div>
       </div>
@@ -57,21 +59,21 @@ export default function ForgotPasswordPage() {
               SALONOMIA
             </span>
           </a>
-          <p style={{ color: '#7c3aed', fontSize: '0.875rem', margin: '0.5rem 0 0 0' }}>Eksklüziv gözəllik təcrübəsi</p>
+          <p style={{ color: '#7c3aed', fontSize: '0.875rem', margin: '0.5rem 0 0 0' }}>{t('tagline')}</p>
         </div>
 
         <h1 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#1e1b2e', marginBottom: '0.5rem', textAlign: 'center', fontFamily: "'Playfair Display', Georgia, serif" }}>
-          Şifrəni unutdunuz?
+          {t('forgotPasswordTitle')}
         </h1>
         <p style={{ color: '#7c6fa0', fontSize: '0.875rem', textAlign: 'center', margin: '0 0 1.5rem 0' }}>
-          E-poçtunuzu daxil edin, sıfırlama təlimatları göndərəcəyik.
+          {t('forgotPasswordSubtitle')}
         </p>
 
         <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {error ? <div style={{ color: '#dc2626', fontSize: '0.875rem', background: '#fef2f2', padding: '0.75rem', borderRadius: 8 }}>{error}</div> : null}
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <label style={{ fontSize: '0.875rem', color: '#1e1b2e', fontWeight: 500 }}>E-poçt</label>
+            <label style={{ fontSize: '0.875rem', color: '#1e1b2e', fontWeight: 500 }}>{t('email')}</label>
             <input
               type="email"
               autoComplete="email"
@@ -87,12 +89,12 @@ export default function ForgotPasswordPage() {
             disabled={status === 'loading'}
             style={{ background: '#7c3aed', color: 'white', borderRadius: 12, padding: '0.875rem', fontSize: '1rem', fontWeight: 500, border: 'none', cursor: status === 'loading' ? 'not-allowed' : 'pointer', marginTop: '0.5rem', opacity: status === 'loading' ? 0.7 : 1 }}
           >
-            {status === 'loading' ? 'Gözləyin...' : 'Sıfırlama linki göndər'}
+            {status === 'loading' ? t('submitting') : t('forgotPasswordBtn')}
           </button>
         </form>
 
         <div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.875rem' }}>
-          <a href="/login" style={{ color: '#7c6fa0', textDecoration: 'none' }}>← Girişə qayıt</a>
+          <a href="/login" style={{ color: '#7c6fa0', textDecoration: 'none' }}>{t('backToLogin')}</a>
         </div>
       </div>
     </div>

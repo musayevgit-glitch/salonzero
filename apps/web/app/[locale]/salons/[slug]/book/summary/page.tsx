@@ -2,28 +2,25 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { apiFetch } from '../../../../../../lib/api-client';
 import { useBookingContext } from '../_components/BookingContext';
 import { BookingCTAButton, BookingPageShell } from '../_components/BookingPageShell';
 
 import { formatMoney } from '../../../../../../lib/format-money';
 
-function formatAzDateTime(iso: string, timezone: string) {
-  const d = new Date(iso);
-  const AZ_MONTHS = ['Yanvar','Fevral','Mart','Aprel','May','İyun','İyul','Avqust','Sentyabr','Oktyabr','Noyabr','Dekabr'];
-  const AZ_WEEKDAYS = ['Bazar','Bazar ertəsi','Çərşənbə axşamı','Çərşənbə','Cümə axşamı','Cümə','Şənbə'];
-  const local = new Date(d.toLocaleString('en-US', { timeZone: timezone }));
-  const weekday = AZ_WEEKDAYS[local.getDay()]!;
-  const day = local.getDate();
-  const month = AZ_MONTHS[local.getMonth()]!;
-  const year = local.getFullYear();
-  const hh = String(local.getHours()).padStart(2, '0');
-  const mm = String(local.getMinutes()).padStart(2, '0');
-  return `${day} ${month} ${year}, ${weekday}`;
+function formatDateLocale(iso: string, timezone: string, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    timeZone: timezone,
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date(iso));
 }
 
-function formatAzTime(iso: string, timezone: string) {
-  return new Intl.DateTimeFormat('az-AZ', {
+function formatTimeLocale(iso: string, timezone: string, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
     hour: '2-digit', minute: '2-digit', timeZone: timezone, hour12: false,
   }).format(new Date(iso));
 }
@@ -58,6 +55,9 @@ function Row({ label, value, bold }: { label: string; value: string; bold?: bool
 export default function SummaryStep() {
   const { salon, draft, draftLoaded } = useBookingContext();
   const router = useRouter();
+  const t = useTranslations('booking');
+  const tAuth = useTranslations('auth');
+  const locale = useLocale();
   const [authChecked, setAuthChecked] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const checked = useRef(false);
@@ -99,14 +99,14 @@ export default function SummaryStep() {
 
   return (
     <BookingPageShell
-      title="Rezervasiyanı təsdiqləyin"
+      title={t('summary')}
       backHref={`/salons/${salon.slug}/book/datetime`}
-      backLabel="Tarix seçiminə qayıt"
+      backLabel={t('backToDateTime')}
       footer={
         <>
           {authChecked ? (
             <BookingCTAButton
-              label={isAuthenticated ? 'Rezervasiyanı yarat' : 'Daxil olun və rezervasiya edin'}
+              label={isAuthenticated ? t('createReservation') : tAuth('loginBtn')}
               onClick={handleContinue}
             />
           ) : (
@@ -114,9 +114,9 @@ export default function SummaryStep() {
           )}
           {authChecked && !isAuthenticated && (
             <p style={{ textAlign: 'center', fontSize: '0.72rem', color: '#7c6fa0', marginTop: '0.6rem' }}>
-              Hesabınız yoxdur?{' '}
+              {tAuth('noAccount')}{' '}
               <a href={`/register?returnTo=${encodeURIComponent(confirmHref)}`} style={{ color: '#7c3aed', fontWeight: 600, textDecoration: 'none' }}>
-                Qeydiyyatdan keçin
+                {tAuth('register')}
               </a>
             </p>
           )}
@@ -135,20 +135,20 @@ export default function SummaryStep() {
         }}
       >
         <h2 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#1e1b2e', marginBottom: '0.25rem' }}>
-          Rezervasiya məlumatları
+          {t('bookingDetails')}
         </h2>
 
         <div style={{ borderTop: '1px solid #f3e8ff', marginTop: '0.75rem' }}>
-          <Row label="Salon" value={salon.name} />
-          <Row label="Usta" value={selectedEmployee?.fullName ?? 'İstənilən usta'} />
-          {selectedService && <Row label="Xidmət" value={selectedService.name} />}
+          <Row label={t('salon')} value={salon.name} />
+          <Row label={t('stylist')} value={selectedEmployee?.fullName ?? t('anyStylist')} />
+          {selectedService && <Row label={t('serviceName')} value={selectedService.name} />}
           {selectedService && (
-            <Row label="Qiymət" value={formatMoney(selectedService.priceAmount)} />
+            <Row label={t('price')} value={formatMoney(selectedService.priceAmount)} />
           )}
-          <Row label="Tarix" value={formatAzDateTime(draft.startAt, salon.timezone)} />
-          <Row label="Saat" value={formatAzTime(draft.startAt, salon.timezone)} />
+          <Row label={t('date')} value={formatDateLocale(draft.startAt, salon.timezone, locale)} />
+          <Row label={t('time')} value={formatTimeLocale(draft.startAt, salon.timezone, locale)} />
           {selectedService && (
-            <Row label="Müddət" value={`${selectedService.durationMinutes} dəq`} />
+            <Row label={t('duration')} value={`${selectedService.durationMinutes} ${t('min')}`} />
           )}
         </div>
       </div>
@@ -206,7 +206,7 @@ export default function SummaryStep() {
       {/* Payment note */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0 0.25rem', marginBottom: '0.5rem' }}>
         <InfoIcon />
-        <p style={{ fontSize: '0.75rem', color: '#7c6fa0' }}>Ödəniş salon daxilində ediləcək.</p>
+        <p style={{ fontSize: '0.75rem', color: '#7c6fa0' }}>{t('paymentNote')}</p>
       </div>
     </BookingPageShell>
   );

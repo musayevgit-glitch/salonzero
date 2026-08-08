@@ -3,9 +3,11 @@
 import { isSafeRedirectPath } from '@salonomia/validation';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { apiFetch, ApiError } from '../../../lib/api-client';
 
 export function RegisterForm() {
+  const t = useTranslations('auth');
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = searchParams ? searchParams.get('returnTo') : null;
@@ -44,16 +46,16 @@ export function RegisterForm() {
               SALONOMIA
             </span>
           </a>
-          <p style={{ color: '#7c3aed', fontSize: '0.875rem', marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>Eksklüziv gözəllik təcrübəsi</p>
+          <p style={{ color: '#7c3aed', fontSize: '0.875rem', marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>{t('tagline')}</p>
         </div>
         
-        <h1 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#1e1b2e', marginBottom: '1.5rem', textAlign: 'center', fontFamily: "'Playfair Display', Georgia, serif" }}>Qeydiyyatdan keçin</h1>
+        <h1 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#1e1b2e', marginBottom: '1.5rem', textAlign: 'center', fontFamily: "'Playfair Display', Georgia, serif" }}>{t('registerTitle')}</h1>
         
         <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {error ? <div style={{ color: '#dc2626', fontSize: '0.875rem', background: '#fef2f2', padding: '0.75rem', borderRadius: 8 }}>{error}</div> : null}
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <label style={{ fontSize: '0.875rem', color: '#1e1b2e', fontWeight: 500 }}>Ad Soyad</label>
+            <label style={{ fontSize: '0.875rem', color: '#1e1b2e', fontWeight: 500 }}>{t('fullName')}</label>
             <input
               type="text"
               autoComplete="name"
@@ -65,7 +67,7 @@ export function RegisterForm() {
           </div>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <label style={{ fontSize: '0.875rem', color: '#1e1b2e', fontWeight: 500 }}>E-poçt</label>
+            <label style={{ fontSize: '0.875rem', color: '#1e1b2e', fontWeight: 500 }}>{t('email')}</label>
             <input
               type="email"
               autoComplete="email"
@@ -77,7 +79,7 @@ export function RegisterForm() {
           </div>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <label style={{ fontSize: '0.875rem', color: '#1e1b2e', fontWeight: 500 }}>Şifrə</label>
+            <label style={{ fontSize: '0.875rem', color: '#1e1b2e', fontWeight: 500 }}>{t('password')}</label>
             <input
               type="password"
               autoComplete="new-password"
@@ -87,17 +89,17 @@ export function RegisterForm() {
               onChange={(e) => setPassword(e.target.value)}
               style={{ border: '1px solid #e4d4f4', borderRadius: 12, padding: '0.75rem 1rem', fontFamily: 'Inter, sans-serif', fontSize: '0.95rem', outline: 'none' }}
             />
-            <span style={{ fontSize: '0.75rem', color: '#7c6fa0' }}>Ən azı 8 simvol.</span>
+            <span style={{ fontSize: '0.75rem', color: '#7c6fa0' }}>{t('passwordMinLength')}</span>
           </div>
           
           <button type="submit" disabled={loading} style={{ background: '#7c3aed', color: 'white', borderRadius: 12, padding: '0.875rem', fontSize: '1rem', fontWeight: 500, border: 'none', cursor: loading ? 'not-allowed' : 'pointer', marginTop: '0.5rem', opacity: loading ? 0.7 : 1 }}>
-            {loading ? 'Gözləyin...' : 'Qeydiyyatdan keç'}
+            {loading ? t('submitting') : t('registerBtn')}
           </button>
         </form>
         
         <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center', fontSize: '0.875rem' }}>
           <p style={{ color: '#7c6fa0', margin: 0 }}>
-            Artıq hesabınız var? <a href="/login" style={{ color: '#1e1b2e', fontWeight: 500, textDecoration: 'none' }}>Daxil ol</a>
+            {t('haveAccount')} <a href="/login" style={{ color: '#1e1b2e', fontWeight: 500, textDecoration: 'none' }}>{t('login')}</a>
           </p>
         </div>
       </div>

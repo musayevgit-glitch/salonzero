@@ -144,11 +144,13 @@ export default function EditSalonPage() {
           {error && <Alert tone="danger" title={error} />}
 
           <div className="grid gap-5 sm:grid-cols-2">
-            <FormField label="Salon adı" className="sm:col-span-2">
-              {(p) => (
-                <Input {...p} required value={name} onChange={(e) => setName(e.target.value)} placeholder="Məs. Nova Beauty Studio" />
-              )}
-            </FormField>
+            <div className="sm:col-span-2">
+              <FormField label="Salon adı">
+                {(p) => (
+                  <Input {...p} required value={name} onChange={(e) => setName(e.target.value)} placeholder="Məs. Nova Beauty Studio" />
+                )}
+              </FormField>
+            </div>
 
             <FormField label="Saat qurşağı" description="IANA format, məs. Asia/Baku">
               {(p) => (
@@ -162,11 +164,13 @@ export default function EditSalonPage() {
               )}
             </FormField>
 
-            <FormField label="Ünvan" optional className="sm:col-span-2">
-              {(p) => (
-                <Input {...p} value={addressLine} onChange={(e) => setAddressLine(e.target.value)} placeholder="Neftçilər pr. 12, Bakı" />
-              )}
-            </FormField>
+            <div className="sm:col-span-2">
+              <FormField label="Ünvan" optional>
+                {(p) => (
+                  <Input {...p} value={addressLine} onChange={(e) => setAddressLine(e.target.value)} placeholder="Neftçilər pr. 12, Bakı" />
+                )}
+              </FormField>
+            </div>
 
             <FormField label="Telefon" optional>
               {(p) => (
@@ -191,11 +195,13 @@ export default function EditSalonPage() {
               )}
             </FormField>
 
-            <FormField label="Açıqlama" optional className="sm:col-span-2">
-              {(p) => (
-                <Textarea {...p} rows={4} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Salon haqqında qısa məlumat..." />
-              )}
-            </FormField>
+            <div className="sm:col-span-2">
+              <FormField label="Açıqlama" optional>
+                {(p) => (
+                  <Textarea {...p} rows={4} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Salon haqqında qısa məlumat..." />
+                )}
+              </FormField>
+            </div>
           </div>
 
           <div className="flex gap-3 pt-1">

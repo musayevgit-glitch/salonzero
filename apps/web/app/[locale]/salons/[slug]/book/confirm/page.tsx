@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { apiFetch, ApiError } from '../../../../../../lib/api-client';
 import { useBookingContext } from '../_components/BookingContext';
 import { BookingCTAButton, BookingPageShell } from '../_components/BookingPageShell';
@@ -23,7 +24,10 @@ function InfoIcon() {
 
 export default function ConfirmStep() {
   const { salon, draft, draftLoaded, clearDraft, setStartAt } = useBookingContext();
+  // draft.holdId is released automatically when clearDraft() is called (sessionStorage cleared),
+  // but we also DELETE it from the server so it frees the slot immediately.
   const router = useRouter();
+  const t = useTranslations('booking');
 
   const [profile, setProfile] = useState<CustomerProfile | null>(null);
   const [note, setNote] = useState('');
@@ -62,6 +66,7 @@ export default function ConfirmStep() {
     setSubmitting(true);
     setError(null);
     try {
+      const holdId = draft.holdId;
       const res = await apiFetch<{ id: string }>('/reservations', {
         method: 'POST',
         body: JSON.stringify({
@@ -73,6 +78,10 @@ export default function ConfirmStep() {
           idempotencyKey: draft.idempotencyKey,
         }),
       });
+      // Release the slot hold now that the reservation is created
+      if (holdId) {
+        void fetch(`/api/reservations/slot-holds/${holdId}`, { method: 'DELETE' });
+      }
       clearDraft();
       router.push('/account/reservations');
     } catch (err) {
@@ -88,9 +97,9 @@ export default function ConfirmStep() {
 
   return (
     <BookingPageShell
-      title="Təsdiq"
+      title={t('confirm')}
       backHref={`/salons/${salon.slug}/book/summary`}
-      backLabel="Nəzərdən keçirməyə qayıt"
+      backLabel={t('backToSummary')}
       footer={
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
           {/* Terms */}
@@ -128,14 +137,14 @@ export default function ConfirmStep() {
               checked={termsAccepted}
               onChange={(e) => setTermsAccepted(e.target.checked)}
               style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }}
-              aria-label="Şərtlər və qaydaları qəbul edirəm"
+              aria-label={t('termsAccept')}
             />
             <span style={{ fontSize: '0.78rem', color: '#6b5d8a', lineHeight: 1.5 }}>
-              Rezervasiya yaratmaqla{' '}
+              {t('termsText').split('{link}')[0]}
               <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: '#7c3aed', fontWeight: 600, textDecoration: 'none' }}>
-                şərtlər və qaydaları
-              </a>{' '}
-              qəbul etmiş olursunuz.
+                {t('termsLink')}
+              </a>
+              {t('termsText').split('{link}')[1]}
             </span>
           </label>
 
@@ -146,7 +155,7 @@ export default function ConfirmStep() {
           )}
 
           <BookingCTAButton
-            label={submitting ? 'Rezervasiya edilir…' : 'Rezervasiyanı yarat'}
+            label={submitting ? t('submitting') : t('createReservation')}
             type="submit"
             disabled={!termsAccepted || !profile}
             loading={submitting}
@@ -158,7 +167,7 @@ export default function ConfirmStep() {
       }
     >
       <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#1e1b2e', marginBottom: '1rem' }}>
-        Məlumatlarınız
+        {t('myInfo')}
       </h2>
 
       {/* Profile card */}
@@ -178,7 +187,7 @@ export default function ConfirmStep() {
             marginBottom: '1rem',
           }}
         >
-          <p style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1e1b2e' }}>{profile.fullName ?? 'Qonaq'}</p>
+          <p style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1e1b2e' }}>{profile.fullName ?? t('guestName')}</p>
           <p style={{ fontSize: '0.8rem', color: '#7c6fa0', marginTop: '0.2rem' }}>{profile.email}</p>
           {profile.phone && <p style={{ fontSize: '0.8rem', color: '#7c6fa0', marginTop: '0.1rem' }}>{profile.phone}</p>}
         </div>
@@ -190,8 +199,8 @@ export default function ConfirmStep() {
           htmlFor="note"
           style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#1e1b2e', marginBottom: '0.5rem' }}
         >
-          Salon üçün qeyd{' '}
-          <span style={{ fontWeight: 400, color: '#7c6fa0' }}>(istəyə bağlı)</span>
+          {t('noteLabel')}{' '}
+          <span style={{ fontWeight: 400, color: '#7c6fa0' }}>{t('noteOptional')}</span>
         </label>
         <textarea
           id="note"
@@ -200,7 +209,7 @@ export default function ConfirmStep() {
           onChange={(e) => setNote(e.target.value)}
           rows={3}
           maxLength={1000}
-          placeholder="Xüsusi istəkləriniz və ya məlumatlar..."
+          placeholder={t('notePlaceholder')}
           style={{
             width: '100%',
             padding: '0.75rem 1rem',
@@ -224,7 +233,7 @@ export default function ConfirmStep() {
       {/* Payment info note */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0 0.25rem' }}>
         <InfoIcon />
-        <p style={{ fontSize: '0.75rem', color: '#7c6fa0' }}>Ödəniş salon daxilində ediləcək.</p>
+        <p style={{ fontSize: '0.75rem', color: '#7c6fa0' }}>{t('paymentNote')}</p>
       </div>
     </BookingPageShell>
   );

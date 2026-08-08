@@ -115,6 +115,8 @@
     "selectTime": "Saat seçin",
     "selectedDate": "Seçilen tarih",
     "slotBlockedNote": "Seçilen slot sizin için 10 dakika bloklanacak.",
+    "holdingSlot": "Slot rezerve ediliyor...",
+    "slotNoLongerAvailable": "Bu slot artık mevcut değil. Lütfen başka bir zaman seçin.",
     "slotsAvailable": "Müsait",
     "slotsSelected": "Seçildi",
     "slotsFull": "Dolu",
@@ -237,5 +239,27 @@
     "saveBtn": "Kaydet",
     "cancelling": "İptal ediliyor...",
     "confirmCancelBtn": "Evet, iptal et"
+  },
+  "terms": {
+    "pageTitle": "Kullanım Koşulları — Salonomia",
+    "title": "Kullanım Koşulları",
+    "lastUpdated": "Son güncelleme: Ağustos 2026",
+    "acceptanceTitle": "1. Koşulların Kabulü",
+    "acceptanceBody": "Salonomia hizmetini kullanarak bu kullanım koşullarını tamamen kabul etmiş olursunuz. Bu koşullarla aynı fikirde değilseniz, lütfen hizmeti kullanmayın.",
+    "servicesTitle": "2. Hizmetler",
+    "servicesBody": "Salonomia, müşterileri güzellik salonlarıyla buluşturan bir salon rezervasyon platformudur. Rezervasyon hizmetleri doğrudan salon tarafından gerçekleştirilir.",
+    "reservationsTitle": "3. Rezervasyonlar",
+    "reservationsBody": "Rezervasyon yaptıktan sonra salonden onay e-postası alacaksınız. Salon manuel onay gerektiriyorsa, rezervasyonunuz beklemede durumuna geçecektir.",
+    "cancellationTitle": "4. İptal ve Değişiklik",
+    "cancellationBody": "İptal politikaları salona göre değişir. Salonun iptal süresine uymayı tavsiye ederiz. Gecikme durumunda lütfen salonla doğrudan iletişime geçin.",
+    "privacyTitle": "5. Gizlilik",
+    "privacyBody": "Kişisel verileriniz gizlilik politikamıza uygun olarak korunmaktadır. Hizmet sunumu için zorunlu durumlar dışında verilerinizi üçüncü taraflarla paylaşmıyoruz.",
+    "liabilityTitle": "6. Sorumluluk Sınırlaması",
+    "liabilityBody": "Salonomia bir platform aracısı olarak hareket eder. Salonların sağladığı hizmetlerin kalitesinden doğrudan sorumlu değiliz. Memnuniyetsizlik durumunda lütfen salonla doğrudan iletişime geçin.",
+    "changesTitle": "7. Koşullardaki Değişiklikler",
+    "changesBody": "Bu koşullar herhangi bir zamanda güncellenebilir. Önemli değişiklikler hakkında e-posta ile bilgilendirileceksiniz. Değişikliklerin ardından hizmeti kullanmaya devam etmek yeni koşulları kabul ettiğiniz anlamına gelir.",
+    "contactTitle": "8. İletişim",
+    "contactBody": "Sorularınız için: support@salonomia.az adresine yazın. En kısa sürede yanıt vermeye çalışacağız.",
+    "footer": "Bu koşullar, Salonomia platformunda yapılan tüm rezervasyonlar için geçerlidir."
   }
 }

@@ -159,6 +159,7 @@ model Salon {
   employees         EmployeeProfile[]
   reservations      Reservation[]
   invitations       SalonInvitation[]
+  slotHolds         SlotHold[]
 
   @@index([status])
 }
@@ -241,6 +242,7 @@ model EmployeeProfile {
   breaks           Break[]
   timeOff          TimeOff[]
   reservations     Reservation[]
+  slotHolds        SlotHold[]
 
   @@index([salonId, isActive])
 }
@@ -368,6 +370,28 @@ model ReservationStatusHistory {
   changedByUser User?       @relation(fields: [changedByUserId], references: [id], onDelete: SetNull)
 
   @@index([reservationId, createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Slot Holds — temporary 10-minute pre-booking holds
+// ---------------------------------------------------------------------------
+
+// Holds a slot for a customer during the booking flow (datetime → confirm steps).
+// Expires automatically after 10 minutes. No auth required — identified by id (UUID).
+// Active holds (expiresAt > now) are excluded from availability slots for other customers.
+model SlotHold {
+  id         String   @id @default(uuid())
+  salonId    String
+  employeeId String
+  startAt    DateTime @db.Timestamptz(3)
+  endAt      DateTime @db.Timestamptz(3)
+  expiresAt  DateTime @db.Timestamptz(3)
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
+
+  salon    Salon           @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  employee EmployeeProfile @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId, startAt, expiresAt])
 }
 
 // ---------------------------------------------------------------------------

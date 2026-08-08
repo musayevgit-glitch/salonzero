@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { getTranslations } from 'next-intl/server';
 import { PageLayout } from '../../_components/PageLayout';
 import { getIsAuthenticated } from '../../../lib/fetch-api-server';
 import { fetchPublicApi } from '../../../lib/public-api';
@@ -51,6 +52,8 @@ export default async function SalonsPage({
   if (minPrice) params.minPrice = minPrice;
   if (maxPrice) params.maxPrice = maxPrice;
 
+  const t = await getTranslations('salons');
+
   const [isAuthenticated, fetchResult] = await Promise.all([
     getIsAuthenticated(),
     fetchPublicApi<SalonListResponse>('/public/salons', { params }).catch((err: unknown) => err),
@@ -67,11 +70,8 @@ export default async function SalonsPage({
     <PageLayout isAuthenticated={isAuthenticated} activeNav="salons">
       <div style={{ marginBottom: '2rem' }}>
         <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '2.5rem', fontWeight: 700, color: '#1e1b2e', margin: '0 0 1rem 0' }}>
-          Salonlar
+          {t('title')}
         </h1>
-        <p style={{ color: '#7c6fa0', fontSize: '1rem', margin: 0 }}>
-          Sizin üçün ən uyğun salonu tapın və rahat rezervasiya edin.
-        </p>
       </div>
 
       <div
@@ -85,37 +85,37 @@ export default async function SalonsPage({
       >
         <form style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'flex-end' }}>
           <div style={{ flex: '1 1 200px', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e1b2e' }}>Axtarış</label>
-            <input type="text" name="search" defaultValue={search} placeholder="Salon adı..." style={{ height: 44, boxSizing: 'border-box', padding: '0 1rem', borderRadius: 8, border: '1px solid #e4d4f4', outline: 'none', fontSize: '0.9rem' }} />
+            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e1b2e' }}>{t('searchPlaceholder')}</label>
+            <input type="text" name="search" defaultValue={search} placeholder={t('searchPlaceholder')} style={{ height: 44, boxSizing: 'border-box', padding: '0 1rem', borderRadius: 8, border: '1px solid #e4d4f4', outline: 'none', fontSize: '0.9rem' }} />
           </div>
           <div style={{ flex: '1 1 150px', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e1b2e' }}>Şəhər</label>
-            <input type="text" name="city" defaultValue={city} placeholder="Bakı..." style={{ height: 44, boxSizing: 'border-box', padding: '0 1rem', borderRadius: 8, border: '1px solid #e4d4f4', outline: 'none', fontSize: '0.9rem' }} />
+            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e1b2e' }}>{t('filterCity')}</label>
+            <input type="text" name="city" defaultValue={city} placeholder={t('filterCity')} style={{ height: 44, boxSizing: 'border-box', padding: '0 1rem', borderRadius: 8, border: '1px solid #e4d4f4', outline: 'none', fontSize: '0.9rem' }} />
           </div>
           <div style={{ flex: '1 1 150px', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e1b2e' }}>Kimlər üçün</label>
+            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e1b2e' }}>{t('filterGender')}</label>
             <select name="genderFocus" defaultValue={genderFocus} style={{ height: 44, boxSizing: 'border-box', padding: '0 1rem', borderRadius: 8, border: '1px solid #e4d4f4', outline: 'none', fontSize: '0.9rem', backgroundColor: 'white' }}>
-              <option value="">Hər kəs</option>
-              <option value="Women">Qadın</option>
-              <option value="Men">Kişi</option>
-              <option value="Unisex">Uniseks</option>
+              <option value="">{t('genderAny')}</option>
+              <option value="Women">{t('genderWomen')}</option>
+              <option value="Men">{t('genderMen')}</option>
+              <option value="Unisex">{t('genderUnisex')}</option>
             </select>
           </div>
           <div style={{ flex: '1 1 150px', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e1b2e' }}>Sıralama</label>
+            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e1b2e' }}>{t('filterSort')}</label>
             <select name="sort" defaultValue={sort} style={{ height: 44, boxSizing: 'border-box', padding: '0 1rem', borderRadius: 8, border: '1px solid #e4d4f4', outline: 'none', fontSize: '0.9rem', backgroundColor: 'white' }}>
-              <option value="name_asc">Ad A-Z</option>
-              <option value="name_desc">Ad Z-A</option>
-              <option value="newest">Ən yeni</option>
+              <option value="name_asc">{t('sortNameAsc')}</option>
+              <option value="name_desc">{t('sortNameDesc')}</option>
+              <option value="newest">{t('sortNewest')}</option>
             </select>
           </div>
-          
+
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flex: '1 1 200px' }}>
             <button type="submit" style={{ flex: 1, height: 44, boxSizing: 'border-box', background: '#7c3aed', color: 'white', border: 'none', padding: '0 1.5rem', borderRadius: 8, fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>
-              Filtrləri tətbiq et
+              {t('applyFilters')}
             </button>
             <Link href="/salons" style={{ color: '#7c6fa0', textDecoration: 'underline', fontSize: '0.9rem', fontWeight: 500 }}>
-              Sıfırla
+              {t('resetFilters')}
             </Link>
           </div>
         </form>
@@ -123,11 +123,11 @@ export default async function SalonsPage({
 
       {isError ? (
         <div style={{ textAlign: 'center', padding: '4rem 1rem', color: '#7c6fa0' }}>
-          Salonlar yüklənə bilmədi
+          {t('loadError')}
         </div>
       ) : salons.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '4rem 1rem', color: '#7c6fa0' }}>
-          Heç bir salon tapılmadı
+          {t('empty')}
         </div>
       ) : (
         <>
@@ -150,7 +150,7 @@ export default async function SalonsPage({
                   href={`/salons?page=${currentPage - 1}${search ? `&search=${search}` : ''}${city ? `&city=${city}` : ''}${genderFocus ? `&genderFocus=${genderFocus}` : ''}${sort !== 'name_asc' ? `&sort=${sort}` : ''}`}
                   style={{ padding: '0.6rem 1.5rem', border: '1px solid #e4d4f4', borderRadius: 8, color: '#1e1b2e', textDecoration: 'none', fontWeight: 600, background: 'white' }}
                 >
-                  Əvvəlki
+                  {t('prevPage')}
                 </Link>
               )}
               {currentPage < totalPages && (
@@ -158,7 +158,7 @@ export default async function SalonsPage({
                   href={`/salons?page=${currentPage + 1}${search ? `&search=${search}` : ''}${city ? `&city=${city}` : ''}${genderFocus ? `&genderFocus=${genderFocus}` : ''}${sort !== 'name_asc' ? `&sort=${sort}` : ''}`}
                   style={{ padding: '0.6rem 1.5rem', border: '1px solid #e4d4f4', borderRadius: 8, color: '#1e1b2e', textDecoration: 'none', fontWeight: 600, background: 'white' }}
                 >
-                  Növbəti
+                  {t('nextPage')}
                 </Link>
               )}
             </div>

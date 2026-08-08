@@ -115,6 +115,8 @@
     "selectTime": "Select time",
     "selectedDate": "Selected date",
     "slotBlockedNote": "The selected slot will be held for 10 minutes.",
+    "holdingSlot": "Holding slot...",
+    "slotNoLongerAvailable": "This slot is no longer available. Please choose another time.",
     "slotsAvailable": "Available",
     "slotsSelected": "Selected",
     "slotsFull": "Full",
@@ -237,5 +239,27 @@
     "saveBtn": "Save",
     "cancelling": "Cancelling...",
     "confirmCancelBtn": "Yes, cancel"
+  },
+  "terms": {
+    "pageTitle": "Terms of Service — Salonomia",
+    "title": "Terms of Service",
+    "lastUpdated": "Last updated: August 2026",
+    "acceptanceTitle": "1. Acceptance of Terms",
+    "acceptanceBody": "By using the Salonomia service, you fully accept these terms of service. If you do not agree to these terms, please do not use the service.",
+    "servicesTitle": "2. Services",
+    "servicesBody": "Salonomia is a salon booking platform that connects customers with beauty salons. Booking services are performed directly by the salon.",
+    "reservationsTitle": "3. Reservations",
+    "reservationsBody": "After making a reservation, you will receive a confirmation email from the salon. If the salon requires manual confirmation, your reservation will be placed in a pending state.",
+    "cancellationTitle": "4. Cancellation and Changes",
+    "cancellationBody": "Cancellation policies vary by salon. We recommend following the salon's cancellation window. In case of delays, please contact the salon directly.",
+    "privacyTitle": "5. Privacy",
+    "privacyBody": "Your personal data is protected in accordance with our privacy policy. We do not share your data with third parties except where necessary to provide the service.",
+    "liabilityTitle": "6. Limitation of Liability",
+    "liabilityBody": "Salonomia acts as a platform intermediary. We are not directly responsible for the quality of services provided by salons. In case of dissatisfaction, please contact the salon directly.",
+    "changesTitle": "7. Changes to Terms",
+    "changesBody": "These terms may be updated at any time. You will be notified of significant changes by email. Continuing to use the service after changes constitutes acceptance of the new terms.",
+    "contactTitle": "8. Contact",
+    "contactBody": "For questions, write to: support@salonomia.az. We will do our best to respond as soon as possible.",
+    "footer": "These terms apply to all reservations made on the Salonomia platform."
   }
 }

@@ -57,6 +57,16 @@ export async function GET(
   });
 
   const now = new Date();
+
+  // Fetch active slot holds for these employees to exclude temporarily held slots
+  const employeeIds = employees.map((e) => e.id);
+  const activeHolds = employeeIds.length > 0
+    ? await prisma.slotHold.findMany({
+        where: { employeeId: { in: employeeIds }, startAt: { lt: rangeEnd }, endAt: { gt: rangeStart }, expiresAt: { gt: now } },
+        select: { employeeId: true, startAt: true, endAt: true },
+      })
+    : [];
+
   const input = {
     salonTimezone: salon.timezone, now, rangeStart, rangeEnd,
     serviceDurationMinutes: service.durationMinutes, bufferMinutes: service.bufferMinutes,
@@ -64,7 +74,12 @@ export async function GET(
     employees: employees.map((e) => ({
       employeeId: e.id, isActive: true, isEligibleForService: true,
       workingSchedule: e.workingSchedules, breaks: e.breaks, timeOff: e.timeOff,
-      blockingReservations: e.reservations,
+      blockingReservations: [
+        ...e.reservations,
+        ...activeHolds
+          .filter((h) => h.employeeId === e.id)
+          .map((h) => ({ startAt: h.startAt, endAt: h.endAt, blockedUntil: h.endAt })),
+      ],
     })),
   };
 

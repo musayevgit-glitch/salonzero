@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { PageHeader, PageFooter } from './PageLayout';
 
 interface SalonListItem {
@@ -65,6 +66,7 @@ function ArrowRightIcon({ size = 14 }: { size?: number }) {
 const HERO_IMAGES = ['/images/salon-1.png', '/images/salon-2.png', '/images/salon-3.png'];
 
 function Hero() {
+  const t = useTranslations('home');
   const [query, setQuery] = useState('');
 
   return (
@@ -185,9 +187,7 @@ function Hero() {
 
           {/* Headline */}
           <h1 className="hero-h1 font-display" style={{ fontSize: 'clamp(2.6rem, 5.5vw, 4rem)', fontWeight: 800, lineHeight: 1.08, color: 'white', margin: 0 }}>
-            <span className="hw hw1">Gözəlliyiniz</span>{' '}
-            <br />
-            <span className="hw hw2" style={{ background: 'linear-gradient(135deg, #e9d5ff 0%, #a78bfa 45%, #c4b5fd 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>öz əlinizdə.</span>
+            <span className="hw hw1">{t('heroTitle')}</span>
           </h1>
 
           {/* Purple underline */}
@@ -195,7 +195,7 @@ function Hero() {
 
           {/* Subtitle */}
           <p className="hw hw3" style={{ marginTop: '1.25rem', fontSize: '1rem', color: 'rgba(220,210,255,0.75)', lineHeight: 1.75, fontWeight: 400 }}>
-            Salon seçin, stilist tapın, bir neçə klikdə<br />rezervasiyanızı tamamlayın.
+            {t('heroSubtitle')}
           </p>
 
           {/* Search */}
@@ -214,7 +214,7 @@ function Hero() {
               name="search"
               value={query}
               onChange={e => setQuery(e.target.value)}
-              placeholder="Xidmət, salon və ya stilist axtarın..."
+              placeholder={t('heroSearchPlaceholder')}
               style={{ flex: 1, background: 'none', border: 'none', outline: 'none', color: 'white', fontSize: '0.9rem' } as React.CSSProperties}
             />
             <button
@@ -284,6 +284,7 @@ function Hero() {
 
 /* ─── Features row ───────────────────────────────────────── */
 function Features() {
+  const t = useTranslations('home');
   const features = [
     {
       icon: (
@@ -292,8 +293,8 @@ function Features() {
           <path d="M7 2v4M13 2v4M3 9h14" stroke="#7c3aed" strokeWidth="1.4" strokeLinecap="round" />
         </svg>
       ),
-      title: 'Asan rezervasiya',
-      desc: 'Bir neçə klikdə vaxtınızı seçin və rezervasiya edin.',
+      title: t('featEasyBooking'),
+      desc: t('featEasyBookingDesc'),
     },
     {
       icon: (
@@ -301,8 +302,8 @@ function Features() {
           <path d="M10 2l1.5 4.5H16l-3.75 2.7 1.43 4.4L10 11.1l-3.68 2.6 1.43-4.4L4 6.5h4.5L10 2z" stroke="#7c3aed" strokeWidth="1.3" strokeLinejoin="round" />
         </svg>
       ),
-      title: 'Təsdiqlənmiş stilistlər',
-      desc: 'Peşəkar və təcrübəli stilistlərə etibar edin.',
+      title: t('featVerifiedStylists'),
+      desc: t('featVerifiedStylistsDesc'),
     },
     {
       icon: (
@@ -310,8 +311,8 @@ function Features() {
           <path d="M10 2l1.3 3.9 4.1.3-3.1 2.7 1 4-3.3-2-3.3 2 1-4-3.1-2.7 4.1-.3L10 2z" stroke="#7c3aed" strokeWidth="1.3" strokeLinejoin="round" />
         </svg>
       ),
-      title: 'Keyfiyyətli xidmət',
-      desc: 'Yalnız seçilmiş salonlarda yüksək keyfiyyətli xidmət.',
+      title: t('featQuality'),
+      desc: t('featQualityDesc'),
     },
     {
       icon: (
@@ -320,8 +321,8 @@ function Features() {
           <path d="M7 9a3 3 0 0 1 6 0" stroke="#7c3aed" strokeWidth="1.3" strokeLinecap="round" />
         </svg>
       ),
-      title: 'Xəbərdarlıq',
-      desc: 'Rezervasiya statusu barədə anında bildiriş alın.',
+      title: t('featNotification'),
+      desc: t('featNotificationDesc'),
     },
   ];
 
@@ -342,6 +343,8 @@ function Features() {
 
 /* ─── Popular salons ─────────────────────────────────────── */
 function PopularSalons({ salons }: { salons: SalonListItem[] }) {
+  const t = useTranslations('home');
+  const tc = useTranslations('common');
   function rating(name: string): string {
     const n = name.length % 10;
     return (4.5 + n * 0.04).toFixed(1);
@@ -357,10 +360,10 @@ function PopularSalons({ salons }: { salons: SalonListItem[] }) {
     <section style={{ maxWidth: 1280, margin: '0 auto', padding: '2.5rem 1.25rem' }}>
       <div className="flex items-center justify-between" style={{ marginBottom: '1.25rem' }}>
         <h2 className="font-display" style={{ fontSize: '1.4rem', fontWeight: 700, color: '#1e1b2e' }}>
-          Populyar salonlar
+          {t('popularSalons')}
         </h2>
         <a href="/salons" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.82rem', color: '#7c3aed', fontWeight: 600, textDecoration: 'none' }}>
-          Hamısına bax <ArrowRightIcon size={13} />
+          {tc('viewAll')} <ArrowRightIcon size={13} />
         </a>
       </div>
 
@@ -410,7 +413,7 @@ function PopularSalons({ salons }: { salons: SalonListItem[] }) {
                   onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = '#7c3aed'; (e.currentTarget as HTMLAnchorElement).style.color = 'white'; }}
                   onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'; (e.currentTarget as HTMLAnchorElement).style.color = '#7c3aed'; }}
                 >
-                  Baxmaq
+                  {t('bookNow')}
                 </a>
               </div>
             </div>
@@ -423,6 +426,7 @@ function PopularSalons({ salons }: { salons: SalonListItem[] }) {
 
 /* ─── CTA dark section ───────────────────────────────────── */
 function CTASection() {
+  const t = useTranslations('home');
   return (
     <section style={{ maxWidth: 1280, margin: '0 auto', padding: '0 1.25rem 3rem' }}>
       <div style={{ borderRadius: '24px', overflow: 'hidden', position: 'relative', background: '#130d2e', padding: '2.5rem 2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1.5rem', flexWrap: 'wrap' }}>
@@ -435,10 +439,10 @@ function CTASection() {
         <div style={{ position: 'relative', maxWidth: 400 }}>
           <div style={{ color: '#a78bfa', marginBottom: '0.75rem', fontSize: '1.2rem' }}>✦</div>
           <h2 className="font-display" style={{ fontSize: 'clamp(1.4rem, 3vw, 1.9rem)', fontWeight: 700, color: 'white', lineHeight: 1.2, marginBottom: '0.75rem' }}>
-            Zamanınızı gözəlliyinizə<br />həsr edin
+            {t('ctaTitle')}
           </h2>
           <p style={{ fontSize: '0.875rem', color: 'rgba(220,210,255,0.72)', lineHeight: 1.6, marginBottom: '1.5rem' }}>
-            Salonomia ilə ən yaxşı salonları kəşf edin və rahatlıqla rezervasiya edin.
+            {t('ctaSubtitle')}
           </p>
           <a
             href="/salons"
@@ -446,7 +450,7 @@ function CTASection() {
             onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.opacity = '0.88'; }}
             onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.opacity = '1'; }}
           >
-            İndi başlayın <ArrowRightIcon size={14} />
+            {t('ctaButton')} <ArrowRightIcon size={14} />
           </a>
         </div>
       </div>

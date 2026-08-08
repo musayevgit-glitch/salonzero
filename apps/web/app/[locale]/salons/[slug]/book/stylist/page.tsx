@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { useBookingContext } from '../_components/BookingContext';
 import { BookingPageShell } from '../_components/BookingPageShell';
 
@@ -24,6 +25,7 @@ function ChevronRightIcon() {
 export default function StylistStep() {
   const { salon, draft, draftLoaded, setStylist } = useBookingContext();
   const router = useRouter();
+  const t = useTranslations('booking');
 
   useEffect(() => {
     if (draftLoaded && !draft.serviceId) {
@@ -47,9 +49,9 @@ export default function StylistStep() {
 
   return (
     <BookingPageShell
-      title="Usta seçin"
+      title={t('selectStylist')}
       backHref={`/salons/${salon.slug}/book/service`}
-      backLabel="Xidmət seçiminə qayıt"
+      backLabel={t('backToService')}
     >
       {/* Selected service badge */}
       {selectedService && (
@@ -66,13 +68,13 @@ export default function StylistStep() {
             fontSize: '0.82rem',
           }}
         >
-          <span style={{ color: '#6b5d8a' }}>Seçilmiş xidmət</span>
+          <span style={{ color: '#6b5d8a' }}>{t('serviceName')}</span>
           <span style={{ fontWeight: 700, color: '#1e1b2e' }}>{selectedService.name}</span>
         </div>
       )}
 
       <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#1e1b2e', marginBottom: '0.75rem' }}>
-        Usta
+        {t('stylist')}
       </h2>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
@@ -106,9 +108,9 @@ export default function StylistStep() {
             ✦
           </div>
           <div style={{ flex: 1 }}>
-            <p style={{ fontWeight: 600, fontSize: '0.9rem', color: '#1e1b2e' }}>Fərq etməz</p>
+            <p style={{ fontWeight: 600, fontSize: '0.9rem', color: '#1e1b2e' }}>{t('anyStylist')}</p>
             <p style={{ fontSize: '0.75rem', color: '#7c6fa0', marginTop: '0.15rem' }}>
-              İstənilən mövcud usta təyin ediləcək
+              {t('anyAvailable')}
             </p>
           </div>
           <span style={{ color: '#c5bbb2' }}><ChevronRightIcon /></span>
@@ -175,13 +177,13 @@ export default function StylistStep() {
 
         {salon.employees.length === 0 && (
           <p style={{ color: '#7c6fa0', fontSize: '0.875rem', textAlign: 'center', marginTop: '1rem' }}>
-            Heç bir usta əlavə edilməyib.{' '}
+            {t('noStylistsAvailable')}{' '}
             <button
               type="button"
               onClick={() => handleSelect(null)}
               style={{ color: '#7c3aed', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', fontSize: 'inherit' }}
             >
-              İrəliyə keç
+              {t('continueBtn')}
             </button>
           </p>
         )}

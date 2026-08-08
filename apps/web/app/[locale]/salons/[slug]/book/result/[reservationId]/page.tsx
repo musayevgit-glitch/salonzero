@@ -1,4 +1,5 @@
 import { notFound, redirect } from 'next/navigation';
+import { getTranslations, getLocale } from 'next-intl/server';
 import { fetchApiServer, ApiServerError } from '../../../../../../../lib/fetch-api-server';
 import Link from 'next/link';
 import { PageLayout } from '../../../../../../_components/PageLayout';
@@ -17,43 +18,17 @@ interface ReservationResult {
   salon: { name: string; slug: string; timezone: string };
 }
 
-const AZ_MONTHS_SHORT = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'İyn', 'İyl', 'Avq', 'Sen', 'Okt', 'Noy', 'Dek'];
-const AZ_WEEKDAYS_SHORT = ['B.e', 'Ç.a', 'Çər', 'C.a', 'Cüm', 'Şən', 'Baz'];
-
-function formatDateTimeAz(iso: string, timezone: string) {
-  const d = new Date(iso);
-  // Convert date parts using timeZone
-  const formatter = new Intl.DateTimeFormat('en-US', {
+function formatDateTimeLocale(iso: string, timezone: string, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
     timeZone: timezone,
-    year: 'numeric',
-    month: 'numeric',
+    weekday: 'short',
     day: 'numeric',
-    hour: 'numeric',
-    minute: 'numeric',
-    hour12: false
-  });
-  
-  try {
-    const parts = formatter.formatToParts(d);
-    const getPart = (type: string) => parts.find(p => p.type === type)?.value || '';
-    const day = getPart('day');
-    const monthIndex = parseInt(getPart('month')) - 1;
-    const year = getPart('year');
-    const hour = getPart('hour').padStart(2, '0');
-    const minute = getPart('minute').padStart(2, '0');
-    
-    // get weekday
-    const utcDate = new Date(d.toLocaleString('en-US', { timeZone: timezone }));
-    const weekdayIdx = (utcDate.getDay() + 6) % 7; // Monday = 0
-    
-    return `${day} ${AZ_MONTHS_SHORT[monthIndex]} ${year}, ${AZ_WEEKDAYS_SHORT[weekdayIdx]} saat ${hour}:${minute}`;
-  } catch {
-    return new Intl.DateTimeFormat('az-AZ', {
-      timeZone: timezone,
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    }).format(d);
-  }
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(new Date(iso));
 }
 
 import { formatMoney } from '../../../../../../../lib/format-money';
@@ -64,6 +39,8 @@ export default async function ResultPage({
   params: Promise<{ slug: string; reservationId: string }>;
 }) {
   const { slug, reservationId } = await params;
+  const t = await getTranslations('booking');
+  const locale = await getLocale();
 
   let reservation: ReservationResult;
   try {
@@ -124,13 +101,13 @@ export default async function ResultPage({
             margin: '0 0 0.5rem 0'
           }}
         >
-          {isPending ? 'Rezervasiya qəbul edildi!' : 'Rezervasiya təsdiqləndi!'}
+          {isPending ? t('successTitle') : t('successTitleConfirmed')}
         </h1>
         
         <p style={{ fontSize: '0.9rem', color: '#7c6fa0', lineHeight: 1.6, margin: '0 0 2rem 0' }}>
           {isPending
-            ? `Rezervasiya sorğunuz ${reservation.salon.name} salonuna göndərildi. Salon təsdiqlədikdə sizə bildiriş göndəriləcək.`
-            : `${reservation.salon.name} salonundakı görüşünüz uğurla təsdiqləndi.`}
+            ? t('successPendingMsg', { salonName: reservation.salon.name })
+            : t('successConfirmedMsg', { salonName: reservation.salon.name })}
         </p>
 
         {/* Details Card */}
@@ -145,28 +122,28 @@ export default async function ResultPage({
           }}
         >
           <p style={{ margin: '0 0 1rem 0', fontSize: '0.8rem', fontWeight: 700, color: '#1e1b2e', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #e4d4f4', paddingBottom: '0.5rem' }}>
-            Rezervasiya məlumatları
+            {t('bookingDetails')}
           </p>
           
           <dl style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.88rem', margin: 0 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
-              <dt style={{ color: '#7c6fa0' }}>Salon</dt>
+              <dt style={{ color: '#7c6fa0' }}>{t('salon')}</dt>
               <dd style={{ fontWeight: 600, color: '#1e1b2e', textAlign: 'right' }}>{reservation.salon.name}</dd>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
-              <dt style={{ color: '#7c6fa0' }}>Xidmət</dt>
+              <dt style={{ color: '#7c6fa0' }}>{t('serviceName')}</dt>
               <dd style={{ fontWeight: 600, color: '#1e1b2e', textAlign: 'right' }}>{reservation.service.name}</dd>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
-              <dt style={{ color: '#7c6fa0' }}>Stilist</dt>
-              <dd style={{ fontWeight: 600, color: '#1e1b2e', textAlign: 'right' }}>{reservation.employee?.fullName ?? 'İstənilən stilist'}</dd>
+              <dt style={{ color: '#7c6fa0' }}>{t('stylist')}</dt>
+              <dd style={{ fontWeight: 600, color: '#1e1b2e', textAlign: 'right' }}>{reservation.employee?.fullName ?? t('anyStylist')}</dd>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
-              <dt style={{ color: '#7c6fa0' }}>Tarix və Saat</dt>
-              <dd style={{ fontWeight: 600, color: '#1e1b2e', textAlign: 'right' }}>{formatDateTimeAz(reservation.startAt, reservation.salon.timezone)}</dd>
+              <dt style={{ color: '#7c6fa0' }}>{t('date')}/{t('time')}</dt>
+              <dd style={{ fontWeight: 600, color: '#1e1b2e', textAlign: 'right' }}>{formatDateTimeLocale(reservation.startAt, reservation.salon.timezone, locale)}</dd>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', borderTop: '1px dashed #e4d4f4', paddingTop: '0.75rem', marginTop: '0.25rem' }}>
-              <dt style={{ color: '#7c6fa0', fontWeight: 600 }}>Ödəniləcək məbləğ</dt>
+              <dt style={{ color: '#7c6fa0', fontWeight: 600 }}>{t('amountToPay')}</dt>
               <dd style={{ fontWeight: 700, color: '#7c3aed', fontSize: '1.05rem', textAlign: 'right' }}>{formatMoney(reservation.priceAmount)}</dd>
             </div>
           </dl>
@@ -192,7 +169,7 @@ export default async function ResultPage({
               transition: 'opacity 0.2s'
             }}
           >
-            Rezervasiyalarıma keç
+            {t('viewMyBookings')}
           </Link>
           
           <Link
@@ -208,7 +185,7 @@ export default async function ResultPage({
               transition: 'color 0.2s'
             }}
           >
-            Salona geri qayıt
+            {t('backToSalon')}
           </Link>
         </div>
       </div>

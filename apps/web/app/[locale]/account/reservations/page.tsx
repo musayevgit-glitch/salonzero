@@ -1,5 +1,6 @@
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
+import { getTranslations } from 'next-intl/server';
 import { fetchApiServer, ApiServerError } from '../../../../lib/fetch-api-server';
 import { PageLayout } from '../../../_components/PageLayout';
 import { formatMoney } from '../../../../lib/format-money';
@@ -25,17 +26,6 @@ interface ReservationList {
   pageSize: number;
 }
 
-const STATUS_MAP: Record<string, string> = {
-  PENDING: 'Gözləmədə',
-  CONFIRMED: 'Təsdiqlənmiş',
-  CANCELLED_BY_CUSTOMER: 'Ləğv edilmiş',
-  CANCELLED_BY_SALON: 'Salon tərəfindən ləğv',
-  REJECTED: 'İmtina edilib',
-  CHECKED_IN: 'Yoxlanılıb',
-  COMPLETED: 'Tamamlanmış',
-  NO_SHOW: 'Gəlməyib',
-};
-
 const BADGE_STYLE: Record<string, React.CSSProperties> = {
   PENDING: { background: '#fef3c7', color: '#92400e' },
   CONFIRMED: { background: '#dcfce7', color: '#166534' },
@@ -52,6 +42,19 @@ export default async function ReservationsListPage({
 }: {
   searchParams: Promise<{ page?: string; status?: string }>;
 }) {
+  const t = await getTranslations('account');
+  const tb = await getTranslations('booking');
+
+  const STATUS_MAP: Record<string, string> = {
+    PENDING: t('statusPending'),
+    CONFIRMED: t('statusConfirmed'),
+    CANCELLED_BY_CUSTOMER: t('statusCancelledByCustomer'),
+    CANCELLED_BY_SALON: t('statusCancelledBySalon'),
+    CHECKED_IN: t('statusCheckedIn'),
+    COMPLETED: t('statusCompleted'),
+    NO_SHOW: t('statusNoShow'),
+  };
+
   const { page: pageParam, status } = await searchParams;
   const page = Math.max(1, Number(pageParam ?? 1) || 1);
 
@@ -74,17 +77,18 @@ export default async function ReservationsListPage({
 
   const totalPages = Math.ceil(data.total / data.pageSize);
 
-  const statuses = ['Hamısı', ...Object.keys(STATUS_MAP)];
+  const ALL_KEY = '__all__';
+  const statuses = [ALL_KEY, ...Object.keys(STATUS_MAP)];
 
   return (
     <PageLayout activeNav="reservations" isAuthenticated={true}>
       <div style={{ maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '2rem', color: '#1e1b2e', margin: 0 }}>Rezervasiyalarım</h1>
+        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '2rem', color: '#1e1b2e', margin: 0 }}>{t('reservationsTitle')}</h1>
 
         {/* Filter tabs */}
         <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           {statuses.map(s => {
-            const isAll = s === 'Hamısı';
+            const isAll = s === ALL_KEY;
             const isActive = isAll ? !status : status === s;
             const href = isAll ? '?' : `?status=${s}`;
             return (
@@ -100,7 +104,7 @@ export default async function ReservationsListPage({
                 border: isActive ? '1px solid #7c3aed' : '1px solid #e4d4f4',
                 transition: 'all 0.2s',
               }}>
-                {isAll ? 'Hamısı' : STATUS_MAP[s]}
+                {isAll ? t('statusAll') : STATUS_MAP[s]}
               </Link>
             );
           })}
@@ -108,9 +112,9 @@ export default async function ReservationsListPage({
 
         {data.items.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '3rem 0' }}>
-            <p style={{ color: '#7c6fa0' }}>Heç bir rezervasiya yoxdur.</p>
+            <p style={{ color: '#7c6fa0' }}>{t('noReservations')}</p>
             <Link href="/salons" style={{ display: 'inline-block', marginTop: '1rem', color: '#7c3aed', textDecoration: 'none', fontWeight: 500 }}>
-              Salonları kəşf et
+              {t('discoverSalons')}
             </Link>
           </div>
         ) : (
@@ -150,11 +154,11 @@ export default async function ReservationsListPage({
                   
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '0.25rem' }}>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontSize: '0.75rem', color: '#7c6fa0' }}>Tarix və Saat</span>
+                      <span style={{ fontSize: '0.75rem', color: '#7c6fa0' }}>{tb('date')} &amp; {tb('time')}</span>
                       <span style={{ fontSize: '0.85rem', color: '#1e1b2e', fontWeight: 500 }}>{dateStr}</span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontSize: '0.75rem', color: '#7c6fa0' }}>Usta</span>
+                      <span style={{ fontSize: '0.75rem', color: '#7c6fa0' }}>{tb('stylist')}</span>
                       <span style={{ fontSize: '0.85rem', color: '#1e1b2e', fontWeight: 500 }}>{r.employee?.fullName || 'İstənilən'}</span>
                     </div>
                   </div>
@@ -164,7 +168,7 @@ export default async function ReservationsListPage({
                       {formatMoney(r.priceAmount)}
                     </div>
                     <Link href={`/account/reservations/${r.id}`} style={{ color: '#7c3aed', fontSize: '0.9rem', fontWeight: 500, textDecoration: 'none' }}>
-                      Ətraflı bax →
+                      {t('viewDetails')}
                     </Link>
                   </div>
                 </div>
@@ -176,11 +180,11 @@ export default async function ReservationsListPage({
         {totalPages > 1 && (
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', fontSize: '0.9rem' }}>
             {page > 1 ? (
-              <Link href={`?page=${page - 1}${status ? `&status=${status}` : ''}`} style={{ color: '#7c3aed', textDecoration: 'none' }}>← Əvvəlki</Link>
+              <Link href={`?page=${page - 1}${status ? `&status=${status}` : ''}`} style={{ color: '#7c3aed', textDecoration: 'none' }}>{t('prevPage')}</Link>
             ) : <span />}
-            <span style={{ color: '#7c6fa0' }}>Səhifə {page} / {totalPages}</span>
+            <span style={{ color: '#7c6fa0' }}>{t('pageOf', { current: page, total: totalPages })}</span>
             {page < totalPages ? (
-              <Link href={`?page=${page + 1}${status ? `&status=${status}` : ''}`} style={{ color: '#7c3aed', textDecoration: 'none' }}>Növbəti →</Link>
+              <Link href={`?page=${page + 1}${status ? `&status=${status}` : ''}`} style={{ color: '#7c3aed', textDecoration: 'none' }}>{t('nextPage')}</Link>
             ) : <span />}
           </div>
         )}

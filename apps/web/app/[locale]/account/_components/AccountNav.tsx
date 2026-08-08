@@ -2,14 +2,16 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-
-const NAV_LINKS = [
-  { href: '/account', label: 'Profile', exact: true },
-  { href: '/account/reservations', label: 'Reservations', exact: false },
-];
+import { useTranslations } from 'next-intl';
 
 export function AccountNav() {
+  const t = useTranslations('nav');
   const pathname = usePathname();
+
+  const NAV_LINKS = [
+    { href: '/account', label: t('profile'), exact: true },
+    { href: '/account/reservations', label: t('reservations'), exact: false },
+  ];
   return (
     <nav aria-label="Account" className="flex gap-1 overflow-x-auto border-b border-border">
       {NAV_LINKS.map((link) => {

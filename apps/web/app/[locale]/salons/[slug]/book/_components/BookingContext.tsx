@@ -49,6 +49,7 @@ export interface BookingDraft {
   employeeId: string | null;
   startAt: string;
   idempotencyKey: string;
+  holdId: string | undefined;
 }
 
 interface BookingContextValue {
@@ -58,6 +59,7 @@ interface BookingContextValue {
   setService: (serviceId: string, employeeId?: string | null) => void;
   setStylist: (employeeId: string | null) => void;
   setStartAt: (startAt: string | undefined) => void;
+  setHoldId: (holdId: string | undefined) => void;
   clearDraft: () => void;
 }
 
@@ -150,6 +152,17 @@ export function BookingShell({
     [salonData.slug],
   );
 
+  const setHoldId = useCallback(
+    (holdId: string | undefined) => {
+      setDraft((prev) => {
+        const next: Partial<BookingDraft> = { ...prev, holdId };
+        writeDraft(salonData.slug, next);
+        return next;
+      });
+    },
+    [salonData.slug],
+  );
+
   const clearDraft = useCallback(() => {
     sessionStorage.removeItem(draftKey(salonData.slug));
     setDraft({});
@@ -163,9 +176,10 @@ export function BookingShell({
       setService,
       setStylist,
       setStartAt,
+      setHoldId,
       clearDraft,
     }),
-    [salonData, draft, draftLoaded, setService, setStylist, setStartAt, clearDraft],
+    [salonData, draft, draftLoaded, setService, setStylist, setStartAt, setHoldId, clearDraft],
   );
 
   return <BookingContext.Provider value={value}>{children}</BookingContext.Provider>;

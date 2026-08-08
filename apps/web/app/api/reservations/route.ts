@@ -99,7 +99,7 @@ export async function POST(req: NextRequest) {
   let chosenEmployeeId: string | null = null;
 
   for (const candidate of candidates) {
-    const [workingSchedule, breaks, timeOff, blockingReservations] = await Promise.all([
+    const [workingSchedule, breaks, timeOff, blockingReservations, activeHolds] = await Promise.all([
       prisma.workingSchedule.findMany({ where: { employeeId: candidate.id } }),
       prisma.break.findMany({ where: { employeeId: candidate.id } }),
       prisma.timeOff.findMany({ where: { employeeId: candidate.id, startAt: { lt: windowEnd }, endAt: { gt: windowStart } } }),
@@ -107,10 +107,19 @@ export async function POST(req: NextRequest) {
         where: { employeeId: candidate.id, status: { in: [...ACTIVE_STATUSES] }, startAt: { lt: windowEnd }, blockedUntil: { gt: windowStart } },
         select: { startAt: true, endAt: true, blockedUntil: true },
       }),
+      prisma.slotHold.findMany({
+        where: { employeeId: candidate.id, startAt: { lt: endAt }, endAt: { gt: startAt }, expiresAt: { gt: now } },
+        select: { startAt: true, endAt: true },
+      }),
     ]);
 
+    const allBlockingReservations = [
+      ...blockingReservations,
+      ...activeHolds.map((h) => ({ startAt: h.startAt, endAt: h.endAt, blockedUntil: h.endAt })),
+    ];
+
     const available = isEmployeeSlotAvailable({
-      employee: { employeeId: candidate.id, isActive: true, isEligibleForService: true, workingSchedule, breaks, timeOff, blockingReservations },
+      employee: { employeeId: candidate.id, isActive: true, isEligibleForService: true, workingSchedule, breaks, timeOff, blockingReservations: allBlockingReservations },
       salonTimezone: salon.timezone, now, candidateStart: startAt,
       serviceDurationMinutes: service.durationMinutes, bufferMinutes: service.bufferMinutes,
       minNoticeMinutes: bookingPolicy.minNoticeMinutes, maxAdvanceDays: bookingPolicy.maxAdvanceDays,

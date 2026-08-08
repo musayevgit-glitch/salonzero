@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { apiFetch, ApiError } from '../../../../../lib/api-client';
 import Link from 'next/link';
 import { PageLayout } from '../../../../_components/PageLayout';
@@ -33,17 +34,6 @@ interface AvailabilitySlot {
   startAt: string;
   endAt: string;
 }
-
-const STATUS_MAP: Record<string, string> = {
-  PENDING: 'Gözləmədə',
-  CONFIRMED: 'Təsdiqlənmiş',
-  CANCELLED_BY_CUSTOMER: 'Ləğv edilmiş',
-  CANCELLED_BY_SALON: 'Salon tərəfindən ləğv',
-  REJECTED: 'İmtina edilib',
-  CHECKED_IN: 'Yoxlanılıb',
-  COMPLETED: 'Tamamlanmış',
-  NO_SHOW: 'Gəlməyib',
-};
 
 const BADGE_STYLE: Record<string, React.CSSProperties> = {
   PENDING: { background: '#fef3c7', color: '#92400e' },
@@ -98,6 +88,20 @@ export default function ReservationDetailPage({
   params: Promise<{ reservationId: string }>;
 }) {
   const router = useRouter();
+  const t = useTranslations('account');
+  const tb = useTranslations('booking');
+  const tc = useTranslations('common');
+
+  const STATUS_MAP: Record<string, string> = {
+    PENDING: t('statusPending'),
+    CONFIRMED: t('statusConfirmed'),
+    CANCELLED_BY_CUSTOMER: t('statusCancelledByCustomer'),
+    CANCELLED_BY_SALON: t('statusCancelledBySalon'),
+    CHECKED_IN: t('statusCheckedIn'),
+    COMPLETED: t('statusCompleted'),
+    NO_SHOW: t('statusNoShow'),
+  };
+
   const [reservationId, setReservationId] = useState<string | null>(null);
   const [reservation, setReservation] = useState<ReservationDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -136,7 +140,7 @@ export default function ReservationDetailPage({
         if (err instanceof ApiError && err.status === 401) {
           router.replace(`/login?returnTo=/account/reservations/${reservationId}`);
         } else {
-          setError('Failed to load reservation.');
+          setError(tc('error'));
           setLoading(false);
         }
       });
@@ -170,7 +174,7 @@ export default function ReservationDetailPage({
       })
       .catch(() => {
         if (!ac.signal.aborted) {
-          setSlotsError('Failed to load slots.');
+          setSlotsError(tc('error'));
           setSlotsLoading(false);
         }
       });
@@ -189,7 +193,7 @@ export default function ReservationDetailPage({
       });
       router.push('/account/reservations');
     } catch (err) {
-      setCancelError(err instanceof Error ? err.message : 'Failed to cancel.');
+      setCancelError(err instanceof Error ? err.message : tc('error'));
       setCancelling(false);
     }
   }
@@ -205,7 +209,7 @@ export default function ReservationDetailPage({
       });
       router.push('/account/reservations');
     } catch (err) {
-      setRescheduleError(err instanceof Error ? err.message : 'Failed to reschedule.');
+      setRescheduleError(err instanceof Error ? err.message : tc('error'));
       setRescheduling(false);
     }
   }
@@ -226,8 +230,8 @@ export default function ReservationDetailPage({
     return (
       <PageLayout activeNav="reservations" isAuthenticated={true}>
         <div style={{ maxWidth: 600, margin: '0 auto', textAlign: 'center', padding: '2rem' }}>
-          <p style={{ color: '#dc2626', marginBottom: '1rem' }}>{error ?? 'Reservation not found.'}</p>
-          <Link href="/account/reservations" style={{ color: '#7c3aed', textDecoration: 'none' }}>← Rezervasiyalara qayıt</Link>
+          <p style={{ color: '#dc2626', marginBottom: '1rem' }}>{error ?? tc('error')}</p>
+          <Link href="/account/reservations" style={{ color: '#7c3aed', textDecoration: 'none' }}>{t('backToReservations')}</Link>
         </div>
       </PageLayout>
     );
@@ -245,10 +249,10 @@ export default function ReservationDetailPage({
       <div style={{ maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         <div>
           <Link href="/account/reservations" style={{ textDecoration: 'none', color: '#7c6fa0', fontSize: '0.9rem', display: 'inline-block', marginBottom: '1rem' }}>
-            ← Geri qayıt
+            {tc('back')}
           </Link>
           <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '2rem', color: '#1e1b2e', margin: 0 }}>
-            Rezervasiya #{shortId}
+            {t('reservationTitle')} #{shortId}
           </h1>
           <div style={{ marginTop: '0.75rem' }}>
             <span style={{
@@ -266,36 +270,36 @@ export default function ReservationDetailPage({
 
         <div style={{ background: 'white', border: '1px solid #e4d4f4', borderRadius: 16, padding: '0 1.25rem' }}>
           <div style={{ padding: '1rem 0', borderBottom: '1px solid #e4d4f4', display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#7c6fa0' }}>Salon</span>
+            <span style={{ color: '#7c6fa0' }}>{tb('salon')}</span>
             <span style={{ color: '#1e1b2e', fontWeight: 500 }}>{reservation.salon.name}</span>
           </div>
           <div style={{ padding: '1rem 0', borderBottom: '1px solid #e4d4f4', display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#7c6fa0' }}>Xidmət</span>
+            <span style={{ color: '#7c6fa0' }}>{tb('serviceName')}</span>
             <span style={{ color: '#1e1b2e', fontWeight: 500 }}>{reservation.service.name}</span>
           </div>
           <div style={{ padding: '1rem 0', borderBottom: '1px solid #e4d4f4', display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#7c6fa0' }}>Usta</span>
+            <span style={{ color: '#7c6fa0' }}>{tb('stylist')}</span>
             <span style={{ color: '#1e1b2e', fontWeight: 500 }}>{reservation.employee?.fullName ?? 'İstənilən'}</span>
           </div>
           <div style={{ padding: '1rem 0', borderBottom: '1px solid #e4d4f4', display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#7c6fa0' }}>Tarix</span>
+            <span style={{ color: '#7c6fa0' }}>{tb('date')}</span>
             <span style={{ color: '#1e1b2e', fontWeight: 500, textAlign: 'right' }}>{formatDateAZ(reservation.startAt, reservation.salon.timezone)}</span>
           </div>
           <div style={{ padding: '1rem 0', borderBottom: '1px solid #e4d4f4', display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#7c6fa0' }}>Saat</span>
+            <span style={{ color: '#7c6fa0' }}>{tb('time')}</span>
             <span style={{ color: '#1e1b2e', fontWeight: 500 }}>{formatTimeAZ(reservation.startAt, reservation.salon.timezone)}</span>
           </div>
           <div style={{ padding: '1rem 0', borderBottom: '1px solid #e4d4f4', display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#7c6fa0' }}>Müddət</span>
+            <span style={{ color: '#7c6fa0' }}>{tb('duration')}</span>
             <span style={{ color: '#1e1b2e', fontWeight: 500 }}>{reservation.service.durationMinutes} dəq</span>
           </div>
           <div style={{ padding: '1rem 0', display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#7c6fa0' }}>Qiymət</span>
+            <span style={{ color: '#7c6fa0' }}>{tb('price')}</span>
             <span style={{ color: '#1e1b2e', fontWeight: 600 }}>{formatMoney(reservation.priceAmount)}</span>
           </div>
           {reservation.customerNote && (
             <div style={{ padding: '1rem 0', borderTop: '1px solid #e4d4f4', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-              <span style={{ color: '#7c6fa0' }}>Qeydiniz</span>
+              <span style={{ color: '#7c6fa0' }}>{tb('note')}</span>
               <span style={{ color: '#1e1b2e', fontWeight: 500 }}>{reservation.customerNote}</span>
             </div>
           )}
@@ -310,11 +314,11 @@ export default function ReservationDetailPage({
                 onClick={() => setShowReschedule(true)}
                 style={{ background: '#1e1b2e', color: 'white', border: 'none', borderRadius: 8, padding: '0.75rem 1.5rem', fontSize: '0.95rem', fontWeight: 500, cursor: 'pointer', width: '100%' }}
               >
-                Vaxtı dəyişdir
+                {t('reschedule')}
               </button>
             ) : (
               <div style={{ background: 'white', border: '1px solid #e4d4f4', borderRadius: 16, padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <p style={{ margin: 0, fontWeight: 600, color: '#1e1b2e' }}>Yeni vaxt seçin</p>
+                <p style={{ margin: 0, fontWeight: 600, color: '#1e1b2e' }}>{t('selectNewTime')}</p>
 
                 <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                   {dates.map((d) => {
@@ -351,7 +355,7 @@ export default function ReservationDetailPage({
                 </div>
 
                 {!rescheduleDate && (
-                  <p style={{ color: '#7c6fa0', fontSize: '0.9rem', margin: 0 }}>Uyğun saatları görmək üçün gün seçin.</p>
+                  <p style={{ color: '#7c6fa0', fontSize: '0.9rem', margin: 0 }}>{t('selectDayFirst')}</p>
                 )}
                 
                 {rescheduleDate && slotsLoading && (
@@ -367,7 +371,7 @@ export default function ReservationDetailPage({
                 )}
                 
                 {rescheduleDate && !slotsLoading && !slotsError && slots.length === 0 && (
-                  <p style={{ color: '#7c6fa0', fontSize: '0.9rem', margin: 0 }}>Bu gün üçün boş vaxt yoxdur.</p>
+                  <p style={{ color: '#7c6fa0', fontSize: '0.9rem', margin: 0 }}>{t('noSlotsForDay')}</p>
                 )}
                 
                 {rescheduleDate && !slotsLoading && slots.length > 0 && (
@@ -405,7 +409,7 @@ export default function ReservationDetailPage({
                   onClick={() => setShowReschedule(false)}
                   style={{ alignSelf: 'flex-start', background: 'none', border: 'none', color: '#7c6fa0', textDecoration: 'underline', cursor: 'pointer', padding: 0 }}
                 >
-                  Ləğv et
+                  {tc('cancel')}
                 </button>
               </div>
             )}
@@ -421,19 +425,20 @@ export default function ReservationDetailPage({
                 onClick={() => setShowCancelConfirm(true)}
                 style={{ background: 'white', color: '#dc2626', border: '1px solid #dc2626', borderRadius: 8, padding: '0.75rem 1.5rem', fontSize: '0.95rem', fontWeight: 500, cursor: 'pointer', width: '100%' }}
               >
-                Rezervasiyanı ləğv et
+                {t('cancelReservation')}
               </button>
             ) : (
               <div style={{ background: '#fef2f2', border: '1px solid #f87171', borderRadius: 16, padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <p style={{ margin: 0, fontWeight: 600, color: '#991b1b' }}>Bu rezervasiyanı ləğv etmək istədiyinizə əminsiniz?</p>
+                <p style={{ margin: 0, fontWeight: 600, color: '#991b1b' }}>{t('cancelConfirm')}</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                  <label htmlFor="cancel-reason" style={{ fontSize: '0.8rem', color: '#991b1b' }}>Səbəb (opsional)</label>
+                  <label htmlFor="cancel-reason" style={{ fontSize: '0.8rem', color: '#991b1b' }}>{t('cancelReason')}</label>
                   <input
                     id="cancel-reason"
                     type="text"
                     value={cancelReason}
                     onChange={(e) => setCancelReason(e.target.value)}
                     maxLength={500}
+                    placeholder={t('cancelReasonPlaceholder')}
                     style={{ padding: '0.6rem', borderRadius: 8, border: '1px solid #fca5a5', outline: 'none' }}
                   />
                 </div>
@@ -447,14 +452,14 @@ export default function ReservationDetailPage({
                     disabled={cancelling}
                     style={{ background: '#dc2626', color: 'white', border: 'none', borderRadius: 8, padding: '0.6rem 1rem', fontWeight: 500, cursor: cancelling ? 'not-allowed' : 'pointer', opacity: cancelling ? 0.7 : 1 }}
                   >
-                    {cancelling ? 'Ləğv edilir...' : 'Bəli, ləğv et'}
+                    {cancelling ? t('cancelling') : t('confirmCancelBtn')}
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowCancelConfirm(false)}
                     style={{ background: 'none', border: 'none', color: '#991b1b', textDecoration: 'underline', cursor: 'pointer' }}
                   >
-                    Saxla
+                    {t('saveBtn')}
                   </button>
                 </div>
               </div>

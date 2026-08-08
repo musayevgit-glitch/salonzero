@@ -67,9 +67,10 @@ export async function GET(
     const rangeStart = localWallTimeToUtc(localDate, 0, salon.timezone);
     const rangeEnd = localWallTimeToUtc(localDate, 24 * 60, salon.timezone);
 
+    const employeeIds = employeesBase.map((e) => e.id);
     const employees = await Promise.all(
       employeesBase.map(async (e) => {
-        const [timeOff, reservations] = await Promise.all([
+        const [timeOff, reservations, holds] = await Promise.all([
           prisma.timeOff.findMany({
             where: { employeeId: e.id, startAt: { lt: rangeEnd }, endAt: { gt: rangeStart } },
             select: { startAt: true, endAt: true },
@@ -78,8 +79,20 @@ export async function GET(
             where: { employeeId: e.id, status: { in: ['PENDING', 'CONFIRMED', 'CHECKED_IN'] }, startAt: { lt: rangeEnd }, blockedUntil: { gt: rangeStart } },
             select: { startAt: true, endAt: true, blockedUntil: true },
           }),
+          prisma.slotHold.findMany({
+            where: { employeeId: e.id, startAt: { lt: rangeEnd }, endAt: { gt: rangeStart }, expiresAt: { gt: now } },
+            select: { startAt: true, endAt: true },
+          }),
         ]);
-        return { employeeId: e.id, isActive: true, isEligibleForService: true, workingSchedule: e.workingSchedules, breaks: e.breaks, timeOff, blockingReservations: reservations };
+        void employeeIds;
+        return {
+          employeeId: e.id, isActive: true, isEligibleForService: true,
+          workingSchedule: e.workingSchedules, breaks: e.breaks, timeOff,
+          blockingReservations: [
+            ...reservations,
+            ...holds.map((h) => ({ startAt: h.startAt, endAt: h.endAt, blockedUntil: h.endAt })),
+          ],
+        };
       }),
     );
 

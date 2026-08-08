@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useBookingContext } from '../_components/BookingContext';
 import { BookingCTAButton, BookingPageShell } from '../_components/BookingPageShell';
 import { formatMoney } from '../../../../../../lib/format-money';
@@ -36,6 +37,7 @@ export default function ServiceStep() {
   const { salon, draft, setService } = useBookingContext();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useTranslations('booking');
   const [activeCategoryId, setActiveCategoryId] = React.useState<string | null>(null);
 
   // Pre-selected employee from stylist card "Rezerv et" link
@@ -72,12 +74,12 @@ export default function ServiceStep() {
 
   return (
     <BookingPageShell
-      title="Rezervasiya et"
+      title={t('selectService')}
       backHref={`/salons/${salon.slug}`}
       backLabel={`${salon.name} səhifəsinə qayıt`}
       footer={
         <BookingCTAButton
-          label="Davam et"
+          label={t('continueBtn')}
           onClick={handleContinue}
           disabled={!draft.serviceId}
         />
@@ -130,21 +132,21 @@ export default function ServiceStep() {
               textDecoration: 'none',
             }}
           >
-            Salon profilinə bax
+            {t('viewSalonProfile')}
           </a>
         </div>
       </div>
 
       {!hasServices && (
         <p style={{ color: '#7c6fa0', fontSize: '0.875rem', textAlign: 'center', marginTop: '2rem' }}>
-          Hal-hazırda heç bir xidmət mövcud deyil.
+          {t('noServicesAvailable')}
         </p>
       )}
 
-      {/* Xidmət header */}
+      {/* Service header */}
       {hasServices && (
         <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#1e1b2e', marginBottom: '0.75rem' }}>
-          Xidmət
+          {t('serviceName')}
         </h2>
       )}
 
@@ -163,10 +165,10 @@ export default function ServiceStep() {
           aria-label="Kateqoriyalar"
         >
           {[
-            { id: null, label: 'Hamısı', count: allServices.length },
+            { id: null, label: t('allCategories'), count: allServices.length },
             ...salon.serviceCategories.map((c) => ({ id: c.id, label: c.name, count: c.services.length })),
             ...(salon.uncategorizedServices.length > 0
-              ? [{ id: '__uncategorized__', label: 'Digər', count: salon.uncategorizedServices.length }]
+              ? [{ id: '__uncategorized__', label: t('otherCategory'), count: salon.uncategorizedServices.length }]
               : []),
           ].map((tab) => {
             const active = activeCategoryId === tab.id;
@@ -250,7 +252,7 @@ export default function ServiceStep() {
                     {formatMoney(service.priceAmount)}
                   </p>
                   <p style={{ fontSize: '0.72rem', color: '#7c6fa0', marginTop: '0.1rem' }}>
-                    {service.durationMinutes} dəq
+                    {service.durationMinutes} {t('min')}
                   </p>
                 </div>
 
@@ -287,7 +289,7 @@ export default function ServiceStep() {
       >
         <span style={{ flexShrink: 0, marginTop: '0.05rem' }}><InfoIcon /></span>
         <p style={{ fontSize: '0.75rem', color: '#8a7355', lineHeight: 1.5 }}>
-          Qiymətlər ustaya görə dəyişə bilər.
+          {t('priceNote')}
         </p>
       </div>
     </BookingPageShell>
