@@ -4,6 +4,8 @@ import { Drawer } from '@salonomia/ui';
 import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { useParams } from 'next/navigation';
 import { apiFetch } from '../../../../../lib/api-client';
 
 // ─── SVG Icons ────────────────────────────────────────────────────────────────
@@ -103,25 +105,32 @@ function HamburgerIcon() {
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+const LOCALE_LABELS: Record<string, { flag: string; code: string }> = {
+  az: { flag: '🇦🇿', code: 'AZ' },
+  en: { flag: '🇬🇧', code: 'EN' },
+  ru: { flag: '🇷🇺', code: 'RU' },
+  tr: { flag: '🇹🇷', code: 'TR' },
+};
+
 interface NavItemDef {
-  label: string;
+  labelKey: string;
   segment: string;
-  section: string;
+  sectionKey: string;
   icon: React.ReactNode;
   adminOnly?: boolean;
   showBadge?: boolean;
 }
 
 const NAV_ITEMS: NavItemDef[] = [
-  { label: 'Overview', segment: '', section: 'GÜNLÜK', icon: <HomeIcon /> },
-  { label: 'Reservations', segment: 'reservations', section: 'GÜNLÜK', icon: <CalendarCheckIcon />, showBadge: true },
-  { label: 'Employees', segment: 'employees', section: 'SALON', icon: <UsersIcon /> },
-  { label: 'Services', segment: 'services', section: 'SALON', icon: <SparklesIcon /> },
-  { label: 'Service Categories', segment: 'service-categories', section: 'SALON', icon: <TagIcon />, adminOnly: true },
-  { label: 'Customers', segment: 'customers', section: 'SALON', icon: <PersonIcon /> },
-  { label: 'Reports', segment: 'reports', section: 'IDARƏETMƏ', icon: <ChartIcon />, adminOnly: true },
-  { label: 'Settings', segment: 'settings', section: 'IDARƏETMƏ', icon: <GearIcon /> },
-  { label: 'Audit Log', segment: 'audit-logs', section: 'IDARƏETMƏ', icon: <ListIcon />, adminOnly: true },
+  { labelKey: 'nav.overview', segment: '', sectionKey: 'nav.sectionDaily', icon: <HomeIcon /> },
+  { labelKey: 'nav.reservations', segment: 'reservations', sectionKey: 'nav.sectionDaily', icon: <CalendarCheckIcon />, showBadge: true },
+  { labelKey: 'nav.employees', segment: 'employees', sectionKey: 'nav.sectionSalon', icon: <UsersIcon /> },
+  { labelKey: 'nav.services', segment: 'services', sectionKey: 'nav.sectionSalon', icon: <SparklesIcon /> },
+  { labelKey: 'nav.serviceCategories', segment: 'service-categories', sectionKey: 'nav.sectionSalon', icon: <TagIcon />, adminOnly: true },
+  { labelKey: 'nav.customers', segment: 'customers', sectionKey: 'nav.sectionSalon', icon: <PersonIcon /> },
+  { labelKey: 'nav.reports', segment: 'reports', sectionKey: 'nav.sectionManagement', icon: <ChartIcon />, adminOnly: true },
+  { labelKey: 'nav.settings', segment: 'settings', sectionKey: 'nav.sectionManagement', icon: <GearIcon /> },
+  { labelKey: 'nav.auditLog', segment: 'audit-logs', sectionKey: 'nav.sectionManagement', icon: <ListIcon />, adminOnly: true },
 ];
 
 interface CurrentUser {
@@ -226,6 +235,7 @@ function SidebarNav({
   pendingCount,
   onNavigate,
   dark,
+  t,
 }: {
   items: NavItemDef[];
   basePath: string;
@@ -233,22 +243,23 @@ function SidebarNav({
   pendingCount: number;
   onNavigate?: () => void;
   dark?: boolean;
+  t: (key: string) => string;
 }) {
   // Group by section (preserve order)
-  const sections: { section: string; items: NavItemDef[] }[] = [];
+  const sections: { sectionKey: string; items: NavItemDef[] }[] = [];
   for (const item of items) {
-    const existing = sections.find((s) => s.section === item.section);
+    const existing = sections.find((s) => s.sectionKey === item.sectionKey);
     if (existing) {
       existing.items.push(item);
     } else {
-      sections.push({ section: item.section, items: [item] });
+      sections.push({ sectionKey: item.sectionKey, items: [item] });
     }
   }
 
   return (
     <nav aria-label="Salon navigation" style={{ display: 'flex', flexDirection: 'column', padding: '0.25rem 0.5rem' }}>
       {sections.map((group) => (
-        <div key={group.section} style={{ marginBottom: '0.75rem' }}>
+        <div key={group.sectionKey} style={{ marginBottom: '0.75rem' }}>
           <p
             style={{
               fontSize: '0.625rem',
@@ -259,7 +270,7 @@ function SidebarNav({
               padding: '0.5rem 0.75rem 0.125rem',
             }}
           >
-            {group.section}
+            {t(group.sectionKey)}
           </p>
           {group.items.map((item) => {
             const href = item.segment ? `${basePath}/${item.segment}` : basePath;
@@ -270,7 +281,7 @@ function SidebarNav({
                 href={href}
                 active={active}
                 icon={item.icon}
-                label={item.label}
+                label={t(item.labelKey)}
                 badge={item.showBadge ? pendingCount : undefined}
                 onNavigate={onNavigate}
                 dark={dark}
@@ -280,6 +291,57 @@ function SidebarNav({
         </div>
       ))}
     </nav>
+  );
+}
+
+// ─── Language switcher ────────────────────────────────────────────────────────
+
+function SidebarLanguageSwitcher({ dark, label }: { dark?: boolean; label: string }) {
+  const params = useParams();
+  const currentLocale = (params?.locale as string | undefined) ?? 'az';
+
+  function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    document.cookie = `NEXT_LOCALE=${e.target.value};path=/;max-age=31536000;SameSite=Lax`;
+    window.location.reload();
+  }
+
+  const borderColor = dark ? 'rgba(255,255,255,0.12)' : 'var(--color-border)';
+  const bg = dark ? 'rgba(255,255,255,0.07)' : 'var(--color-surface)';
+  const color = dark ? 'rgba(255,255,255,0.6)' : 'var(--color-text-secondary)';
+
+  return (
+    <div style={{ padding: '0.75rem 1rem', borderTop: `1px solid ${borderColor}`, flexShrink: 0 }}>
+      <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: dark ? 'rgba(255,255,255,0.28)' : 'var(--color-text-secondary)', marginBottom: '0.5rem' }}>
+        {label}
+      </p>
+      <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', width: '100%' }}>
+        <select
+          value={currentLocale}
+          onChange={handleChange}
+          aria-label="Select language"
+          style={{
+            appearance: 'none',
+            background: bg,
+            border: `1px solid ${borderColor}`,
+            borderRadius: 8,
+            padding: '0.3rem 2rem 0.3rem 0.625rem',
+            fontSize: '0.78rem',
+            fontWeight: 600,
+            color,
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+            width: '100%',
+          }}
+        >
+          {Object.entries(LOCALE_LABELS).map(([loc, { flag, code }]) => (
+            <option key={loc} value={loc} style={{ background: '#1a1625', color: '#fff' }}>
+              {flag} {code}
+            </option>
+          ))}
+        </select>
+        <span style={{ position: 'absolute', right: '0.5rem', pointerEvents: 'none', fontSize: '0.6rem', color }}>▾</span>
+      </div>
+    </div>
   );
 }
 
@@ -356,6 +418,7 @@ export function SalonShell({
   salonName?: string;
   children: React.ReactNode;
 }) {
+  const t = useTranslations('salonAdmin');
   const pathname = usePathname();
   const basePath = `/salon/${salonId}`;
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -426,8 +489,10 @@ export function SalonShell({
             pathname={pathname}
             pendingCount={pendingCount}
             dark
+            t={t}
           />
         </div>
+        <SidebarLanguageSwitcher dark label={t('nav.selectLanguage')} />
       </aside>
 
       {/* ── Main content column ── */}
@@ -492,7 +557,9 @@ export function SalonShell({
           pathname={pathname}
           pendingCount={pendingCount}
           onNavigate={() => setDrawerOpen(false)}
+          t={t}
         />
+        <SidebarLanguageSwitcher label={t('nav.selectLanguage')} />
       </Drawer>
     </div>
   );

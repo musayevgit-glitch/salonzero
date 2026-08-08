@@ -4,6 +4,7 @@ import { Badge, Button, Card, EmptyState, Skeleton } from '@salonomia/ui';
 import NextLink from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { apiFetch, ApiError } from '../../../../lib/api-client';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -62,15 +63,15 @@ const STATUS_TONE: Record<string, 'neutral' | 'success' | 'warning' | 'danger'> 
   NO_SHOW: 'danger',
 };
 
-const STATUS_LABEL: Record<string, string> = {
-  PENDING: 'Pending',
-  CONFIRMED: 'Confirmed',
-  CHECKED_IN: 'Checked in',
-  COMPLETED: 'Completed',
-  REJECTED: 'Rejected',
-  CANCELLED_BY_CUSTOMER: 'Cancelled',
-  CANCELLED_BY_SALON: 'Cancelled',
-  NO_SHOW: 'No-show',
+const STATUS_LABEL_KEYS: Record<string, string> = {
+  PENDING: 'reservations.statusPending',
+  CONFIRMED: 'reservations.statusConfirmed',
+  CHECKED_IN: 'reservations.statusCheckedIn',
+  COMPLETED: 'reservations.statusCompleted',
+  REJECTED: 'reservations.statusCancelled',
+  CANCELLED_BY_CUSTOMER: 'reservations.statusCancelled',
+  CANCELLED_BY_SALON: 'reservations.statusCancelled',
+  NO_SHOW: 'reservations.statusNoShow',
 };
 
 // ─── Stat card ────────────────────────────────────────────────────────────────
@@ -100,6 +101,7 @@ function StatCard({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function SalonDashboardPage() {
+  const t = useTranslations('salonAdmin');
   const router = useRouter();
   const { salonId } = useParams<{ salonId: string }>();
   const today = getToday();
@@ -135,7 +137,7 @@ export default function SalonDashboardPage() {
 
   const hour = new Date().getHours();
   const greeting =
-    hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+    hour < 12 ? t('dashboard.greetingMorning') : hour < 17 ? t('dashboard.greetingAfternoon') : t('dashboard.greetingEvening');
 
   const dateLabel = new Date().toLocaleDateString(undefined, {
     weekday: 'long',
@@ -154,7 +156,7 @@ export default function SalonDashboardPage() {
       {/* ── Today's stats ── */}
       <section>
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-text-secondary">
-          Today at a glance
+          {t('dashboard.todayAtAGlance')}
         </h2>
         {loadingStats ? (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -166,18 +168,18 @@ export default function SalonDashboardPage() {
           <p className="text-sm text-destructive">{statsError}</p>
         ) : stats ? (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <StatCard label="Total reservations" value={stats.total} />
+            <StatCard label={t('dashboard.totalReservations')} value={stats.total} />
             <StatCard
-              label="Confirmed"
+              label={t('dashboard.confirmed')}
               value={(stats.byStatus['CONFIRMED'] ?? 0) + (stats.byStatus['CHECKED_IN'] ?? 0)}
               accentColor="var(--color-success, #16a34a)"
             />
             <StatCard
-              label="Completed"
+              label={t('dashboard.completedToday')}
               value={stats.byStatus['COMPLETED'] ?? 0}
             />
             <StatCard
-              label="Pending approval"
+              label={t('dashboard.pendingApproval')}
               value={stats.byStatus['PENDING'] ?? 0}
               accentColor="var(--color-warning, #d97706)"
             />
@@ -189,7 +191,7 @@ export default function SalonDashboardPage() {
       <section>
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-text-secondary">
-            Today's appointments
+            {t('dashboard.todayAppointments')}
           </h2>
           <NextLink
             href={`/salon/${salonId}/reservations`}
@@ -200,7 +202,7 @@ export default function SalonDashboardPage() {
               fontWeight: 500,
             }}
           >
-            View all →
+            {t('dashboard.viewAll')} →
           </NextLink>
         </div>
 
@@ -212,8 +214,8 @@ export default function SalonDashboardPage() {
           </div>
         ) : upcoming.length === 0 ? (
           <EmptyState
-            title="No appointments today"
-            description="There are no reservations scheduled for today. Create a new booking to get started."
+            title={t('dashboard.noAppointmentsToday')}
+            description={t('dashboard.noAppointmentsTodayDesc')}
           />
         ) : (
           <div className="flex flex-col gap-2">
@@ -276,7 +278,7 @@ export default function SalonDashboardPage() {
                     </div>
                     <div style={{ flexShrink: 0 }}>
                       <Badge tone={STATUS_TONE[r.status] ?? 'neutral'}>
-                        {STATUS_LABEL[r.status] ?? r.status}
+                        {STATUS_LABEL_KEYS[r.status] ? t(STATUS_LABEL_KEYS[r.status]!) : r.status}
                       </Badge>
                     </div>
                   </div>
@@ -290,23 +292,23 @@ export default function SalonDashboardPage() {
       {/* ── Quick actions ── */}
       <section>
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-text-secondary">
-          Quick actions
+          {t('dashboard.quickActions')}
         </h2>
         <div className="flex flex-wrap gap-3">
           <Button onClick={() => router.push(`/salon/${salonId}/reservations/new`)}>
-            New Reservation
+            {t('dashboard.newReservation')}
           </Button>
           <Button
             variant="secondary"
             onClick={() => router.push(`/salon/${salonId}/employees/new`)}
           >
-            Add Employee
+            {t('dashboard.addEmployee')}
           </Button>
           <Button
             variant="secondary"
             onClick={() => router.push(`/salon/${salonId}/services/new`)}
           >
-            Add Service
+            {t('dashboard.addService')}
           </Button>
         </div>
       </section>
