@@ -40,6 +40,12 @@ export class S3StorageAdapter implements StorageAdapter {
     });
   }
 
+  async putObject(objectKey: string, data: Buffer, contentType: string): Promise<void> {
+    await this.client.send(
+      new PutObjectCommand({ Bucket: this.bucket, Key: objectKey, Body: data, ContentType: contentType }),
+    );
+  }
+
   async createUploadTarget(objectKey: string, contentType: string): Promise<UploadTarget> {
     const command = new PutObjectCommand({
       Bucket: this.bucket,

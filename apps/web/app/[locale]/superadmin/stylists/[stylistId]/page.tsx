@@ -17,7 +17,7 @@ import {
 } from '@salonomia/ui';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { apiFetch, ApiError, putFile } from '../../../../../lib/api-client';
+import { apiFetch, apiFetchFormData, ApiError } from '../../../../../lib/api-client';
 import { PhotoUploadWidget } from '../../_components/PhotoUploadWidget';
 
 // ── Types ─────────────────────────────────────────────────────────────────
@@ -161,11 +161,9 @@ function PortfolioTab({ stylist, onReload }: { stylist: StylistDetail; onReload:
     if (file.size > 5 * 1024 * 1024) { showToast('Şəkil 5MB-dan böyük ola bilməz.', 'danger'); return; }
     setUploading(true);
     try {
-      const target = await apiFetch<{ url: string; objectKey: string }>(basePath, {
-        method: 'POST', body: JSON.stringify({ mimeType: file.type, sizeBytes: file.size }),
-      });
-      await putFile(target.url, file);
-      await apiFetch(basePath, { method: 'POST', body: JSON.stringify({ objectKey: target.objectKey }) });
+      const form = new FormData();
+      form.append('file', file);
+      await apiFetchFormData(basePath, { method: 'POST', body: form });
       showToast('Şəkil əlavə edildi');
       onReload();
     } catch (err) {

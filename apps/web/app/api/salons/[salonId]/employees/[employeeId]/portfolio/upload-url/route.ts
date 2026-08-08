@@ -1,20 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../../../../lib/server/prisma';
 import { getSalonContext, isSalonContextError } from '../../../../../../../../lib/server/salon-context';
-import { badRequest, notFound } from '../../../../../../../../lib/server/auth';
-import { getStorageAdapter } from '../../../../../../../../lib/server/storage';
-import { requestPortfolioUploadSchema } from '@salonomia/validation';
-import { randomUUID } from 'node:crypto';
+import { notFound } from '../../../../../../../../lib/server/auth';
+import { handleImageUpload } from '../../../../../../../../lib/server/upload';
+import { recordAudit } from '../../../../../../../../lib/server/audit';
+import { MAX_PORTFOLIO_UPLOAD_BYTES } from '@salonomia/validation';
 
-const EXTENSION_BY_MIME: Record<string, string> = {
-  'image/jpeg': 'jpg',
-  'image/png': 'png',
-  'image/webp': 'webp',
-};
-
+// POST — upload portfolio image and create item in one step (multipart/form-data with 'file' field)
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ salonId: string; employeeId: string }> }
+  { params }: { params: Promise<{ salonId: string; employeeId: string }> },
 ) {
   const { salonId, employeeId } = await params;
   const ctx = await getSalonContext(req, salonId, 'SALON_ADMIN');
@@ -26,31 +21,31 @@ export async function POST(
   });
   if (!employee) return notFound();
 
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return badRequest('Invalid JSON body.');
-  }
+  const result = await handleImageUpload(req, `employees/${employeeId}/portfolio`, MAX_PORTFOLIO_UPLOAD_BYTES);
+  if (result instanceof NextResponse) return result;
 
-  const parsed = requestPortfolioUploadSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid input.', errors: parsed.error.flatten() }, { status: 400 });
-  }
+  const lastItem = await prisma.employeePortfolioItem.findFirst({
+    where: { employeeId },
+    orderBy: { sortOrder: 'desc' },
+    select: { sortOrder: true },
+  });
 
-  const input = parsed.data;
-  const extension = EXTENSION_BY_MIME[input.mimeType];
-  if (!extension) {
-    return badRequest('Unsupported mimeType.');
-  }
+  const item = await prisma.employeePortfolioItem.create({
+    data: {
+      employeeId,
+      imageUrl: result.url,
+      caption: null,
+      sortOrder: (lastItem?.sortOrder ?? -1) + 1,
+    },
+  });
 
-  const objectKey = `employees/${employeeId}/${randomUUID()}.${extension}`;
-  const storage = getStorageAdapter();
-  const target = await storage.createUploadTarget(
-    objectKey,
-    input.mimeType,
-    input.sizeBytes
-  );
+  await recordAudit({
+    actorUserId: ctx.userId,
+    action: 'employee.portfolio_item.created',
+    targetType: 'EmployeePortfolioItem',
+    targetId: item.id,
+    salonId,
+  });
 
-  return NextResponse.json({ ...target, objectKey });
+  return NextResponse.json({ id: item.id, imageUrl: result.url, caption: null, sortOrder: item.sortOrder }, { status: 201 });
 }

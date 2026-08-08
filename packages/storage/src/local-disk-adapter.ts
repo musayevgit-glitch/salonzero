@@ -43,6 +43,10 @@ export class LocalDiskStorageAdapter implements StorageAdapter {
     return full;
   }
 
+  async putObject(objectKey: string, data: Buffer, _contentType: string): Promise<void> {
+    await this.writeObjectWithLimit(objectKey, require('node:stream').Readable.from(data), data.length + 1);
+  }
+
   async createUploadTarget(
     objectKey: string,
     contentType: string,

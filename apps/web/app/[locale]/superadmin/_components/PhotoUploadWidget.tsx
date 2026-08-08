@@ -2,18 +2,16 @@
 
 import { Button, useToast } from '@salonomia/ui';
 import { useRef, useState } from 'react';
-import { apiFetch, ApiError, putFile } from '../../../../lib/api-client';
+import { apiFetchFormData, ApiError } from '../../../../lib/api-client';
 
 interface Props {
   label: string;
   currentUrl: string | null;
-  uploadPath: string;   // e.g. /superadmin/salons/xxx/cover-photo
-  confirmPath?: string; // defaults to uploadPath (PATCH to same)
-  aspectRatio?: string; // css aspect-ratio, default '16/7'
-  rounded?: boolean;    // true = circle (for logos/avatars)
+  uploadPath: string;   // POST multipart/form-data with 'file' field
+  aspectRatio?: string;
+  rounded?: boolean;
   onUpdated?: (url: string) => void;
   onRemoved?: () => void;
-  maxMb?: number;
 }
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -22,7 +20,6 @@ export function PhotoUploadWidget({
   label,
   currentUrl,
   uploadPath,
-  confirmPath,
   aspectRatio = '16/7',
   rounded = false,
   onUpdated,
@@ -50,14 +47,11 @@ export function PhotoUploadWidget({
 
     setUploading(true);
     try {
-      const target = await apiFetch<{ url: string; objectKey: string }>(uploadPath, {
-        method: 'POST',
-        body: JSON.stringify({ mimeType: file.type, sizeBytes: file.size }),
-      });
-      await putFile(target.url, file);
-      const result = await apiFetch<{ coverUrl?: string; logoUrl?: string; photoUrl?: string }>(
-        confirmPath ?? uploadPath,
-        { method: 'PATCH', body: JSON.stringify({ objectKey: target.objectKey }) },
+      const form = new FormData();
+      form.append('file', file);
+      const result = await apiFetchFormData<{ coverUrl?: string; logoUrl?: string; photoUrl?: string }>(
+        uploadPath,
+        { method: 'POST', body: form },
       );
       const url = result.coverUrl ?? result.logoUrl ?? result.photoUrl ?? '';
       setPreviewUrl(url);
@@ -73,7 +67,7 @@ export function PhotoUploadWidget({
   async function handleRemove() {
     setRemoving(true);
     try {
-      await apiFetch(uploadPath, { method: 'DELETE' });
+      await apiFetchFormData(uploadPath, { method: 'DELETE' });
       setPreviewUrl(null);
       onRemoved?.();
       showToast(`${label} silindi`);

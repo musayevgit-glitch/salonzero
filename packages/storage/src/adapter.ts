@@ -20,6 +20,7 @@ export interface StorageAdapter {
     contentType: string,
     maxSizeBytes: number,
   ): Promise<UploadTarget>;
+  putObject(objectKey: string, data: Buffer, contentType: string): Promise<void>;
   getObjectUrl(objectKey: string): Promise<string>;
   statObject(objectKey: string): Promise<ObjectStat | null>;
   readObjectHead(objectKey: string, bytes: number): Promise<Buffer | null>;

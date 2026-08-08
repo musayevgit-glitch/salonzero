@@ -3,18 +3,13 @@
 import { Alert, Button, ConfirmDialog, IconButton, Input, Skeleton, useToast } from '@salonomia/ui';
 import { ALLOWED_PORTFOLIO_MIME_TYPES, MAX_PORTFOLIO_UPLOAD_BYTES } from '@salonomia/validation';
 import { useEffect, useRef, useState } from 'react';
-import { apiFetch, ApiError, putFile } from '../../../../../../lib/api-client';
+import { apiFetch, apiFetchFormData, ApiError } from '../../../../../../lib/api-client';
 
 interface PortfolioItem {
   id: string;
   imageUrl: string;
   caption: string | null;
   sortOrder: number;
-}
-
-interface UploadTargetResponse {
-  url: string;
-  objectKey: string;
 }
 
 const ALLOWED_TYPES = new Set<string>(ALLOWED_PORTFOLIO_MIME_TYPES);
@@ -61,15 +56,9 @@ export function PortfolioGallery({ salonId, employeeId }: { salonId: string; emp
 
     setUploading(true);
     try {
-      const target = await apiFetch<UploadTargetResponse>(`${basePath}/upload-url`, {
-        method: 'POST',
-        body: JSON.stringify({ mimeType: file.type, sizeBytes: file.size }),
-      });
-      await putFile(target.url, file);
-      await apiFetch(basePath, {
-        method: 'POST',
-        body: JSON.stringify({ objectKey: target.objectKey }),
-      });
+      const form = new FormData();
+      form.append('file', file);
+      await apiFetchFormData(`${basePath}/upload-url`, { method: 'POST', body: form });
       showToast('Photo added');
       load();
     } catch (err) {

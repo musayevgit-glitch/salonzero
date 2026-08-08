@@ -45,6 +45,28 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
   return res.json();
 }
 
+// For multipart/form-data uploads — does NOT set Content-Type (browser sets it with boundary)
+export async function apiFetchFormData<T = void>(path: string, init: RequestInit & { body?: FormData }): Promise<T> {
+  const csrfToken = readCookie('csrfToken');
+  const apiPath = path.startsWith('/api') ? path : `/api${path}`;
+  const res = await fetch(`${API_URL}${apiPath}`, {
+    ...init,
+    credentials: 'include',
+    headers: {
+      ...(csrfToken ? { 'x-csrf-token': csrfToken } : {}),
+      ...init?.headers,
+    },
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({ message: 'Something went wrong. Please try again.' }));
+    throw new ApiError(res.status, body.message ?? 'Something went wrong. Please try again.', body);
+  }
+
+  if (res.status === 204) return undefined as T;
+  return res.json();
+}
+
 export async function putFile(url: string, file: File): Promise<void> {
   // Presigned S3/R2 URLs are cross-origin — no credentials or CSRF token.
   const res = await fetch(url, {
