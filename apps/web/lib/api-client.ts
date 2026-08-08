@@ -46,14 +46,10 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
 }
 
 export async function putFile(url: string, file: File): Promise<void> {
-  const csrfToken = readCookie('csrfToken');
+  // Presigned S3/R2 URLs are cross-origin — no credentials or CSRF token.
   const res = await fetch(url, {
     method: 'PUT',
-    credentials: 'include',
-    headers: {
-      'Content-Type': file.type,
-      ...(csrfToken ? { 'x-csrf-token': csrfToken } : {}),
-    },
+    headers: { 'Content-Type': file.type },
     body: file,
   });
 
