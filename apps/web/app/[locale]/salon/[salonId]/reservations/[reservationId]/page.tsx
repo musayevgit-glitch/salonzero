@@ -20,6 +20,15 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { apiFetch, ApiError } from '../../../../../../lib/api-client';
 
+interface StatusHistoryItem {
+  id: string;
+  fromStatus: string | null;
+  toStatus: string;
+  reason: string | null;
+  createdAt: string;
+  changedByUser: { fullName: string } | null;
+}
+
 interface ReservationDetail {
   id: string;
   status: string;
@@ -28,11 +37,13 @@ interface ReservationDetail {
   priceAmount: number;
   currency: string;
   customerNote: string | null;
+  guestName: string | null;
   createdAt: string;
   service: { id: string; name: string };
   employee: { id: string; fullName: string };
-  customer: { id: string; fullName: string; email: string };
+  customer: { email: string } | null;
   availableActions: string[];
+  statusHistory: StatusHistoryItem[];
 }
 
 type LoadState =
@@ -172,22 +183,30 @@ export default function ReservationDetailPage() {
       <Breadcrumbs
         items={[
           { label: 'Reservations', href: `/salon/${salonId}/reservations` },
-          { label: reservation.customer.fullName },
+          { label: reservation.customer?.email ?? reservation.guestName ?? 'Reservation' },
         ]}
       />
 
       <Card className="max-w-lg">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold text-text-primary">
-            {reservation.customer.fullName}
+            {reservation.customer?.email ?? reservation.guestName ?? 'Guest'}
           </h1>
           <Badge>{STATUS_LABEL[reservation.status] ?? reservation.status}</Badge>
         </div>
         <dl className="mt-4 flex flex-col gap-2 text-sm">
-          <div className="flex flex-wrap justify-between gap-x-3">
-            <dt className="text-text-secondary">Customer email</dt>
-            <dd className="break-all">{reservation.customer.email}</dd>
-          </div>
+          {reservation.customer ? (
+            <div className="flex flex-wrap justify-between gap-x-3">
+              <dt className="text-text-secondary">Customer email</dt>
+              <dd className="break-all">{reservation.customer.email}</dd>
+            </div>
+          ) : null}
+          {reservation.guestName ? (
+            <div className="flex flex-wrap justify-between gap-x-3">
+              <dt className="text-text-secondary">Guest name</dt>
+              <dd>{reservation.guestName}</dd>
+            </div>
+          ) : null}
           <div className="flex flex-wrap justify-between gap-x-3">
             <dt className="text-text-secondary">Service</dt>
             <dd>{reservation.service.name}</dd>
@@ -260,6 +279,77 @@ export default function ReservationDetailPage() {
           ) : null}
         </div>
       </Card>
+
+      {/* ── Status history timeline ── */}
+      {reservation.statusHistory && reservation.statusHistory.length > 0 ? (
+        <Card className="max-w-lg">
+          <h2 className="text-base font-semibold text-text-primary mb-4">Status history</h2>
+          <ol style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 0 }}>
+            {reservation.statusHistory.map((entry, i) => (
+              <li
+                key={entry.id}
+                style={{
+                  display: 'flex',
+                  gap: '0.875rem',
+                  paddingBottom: i < reservation.statusHistory.length - 1 ? '1rem' : 0,
+                }}
+              >
+                {/* Timeline dot + line */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, width: '1rem' }}>
+                  <div
+                    style={{
+                      width: '0.5rem',
+                      height: '0.5rem',
+                      borderRadius: '50%',
+                      background: 'var(--color-accent)',
+                      marginTop: '0.3125rem',
+                      flexShrink: 0,
+                    }}
+                  />
+                  {i < reservation.statusHistory.length - 1 ? (
+                    <div
+                      style={{
+                        width: '1px',
+                        flex: 1,
+                        background: 'var(--color-border)',
+                        marginTop: '0.25rem',
+                      }}
+                    />
+                  ) : null}
+                </div>
+                {/* Content */}
+                <div style={{ flex: 1, paddingBottom: '0.25rem' }}>
+                  <p style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-primary)' }}>
+                    {entry.fromStatus ? (
+                      <span>
+                        <span style={{ color: 'var(--color-text-secondary)' }}>
+                          {STATUS_LABEL[entry.fromStatus] ?? entry.fromStatus}
+                        </span>
+                        {' → '}
+                      </span>
+                    ) : null}
+                    {STATUS_LABEL[entry.toStatus] ?? entry.toStatus}
+                  </p>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', marginTop: '0.125rem' }}>
+                    {new Date(entry.createdAt).toLocaleString(undefined, {
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                    {entry.changedByUser ? ` · ${entry.changedByUser.fullName}` : ' · System'}
+                  </p>
+                  {entry.reason ? (
+                    <p style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', marginTop: '0.125rem', fontStyle: 'italic' }}>
+                      "{entry.reason}"
+                    </p>
+                  ) : null}
+                </div>
+              </li>
+            ))}
+          </ol>
+        </Card>
+      ) : null}
 
       <Dialog
         open={rejectOpen}

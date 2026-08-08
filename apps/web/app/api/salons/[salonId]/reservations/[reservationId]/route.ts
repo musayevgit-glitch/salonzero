@@ -17,6 +17,17 @@ const STAFF_RESERVATION_SELECT = {
   service: { select: { id: true, name: true } },
   employee: { select: { id: true, fullName: true } },
   customer: { select: { email: true } },
+  statusHistory: {
+    select: {
+      id: true,
+      fromStatus: true,
+      toStatus: true,
+      reason: true,
+      createdAt: true,
+      changedByUser: { select: { fullName: true } },
+    },
+    orderBy: { createdAt: 'asc' as const },
+  },
 } as const;
 
 export async function GET(

@@ -1,8 +1,21 @@
 'use client';
 
+import {
+  Button,
+  Card,
+  EmptyState,
+  ErrorState,
+  Input,
+  MobileRecordList,
+  Pagination,
+  Skeleton,
+  Table,
+} from '@salonomia/ui';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { apiFetch, ApiError } from '../../../../../lib/api-client';
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface AuditLogItem {
   id: string;
@@ -21,147 +34,196 @@ interface AuditLogResponse {
   pageSize: number;
 }
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function formatDatetime(iso: string): string {
+  return new Intl.DateTimeFormat(undefined, {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    second: '2-digit',
+  }).format(new Date(iso));
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
 export default function SalonAuditLogsPage() {
   const { salonId } = useParams<{ salonId: string }>();
   const [page, setPage] = useState(1);
   const [actionFilter, setActionFilter] = useState('');
+  const [pendingFilter, setPendingFilter] = useState('');
   const [data, setData] = useState<AuditLogResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  function load(p: number) {
+  function load(p: number, action: string) {
     setLoading(true);
     setError(null);
-    const params = new URLSearchParams({ page: String(p), pageSize: '50' });
-    if (actionFilter) params.set('action', actionFilter);
-    apiFetch<AuditLogResponse>(`/salons/${salonId}/reports/audit-logs?${params}`)
-      .then((r) => {
-        setData(r);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err instanceof ApiError ? err.message : 'Failed to load.');
-        setLoading(false);
-      });
+    const qs = new URLSearchParams({ page: String(p), pageSize: '50' });
+    if (action) qs.set('action', action);
+    apiFetch<AuditLogResponse>(`/salons/${salonId}/reports/audit-logs?${qs}`)
+      .then((r) => setData(r))
+      .catch((err) => setError(err instanceof ApiError ? err.message : 'Failed to load.'))
+      .finally(() => setLoading(false));
   }
 
   useEffect(() => {
-    load(page);
-  }, [page]);
+    load(page, actionFilter);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, salonId]);
 
-  const totalPages = data ? Math.ceil(data.total / data.pageSize) : 0;
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    setActionFilter(pendingFilter);
+    setPage(1);
+    load(1, pendingFilter);
+  }
+
+  const pageCount = data ? Math.ceil(data.total / data.pageSize) : 0;
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-xl font-semibold">Audit log</h1>
+    <div className="flex flex-col gap-6">
+      <div>
+        <h1 className="text-xl font-semibold text-text-primary">Audit log</h1>
+        {data ? (
+          <p className="mt-1 text-sm text-text-secondary">
+            {data.total} event{data.total !== 1 ? 's' : ''}
+          </p>
+        ) : null}
+      </div>
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          setPage(1);
-          load(1);
-        }}
-        className="flex gap-2"
-      >
-        <input
-          type="text"
-          value={actionFilter}
-          onChange={(e) => setActionFilter(e.target.value)}
+      {/* Filter */}
+      <form onSubmit={handleSearch} className="flex gap-2 max-w-md">
+        <Input
+          type="search"
+          value={pendingFilter}
+          onChange={(e) => setPendingFilter(e.target.value)}
           placeholder="Filter by action (e.g. reservation.created)"
-          className="flex-1 rounded border border-input bg-background px-3 py-1.5 text-sm"
+          aria-label="Filter audit log by action"
         />
-        <button
-          type="submit"
-          className="rounded bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground hover:opacity-90"
-        >
+        <Button type="submit" variant="secondary" loading={loading}>
           Search
-        </button>
+        </Button>
       </form>
 
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error ? <ErrorState title="Failed to load audit log" description={error} /> : null}
 
-      {loading && !data && (
-        <div className="space-y-2">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="h-10 animate-pulse rounded bg-muted" />
+      {/* Skeleton */}
+      {loading && !data ? (
+        <div className="flex flex-col gap-2">
+          {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+            <Skeleton key={i} className="h-12 rounded-[var(--radius-lg)]" />
           ))}
         </div>
-      )}
+      ) : null}
 
-      {data && (
+      {/* Results */}
+      {data ? (
         <>
-          <div className="overflow-x-auto rounded-lg border">
-            <table className="w-full text-sm">
-              <thead className="border-b bg-muted/50">
-                <tr>
-                  <th className="px-3 py-2 text-left font-medium text-muted-foreground">Time</th>
-                  <th className="px-3 py-2 text-left font-medium text-muted-foreground">Action</th>
-                  <th className="px-3 py-2 text-left font-medium text-muted-foreground">Target</th>
-                  <th className="px-3 py-2 text-left font-medium text-muted-foreground">Actor</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.items.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="px-3 py-6 text-center text-muted-foreground">
-                      No audit events found.
-                    </td>
-                  </tr>
-                )}
-                {data.items.map((log) => (
-                  <tr key={log.id} className="border-b last:border-0 hover:bg-muted/30">
-                    <td className="px-3 py-2 text-muted-foreground">
-                      {new Intl.DateTimeFormat(undefined, {
-                        month: 'short',
-                        day: 'numeric',
-                        hour: 'numeric',
-                        minute: '2-digit',
-                        second: '2-digit',
-                      }).format(new Date(log.createdAt))}
-                    </td>
-                    <td className="px-3 py-2 font-mono text-xs">{log.action}</td>
-                    <td className="px-3 py-2 text-muted-foreground">
-                      {log.targetType}{' '}
-                      <span className="font-mono text-xs">{log.targetId.slice(0, 8)}…</span>
-                    </td>
-                    <td className="px-3 py-2">
-                      {log.actor ? (
-                        <span title={log.actor.email}>{log.actor.fullName}</span>
-                      ) : (
-                        <span className="text-muted-foreground">System</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {data.items.length === 0 ? (
+            <EmptyState
+              title="No audit events found"
+              description={
+                actionFilter
+                  ? `No events match "${actionFilter}". Try a different filter.`
+                  : 'No audit events have been recorded yet.'
+              }
+            />
+          ) : (
+            <Card style={{ padding: 0, overflow: 'hidden' }}>
+              <div style={{ opacity: loading ? 0.6 : 1, transition: 'opacity 0.15s ease' }}>
+                {/* Desktop table */}
+                <Table<AuditLogItem>
+                  columns={[
+                    {
+                      key: 'time',
+                      header: 'Time',
+                      render: (log) => (
+                        <span style={{ fontSize: '0.8125rem', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>
+                          {formatDatetime(log.createdAt)}
+                        </span>
+                      ),
+                    },
+                    {
+                      key: 'action',
+                      header: 'Action',
+                      render: (log) => (
+                        <code
+                          style={{
+                            fontSize: '0.75rem',
+                            fontFamily: 'monospace',
+                            background: 'var(--color-surface)',
+                            padding: '0.125rem 0.375rem',
+                            borderRadius: '0.25rem',
+                            border: '1px solid var(--color-border)',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {log.action}
+                        </code>
+                      ),
+                    },
+                    {
+                      key: 'target',
+                      header: 'Target',
+                      render: (log) => (
+                        <span style={{ fontSize: '0.8125rem', color: 'var(--color-text-secondary)' }}>
+                          {log.targetType}{' '}
+                          <code style={{ fontSize: '0.6875rem', fontFamily: 'monospace' }}>
+                            {log.targetId.slice(0, 8)}…
+                          </code>
+                        </span>
+                      ),
+                    },
+                    {
+                      key: 'actor',
+                      header: 'Actor',
+                      render: (log) =>
+                        log.actor ? (
+                          <span title={log.actor.email} style={{ fontSize: '0.875rem' }}>
+                            {log.actor.fullName}
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)' }}>
+                            System
+                          </span>
+                        ),
+                    },
+                  ]}
+                  rows={data.items}
+                  getRowKey={(log) => log.id}
+                />
 
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between text-sm">
-              <button
-                type="button"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page <= 1}
-                className="text-primary underline disabled:opacity-40"
-              >
-                ← Previous
-              </button>
-              <span className="text-muted-foreground">
-                Page {page} of {totalPages} · {data.total} events
-              </span>
-              <button
-                type="button"
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page >= totalPages}
-                className="text-primary underline disabled:opacity-40"
-              >
-                Next →
-              </button>
-            </div>
+                {/* Mobile fallback */}
+                <MobileRecordList<AuditLogItem>
+                  rows={data.items}
+                  getRowKey={(log) => log.id}
+                  renderPrimary={(log) => (
+                    <code style={{ fontSize: '0.8125rem', fontFamily: 'monospace' }}>
+                      {log.action}
+                    </code>
+                  )}
+                  renderSecondary={(log) =>
+                    `${formatDatetime(log.createdAt)} · ${log.actor?.fullName ?? 'System'}`
+                  }
+                />
+              </div>
+            </Card>
           )}
+
+          {pageCount > 1 ? (
+            <Pagination
+              page={page}
+              pageCount={pageCount}
+              onPageChange={(p) => {
+                setPage(p);
+                load(p, actionFilter);
+              }}
+            />
+          ) : null}
         </>
-      )}
+      ) : null}
     </div>
   );
 }

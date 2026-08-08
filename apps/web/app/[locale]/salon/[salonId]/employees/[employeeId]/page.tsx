@@ -14,8 +14,9 @@ import {
 } from '@salonomia/ui';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { apiFetch, ApiError } from '../../../../../../lib/api-client';
+import { apiFetch, apiFetchFormData, ApiError } from '../../../../../../lib/api-client';
 import { PortfolioGallery } from './portfolio-gallery';
+import { PhotoUpload } from './photo-upload';
 import { ServiceAssignment } from './service-assignment';
 import { WorkingScheduleEditor } from './working-schedule';
 import { BreaksEditor } from './breaks';
@@ -137,6 +138,18 @@ export default function EmployeeDetailPage() {
           >
             {employee.isActive ? 'Deactivate' : 'Activate'}
           </Button>
+        </div>
+      </Card>
+
+      <Card className="max-w-lg">
+        <h2 className="text-lg font-semibold text-text-primary">Profile photo</h2>
+        <div className="mt-4">
+          <PhotoUpload
+            salonId={salonId}
+            employeeId={employee.id}
+            currentPhotoUrl={employee.photoUrl}
+            onUpdate={load}
+          />
         </div>
       </Card>
 

@@ -1,8 +1,11 @@
 'use client';
 
+import { Button, Card, FormField, Input, Skeleton, Table } from '@salonomia/ui';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { apiFetch, ApiError } from '../../../../../lib/api-client';
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface SalonReport {
   from: string;
@@ -14,10 +17,22 @@ interface SalonReport {
   topServices: { name: string; count: number }[];
 }
 
-const TODAY = new Date().toISOString().slice(0, 10);
-const THIRTY_AGO = new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10);
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatMoney(amount: number, currency: string) {
+function getToday(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function daysAgo(n: number): string {
+  return new Date(Date.now() - n * 86_400_000).toISOString().slice(0, 10);
+}
+
+function firstDayOfMonth(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+}
+
+function formatMoney(amount: number, currency: string): string {
   return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(amount / 100);
 }
 
@@ -32,93 +47,153 @@ const STATUS_LABEL: Record<string, string> = {
   NO_SHOW: 'No show',
 };
 
+const PRESETS = [
+  { label: 'Today', from: () => getToday(), to: () => getToday() },
+  { label: 'Last 7 days', from: () => daysAgo(6), to: () => getToday() },
+  { label: 'Last 30 days', from: () => daysAgo(29), to: () => getToday() },
+  { label: 'This month', from: () => firstDayOfMonth(), to: () => getToday() },
+];
+
+// ─── Components ───────────────────────────────────────────────────────────────
+
+function KpiCard({ label, value }: { label: string; value: string }) {
+  return (
+    <Card>
+      <p className="text-xs text-text-secondary">{label}</p>
+      <p className="mt-1 text-2xl font-bold text-text-primary">{value}</p>
+    </Card>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
 export default function SalonReportsPage() {
   const { salonId } = useParams<{ salonId: string }>();
-  const [from, setFrom] = useState(THIRTY_AGO);
-  const [to, setTo] = useState(TODAY);
+  const [from, setFrom] = useState(daysAgo(29));
+  const [to, setTo] = useState(getToday());
   const [report, setReport] = useState<SalonReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  function load() {
+  function load(f = from, t = to) {
     setLoading(true);
     setError(null);
-    apiFetch<SalonReport>(`/salons/${salonId}/reports?from=${from}&to=${to}`)
-      .then((r) => {
-        setReport(r);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err instanceof ApiError ? err.message : 'Failed to load report.');
-        setLoading(false);
-      });
+    apiFetch<SalonReport>(`/salons/${salonId}/reports?from=${f}&to=${t}`)
+      .then((r) => setReport(r))
+      .catch((err) => setError(err instanceof ApiError ? err.message : 'Failed to load report.'))
+      .finally(() => setLoading(false));
   }
 
   useEffect(() => {
     load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  function applyPreset(preset: (typeof PRESETS)[0]) {
+    const f = preset.from();
+    const t = preset.to();
+    setFrom(f);
+    setTo(t);
+    load(f, t);
+  }
+
+  const today = getToday();
+
+  // Build day rows for Table
+  interface DayRow { day: string; count: number }
+  const dayRows: DayRow[] = report
+    ? Object.entries(report.byDay).map(([day, count]) => ({ day, count }))
+    : [];
+
   return (
-    <div className="space-y-6">
-      <h1 className="text-xl font-semibold">Reports</h1>
+    <div className="flex flex-col gap-6">
+      <h1 className="text-xl font-semibold text-text-primary">Reports</h1>
 
-      {/* Date range filter */}
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          load();
-        }}
-        className="flex flex-wrap items-end gap-3"
-      >
-        <div className="flex flex-col gap-1">
-          <label htmlFor="from" className="text-xs font-medium text-muted-foreground">
-            From
-          </label>
-          <input
-            id="from"
-            type="date"
-            value={from}
-            max={to}
-            onChange={(e) => setFrom(e.target.value)}
-            className="rounded border border-input bg-background px-3 py-1.5 text-sm"
-          />
+      {/* Controls */}
+      <Card>
+        <div className="flex flex-wrap items-end gap-4">
+          {/* Presets */}
+          <div className="flex flex-wrap gap-2">
+            {PRESETS.map((preset) => {
+              const isActive = from === preset.from() && to === preset.to();
+              return (
+                <button
+                  key={preset.label}
+                  type="button"
+                  onClick={() => applyPreset(preset)}
+                  style={{
+                    fontSize: '0.8125rem',
+                    fontWeight: 500,
+                    padding: '0.3125rem 0.75rem',
+                    borderRadius: '9999px',
+                    border: '1px solid var(--color-border)',
+                    background: isActive ? 'var(--color-accent)' : 'var(--color-surface)',
+                    color: isActive ? '#fff' : 'var(--color-text-primary)',
+                    cursor: 'pointer',
+                    transition: 'background 0.12s ease, color 0.12s ease',
+                  }}
+                >
+                  {preset.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Custom date range */}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              load();
+            }}
+            className="flex flex-wrap items-end gap-3"
+          >
+            <FormField label="From">
+              {(fieldProps) => (
+                <Input
+                  {...fieldProps}
+                  type="date"
+                  value={from}
+                  max={to}
+                  onChange={(e) => setFrom(e.target.value)}
+                />
+              )}
+            </FormField>
+            <FormField label="To">
+              {(fieldProps) => (
+                <Input
+                  {...fieldProps}
+                  type="date"
+                  value={to}
+                  min={from}
+                  max={today}
+                  onChange={(e) => setTo(e.target.value)}
+                />
+              )}
+            </FormField>
+            <Button type="submit" loading={loading} disabled={loading}>
+              Apply
+            </Button>
+          </form>
         </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="to" className="text-xs font-medium text-muted-foreground">
-            To
-          </label>
-          <input
-            id="to"
-            type="date"
-            value={to}
-            min={from}
-            max={TODAY}
-            onChange={(e) => setTo(e.target.value)}
-            className="rounded border border-input bg-background px-3 py-1.5 text-sm"
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-60"
-        >
-          {loading ? 'Loading…' : 'Apply'}
-        </button>
-      </form>
+      </Card>
 
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
-      {loading && !report && (
+      {/* Skeleton */}
+      {loading && !report ? (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-24 animate-pulse rounded-lg border bg-muted" />
+          {[0, 1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-24 rounded-[var(--radius-lg)]" />
           ))}
         </div>
-      )}
+      ) : null}
 
-      {report && (
-        <div className="space-y-6">
-          {/* KPI cards */}
+      {report ? (
+        <div
+          className="flex flex-col gap-6"
+          style={{ opacity: loading ? 0.6 : 1, transition: 'opacity 0.15s ease' }}
+        >
+          {/* KPIs */}
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             <KpiCard label="Total reservations" value={String(report.total)} />
             {Object.entries(report.revenue).map(([currency, amount]) => (
@@ -139,73 +214,91 @@ export default function SalonReportsPage() {
           </div>
 
           {/* Status breakdown */}
-          <div className="rounded-lg border bg-card p-4">
-            <h2 className="mb-3 text-sm font-semibold">Reservations by status</h2>
-            <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <Card>
+            <h2 className="mb-4 text-sm font-semibold text-text-primary">By status</h2>
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
               {Object.entries(report.byStatus).map(([status, count]) => (
-                <div key={status} className="flex flex-col">
-                  <dt className="text-xs text-muted-foreground">
-                    {STATUS_LABEL[status] ?? status}
-                  </dt>
-                  <dd className="text-lg font-semibold">{count}</dd>
+                <div key={status}>
+                  <dt className="text-xs text-text-secondary">{STATUS_LABEL[status] ?? status}</dt>
+                  <dd className="mt-0.5 text-lg font-bold text-text-primary">{count}</dd>
                 </div>
               ))}
             </dl>
-          </div>
+          </Card>
 
           {/* Top services */}
-          {report.topServices.length > 0 && (
-            <div className="rounded-lg border bg-card p-4">
-              <h2 className="mb-3 text-sm font-semibold">Top services</h2>
-              <ol className="space-y-2">
-                {report.topServices.map((s, i) => (
-                  <li key={s.name} className="flex items-center justify-between text-sm">
-                    <span className="flex items-center gap-2">
-                      <span className="w-5 text-muted-foreground">{i + 1}.</span>
-                      {s.name}
-                    </span>
-                    <span className="font-medium">{s.count}</span>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          )}
+          {report.topServices.length > 0 ? (
+            <Card>
+              <h2 className="mb-4 text-sm font-semibold text-text-primary">Top services</h2>
+              <div className="flex flex-col gap-3">
+                {report.topServices.map((s, i) => {
+                  const max = report.topServices[0]?.count ?? 1;
+                  const pct = Math.round((s.count / max) * 100);
+                  return (
+                    <div key={s.name} className="flex items-center gap-3 text-sm">
+                      <span className="w-5 text-right text-text-secondary shrink-0">{i + 1}</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div className="flex justify-between gap-2 mb-1">
+                          <span className="truncate text-text-primary">{s.name}</span>
+                          <span className="text-text-secondary font-medium shrink-0">{s.count}</span>
+                        </div>
+                        <div
+                          style={{
+                            height: '4px',
+                            borderRadius: '9999px',
+                            background: 'var(--color-border)',
+                            overflow: 'hidden',
+                          }}
+                        >
+                          <div
+                            style={{
+                              height: '100%',
+                              width: `${pct}%`,
+                              background: 'var(--color-accent)',
+                              borderRadius: '9999px',
+                              transition: 'width 0.4s ease',
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </Card>
+          ) : null}
 
           {/* Daily breakdown */}
-          {Object.keys(report.byDay).length > 0 && (
-            <div className="rounded-lg border bg-card p-4">
-              <h2 className="mb-3 text-sm font-semibold">Daily reservations</h2>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="py-1 text-left font-medium text-muted-foreground">Date</th>
-                      <th className="py-1 text-right font-medium text-muted-foreground">Count</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Object.entries(report.byDay).map(([day, count]) => (
-                      <tr key={day} className="border-b last:border-0">
-                        <td className="py-1">{day}</td>
-                        <td className="py-1 text-right font-medium">{count}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+          {dayRows.length > 0 ? (
+            <Card style={{ padding: 0, overflow: 'hidden' }}>
+              <h2 className="px-5 py-4 text-sm font-semibold text-text-primary border-b border-border">
+                Daily reservations
+              </h2>
+              <Table<DayRow>
+                columns={[
+                  { key: 'date', header: 'Date', render: (row) => <span>{row.day}</span> },
+                  {
+                    key: 'count',
+                    header: 'Reservations',
+                    render: (row) => <span className="font-medium">{row.count}</span>,
+                  },
+                ]}
+                rows={dayRows}
+                getRowKey={(row) => row.day}
+              />
+              {/* Mobile fallback — Table hides on mobile */}
+              <div className="md:hidden divide-y divide-border">
+                {dayRows.map((row) => (
+                  <div key={row.day} className="flex justify-between px-5 py-3 text-sm">
+                    <span className="text-text-secondary">{row.day}</span>
+                    <span className="font-medium">{row.count}</span>
+                  </div>
+                ))}
               </div>
-            </div>
-          )}
+            </Card>
+          ) : null}
         </div>
-      )}
-    </div>
-  );
-}
-
-function KpiCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg border bg-card p-4">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="mt-1 text-2xl font-bold">{value}</p>
+      ) : null}
     </div>
   );
 }
