@@ -288,19 +288,18 @@ function ServicesTab({ stylist, onReload }: { stylist: StylistDetail; onReload: 
   const employeeId = stylist.id;
   const basePath = `/salons/${salonId}/employees/${employeeId}/services`;
 
-  function loadAssigned() {
+  const loadAssigned = useCallback(() => {
     apiFetch<AssignedService[]>(basePath)
       .then(setAssigned)
       .catch(() => setAssigned([]));
-  }
+  }, [basePath]);
 
   useEffect(() => {
     loadAssigned();
     apiFetch<SalonServiceList>(`/salons/${salonId}/services?isActive=true&pageSize=100`)
       .then((r) => setAllServices(r.items))
       .catch(() => undefined);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [salonId, employeeId]);
+  }, [salonId, employeeId, loadAssigned]);
 
   const assignedIds = new Set(assigned.map((s) => s.id));
   const available = allServices.filter((s) => !assignedIds.has(s.id));

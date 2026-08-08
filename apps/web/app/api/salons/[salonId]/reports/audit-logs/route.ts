@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../../lib/server/prisma';
 import { getSalonContext, isSalonContextError } from '../../../../../../lib/server/salon-context';
-import { badRequest } from '../../../../../../lib/server/auth';
 import { auditLogQuerySchema } from '@salonomia/validation';
 
 const SENSITIVE_METADATA_KEY = /password|secret|token|cookie|authorization/i;

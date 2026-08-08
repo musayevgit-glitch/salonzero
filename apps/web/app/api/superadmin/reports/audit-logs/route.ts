@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../lib/server/prisma';
-import { badRequest } from '../../../../../lib/server/auth';
 import { requireSuperadmin } from '../../../../../lib/server/salon-context';
 import { auditLogQuerySchema } from '@salonomia/validation';
 

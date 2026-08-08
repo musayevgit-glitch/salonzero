@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../lib/server/prisma';
 import { getSalonContext, isSalonContextError } from '../../../../../lib/server/salon-context';
-import { badRequest } from '../../../../../lib/server/auth';
 import { salonReportQuerySchema } from '@salonomia/validation';
 
 const REVENUE_STATUSES = ['CONFIRMED', 'CHECKED_IN', 'COMPLETED'];
