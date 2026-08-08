@@ -44,11 +44,18 @@ export async function handleImageUpload(
   }
 
   const objectKey = `${keyPrefix}/${randomUUID()}.${ext}`;
-  const storage = getStorageAdapter();
-  await storage.putObject(objectKey, buffer, mimeType);
 
-  // Permanent proxy URL — never expires, generates a fresh signed URL on each request
+  try {
+    const storage = getStorageAdapter();
+    await storage.putObject(objectKey, buffer, mimeType);
+  } catch (err) {
+    console.error('[upload] putObject failed:', err);
+    return NextResponse.json(
+      { message: `Storage error: ${err instanceof Error ? err.message : String(err)}` },
+      { status: 500 },
+    );
+  }
+
   const url = `/api/images/${objectKey}`;
-
   return { objectKey, url };
 }
