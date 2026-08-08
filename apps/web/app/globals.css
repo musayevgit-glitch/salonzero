@@ -212,6 +212,149 @@ body {
 
 .search-bar-btn:hover { opacity: 0.88; }
 
+/* ─── Liquid Glass Buttons ──────────────────────────────── */
+
+/*
+ * Apple-style liquid glass effect.
+ * Requires a parent with a visible background (image or colour) for
+ * backdrop-filter to show. All variants share the same geometry; only
+ * the tint layer and glow change.
+ */
+
+/* Hidden SVG filter for the subtle lens-distortion shimmer */
+.lg-filter-host {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* ── Shared glass shell ── */
+.btn-lg {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+
+  /* Frosted-glass blur */
+  -webkit-backdrop-filter: blur(24px) saturate(180%) brightness(1.08);
+  backdrop-filter: blur(24px) saturate(180%) brightness(1.08);
+
+  /* Edge rim — top brighter, bottom darker */
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  border-bottom-color: rgba(0, 0, 0, 0.10);
+
+  transition:
+    filter var(--duration-fast) ease,
+    box-shadow var(--duration-fast) ease,
+    opacity var(--duration-fast) ease;
+}
+
+/* Specular highlight crescent at top */
+.btn-lg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    170deg,
+    rgba(255, 255, 255, 0.50) 0%,
+    rgba(255, 255, 255, 0.14) 35%,
+    rgba(255, 255, 255, 0.00) 65%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Inner refraction rim */
+.btn-lg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55),
+              inset 0 -1px 0 rgba(0, 0, 0, 0.08),
+              inset 1px 0 0 rgba(255, 255, 255, 0.22),
+              inset -1px 0 0 rgba(255, 255, 255, 0.14);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ── Primary: purple-tinted glass ── */
+.btn-lg-primary {
+  background: rgba(124, 58, 237, 0.58);
+  color: #ffffff;
+  box-shadow:
+    0 2px 8px rgba(124, 58, 237, 0.22),
+    0 8px 28px rgba(124, 58, 237, 0.28),
+    0 1px 1px rgba(0, 0, 0, 0.12);
+}
+.btn-lg-primary:hover:not(:disabled) {
+  background: rgba(124, 58, 237, 0.70);
+  box-shadow:
+    0 4px 16px rgba(124, 58, 237, 0.32),
+    0 12px 40px rgba(124, 58, 237, 0.34),
+    0 1px 2px rgba(0, 0, 0, 0.14);
+}
+.btn-lg-primary:active:not(:disabled) {
+  background: rgba(109, 40, 217, 0.72);
+  box-shadow:
+    0 1px 4px rgba(124, 58, 237, 0.20),
+    0 4px 12px rgba(124, 58, 237, 0.22);
+}
+
+/* ── Secondary: clear glass ── */
+.btn-lg-secondary {
+  background: rgba(255, 255, 255, 0.18);
+  color: var(--color-text-primary);
+  box-shadow:
+    0 2px 8px rgba(30, 27, 46, 0.08),
+    0 6px 24px rgba(30, 27, 46, 0.06);
+}
+.btn-lg-secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.28);
+  box-shadow:
+    0 4px 14px rgba(30, 27, 46, 0.10),
+    0 10px 32px rgba(30, 27, 46, 0.08);
+}
+.btn-lg-secondary:active:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* ── Ghost: nearly invisible glass ── */
+.btn-lg-ghost {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-text-primary);
+  border-color: transparent;
+  box-shadow: none;
+}
+.btn-lg-ghost::after { display: none; }
+.btn-lg-ghost:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.20);
+}
+.btn-lg-ghost:active:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* ── Destructive: red-tinted glass ── */
+.btn-lg-destructive {
+  background: rgba(178, 59, 59, 0.58);
+  color: #ffffff;
+  box-shadow:
+    0 2px 8px rgba(178, 59, 59, 0.22),
+    0 8px 28px rgba(178, 59, 59, 0.26);
+}
+.btn-lg-destructive:hover:not(:disabled) {
+  background: rgba(178, 59, 59, 0.72);
+  box-shadow:
+    0 4px 16px rgba(178, 59, 59, 0.30),
+    0 12px 40px rgba(178, 59, 59, 0.32);
+}
+.btn-lg-destructive:active:not(:disabled) {
+  background: rgba(153, 27, 27, 0.76);
+}
+
 /* ─── Reduced motion ────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-up,

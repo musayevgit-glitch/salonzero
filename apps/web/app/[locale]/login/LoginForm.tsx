@@ -1,6 +1,7 @@
 'use client';
 
 import { isSafeRedirectPath } from '@salonomia/validation';
+import { Button } from '@salonomia/ui';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from '../../../i18n/navigation';
 import { useTranslations } from 'next-intl';
@@ -82,9 +83,9 @@ export function LoginForm() {
             />
           </div>
           
-          <button type="submit" disabled={loading} style={{ background: '#7c3aed', color: 'white', borderRadius: 12, padding: '0.875rem', fontSize: '1rem', fontWeight: 500, border: 'none', cursor: loading ? 'not-allowed' : 'pointer', marginTop: '0.5rem', opacity: loading ? 0.7 : 1 }}>
-            {loading ? tc('loading') : t('loginBtn')}
-          </button>
+          <Button type="submit" loading={loading} disabled={loading} style={{ width: '100%', marginTop: '0.5rem' }}>
+            {t('loginBtn')}
+          </Button>
         </form>
         
         <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center', fontSize: '0.875rem' }}>

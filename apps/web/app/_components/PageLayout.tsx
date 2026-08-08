@@ -81,12 +81,11 @@ export function PageHeader({ isAuthenticated }: { isAuthenticated?: boolean }) {
           <LanguageSwitcher />
           <a
             href={isAuthenticated ? '/account' : '/login'}
+            className="btn-lg btn-lg-primary"
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
               padding: '0.5rem 1.1rem', borderRadius: 12,
-              background: '#7c3aed', color: 'white',
               fontSize: '0.85rem', fontWeight: 600, textDecoration: 'none',
-              boxShadow: '0 4px 14px rgba(124,58,237,0.35), inset 0 1px 0 rgba(255,255,255,0.18)',
             }}
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">

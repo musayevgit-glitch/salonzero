@@ -1,6 +1,7 @@
 'use client';
 
 import { isSafeRedirectPath } from '@salonomia/validation';
+import { Button } from '@salonomia/ui';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
@@ -92,9 +93,9 @@ export function RegisterForm() {
             <span style={{ fontSize: '0.75rem', color: '#7c6fa0' }}>{t('passwordMinLength')}</span>
           </div>
           
-          <button type="submit" disabled={loading} style={{ background: '#7c3aed', color: 'white', borderRadius: 12, padding: '0.875rem', fontSize: '1rem', fontWeight: 500, border: 'none', cursor: loading ? 'not-allowed' : 'pointer', marginTop: '0.5rem', opacity: loading ? 0.7 : 1 }}>
-            {loading ? t('submitting') : t('registerBtn')}
-          </button>
+          <Button type="submit" loading={loading} disabled={loading} style={{ width: '100%', marginTop: '0.5rem' }}>
+            {t('registerBtn')}
+          </Button>
         </form>
         
         <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center', fontSize: '0.875rem' }}>
