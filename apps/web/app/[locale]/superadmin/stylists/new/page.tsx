@@ -14,7 +14,6 @@ export default function NewStylistPage() {
   const [salonId, setSalonId] = useState('');
   const [fullName, setFullName] = useState('');
   const [bio, setBio] = useState('');
-  const [isActive, setIsActive] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -34,7 +33,7 @@ export default function NewStylistPage() {
     try {
       const created = await apiFetch<{ id: string }>(`/salons/${salonId}/employees`, {
         method: 'POST',
-        body: JSON.stringify({ fullName: fullName.trim(), bio: bio.trim() || null, isActive }),
+        body: JSON.stringify({ fullName: fullName.trim(), bio: bio.trim() || undefined }),
       });
       showToast('Stilist yaradıldı');
       router.push(`/superadmin/stylists/${created.id}`);
@@ -68,15 +67,6 @@ export default function NewStylistPage() {
 
           <FormField label="Bioqrafiya" optional>
             {(p) => <Textarea {...p} rows={3} value={bio} onChange={(e) => setBio(e.target.value)} />}
-          </FormField>
-
-          <FormField label="Status">
-            {(p) => (
-              <Select {...p} value={isActive ? 'ACTIVE' : 'INACTIVE'} onChange={(e) => setIsActive(e.target.value === 'ACTIVE')}>
-                <option value="ACTIVE">Aktiv</option>
-                <option value="INACTIVE">Deaktiv</option>
-              </Select>
-            )}
           </FormField>
 
           <Button type="submit" loading={submitting} disabled={submitting}>Stilist yarat</Button>
