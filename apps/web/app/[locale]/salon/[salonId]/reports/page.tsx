@@ -86,7 +86,6 @@ export default function SalonReportsPage() {
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function applyPreset(preset: (typeof PRESETS)[0]) {

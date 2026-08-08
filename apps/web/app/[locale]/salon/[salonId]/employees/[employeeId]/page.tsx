@@ -14,7 +14,7 @@ import {
 } from '@salonomia/ui';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { apiFetch, apiFetchFormData, ApiError } from '../../../../../../lib/api-client';
+import { apiFetch, ApiError } from '../../../../../../lib/api-client';
 import { PortfolioGallery } from './portfolio-gallery';
 import { PhotoUpload } from './photo-upload';
 import { ServiceAssignment } from './service-assignment';

@@ -70,7 +70,6 @@ export default function SalonAuditLogsPage() {
 
   useEffect(() => {
     load(page, actionFilter);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, salonId]);
 
   function handleSearch(e: React.FormEvent) {

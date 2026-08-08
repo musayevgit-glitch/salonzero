@@ -87,7 +87,6 @@ export default function CustomersPage() {
 
   useEffect(() => {
     load(page, search);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [salonId]);
 
   function handleSearchChange(val: string) {
