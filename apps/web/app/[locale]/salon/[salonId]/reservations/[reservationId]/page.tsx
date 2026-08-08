@@ -18,6 +18,7 @@ import {
 } from '@salonomia/ui';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { apiFetch, ApiError } from '../../../../../../lib/api-client';
 
 interface StatusHistoryItem {
@@ -79,6 +80,7 @@ export default function ReservationDetailPage() {
   const router = useRouter();
   const { salonId, reservationId } = useParams<{ salonId: string; reservationId: string }>();
   const { showToast } = useToast();
+  const t = useTranslations('salonAdmin');
   const [state, setState] = useState<LoadState>({ kind: 'loading' });
   const [busy, setBusy] = useState(false);
   const [employees, setEmployees] = useState<{ id: string; fullName: string }[]>([]);
@@ -129,7 +131,7 @@ export default function ReservationDetailPage() {
         method: 'POST',
         body: JSON.stringify(body),
       });
-      showToast('Reservation updated.');
+      showToast(t('reservations.updated'));
       setRejectOpen(false);
       setCancelOpen(false);
       setRescheduleOpen(false);
@@ -170,7 +172,7 @@ export default function ReservationDetailPage() {
   if (state.kind === 'error') {
     return (
       <main className="p-8">
-        <ErrorState title="Couldn't load this reservation" description={state.message} />
+        <ErrorState title={t('reservations.errorLoadOne')} description={state.message} />
       </main>
     );
   }
@@ -182,8 +184,8 @@ export default function ReservationDetailPage() {
     <main className="flex flex-col gap-6 p-8">
       <Breadcrumbs
         items={[
-          { label: 'Reservations', href: `/salon/${salonId}/reservations` },
-          { label: reservation.customer?.email ?? reservation.guestName ?? 'Reservation' },
+          { label: t('reservations.title'), href: `/salon/${salonId}/reservations` },
+          { label: reservation.customer?.email ?? reservation.guestName ?? t('reservations.title') },
         ]}
       />
 
@@ -197,38 +199,38 @@ export default function ReservationDetailPage() {
         <dl className="mt-4 flex flex-col gap-2 text-sm">
           {reservation.customer ? (
             <div className="flex flex-wrap justify-between gap-x-3">
-              <dt className="text-text-secondary">Customer email</dt>
+              <dt className="text-text-secondary">{t('reservations.customerEmail')}</dt>
               <dd className="break-all">{reservation.customer.email}</dd>
             </div>
           ) : null}
           {reservation.guestName ? (
             <div className="flex flex-wrap justify-between gap-x-3">
-              <dt className="text-text-secondary">Guest name</dt>
+              <dt className="text-text-secondary">{t('reservations.guestName')}</dt>
               <dd>{reservation.guestName}</dd>
             </div>
           ) : null}
           <div className="flex flex-wrap justify-between gap-x-3">
-            <dt className="text-text-secondary">Service</dt>
+            <dt className="text-text-secondary">{t('reservations.service')}</dt>
             <dd>{reservation.service.name}</dd>
           </div>
           <div className="flex flex-wrap justify-between gap-x-3">
-            <dt className="text-text-secondary">Stylist</dt>
+            <dt className="text-text-secondary">{t('reservations.stylist')}</dt>
             <dd>{reservation.employee.fullName}</dd>
           </div>
           <div className="flex flex-wrap justify-between gap-x-3">
-            <dt className="text-text-secondary">Time</dt>
+            <dt className="text-text-secondary">{t('reservations.time')}</dt>
             <dd>
               {new Date(reservation.startAt).toLocaleString()} –{' '}
               {new Date(reservation.endAt).toLocaleTimeString()}
             </dd>
           </div>
           <div className="flex flex-wrap justify-between gap-x-3">
-            <dt className="text-text-secondary">Price</dt>
+            <dt className="text-text-secondary">{t('reservations.price')}</dt>
             <dd>{formatMoney(reservation.priceAmount, reservation.currency)}</dd>
           </div>
           {reservation.customerNote ? (
             <div className="flex flex-wrap justify-between gap-x-3">
-              <dt className="text-text-secondary">Note</dt>
+              <dt className="text-text-secondary">{t('reservations.noteLabel')}</dt>
               <dd>{reservation.customerNote}</dd>
             </div>
           ) : null}
@@ -237,12 +239,12 @@ export default function ReservationDetailPage() {
         <div className="mt-6 flex flex-wrap gap-3">
           {actions.has('confirm') ? (
             <Button onClick={() => runAction('confirm')} loading={busy}>
-              Confirm
+              {t('reservations.actionConfirm')}
             </Button>
           ) : null}
           {actions.has('reject') ? (
             <Button variant="destructive" onClick={() => setRejectOpen(true)}>
-              Reject
+              {t('reservations.actionReject')}
             </Button>
           ) : null}
           {actions.has('reschedule') ? (
@@ -254,27 +256,27 @@ export default function ReservationDetailPage() {
                 setRescheduleOpen(true);
               }}
             >
-              Reschedule
+              {t('reservations.actionReschedule')}
             </Button>
           ) : null}
           {actions.has('cancel') ? (
             <Button variant="destructive" onClick={() => setCancelOpen(true)}>
-              Cancel
+              {t('reservations.actionCancel')}
             </Button>
           ) : null}
           {actions.has('checkIn') ? (
             <Button onClick={() => runAction('check-in')} loading={busy}>
-              Check in
+              {t('reservations.actionCheckIn')}
             </Button>
           ) : null}
           {actions.has('complete') ? (
             <Button onClick={() => runAction('complete')} loading={busy}>
-              Complete
+              {t('reservations.actionComplete')}
             </Button>
           ) : null}
           {actions.has('noShow') ? (
             <Button variant="destructive" onClick={() => setNoShowOpen(true)}>
-              Mark no-show
+              {t('reservations.actionMarkNoShow')}
             </Button>
           ) : null}
         </div>
@@ -283,7 +285,7 @@ export default function ReservationDetailPage() {
       {/* ── Status history timeline ── */}
       {reservation.statusHistory && reservation.statusHistory.length > 0 ? (
         <Card className="max-w-lg">
-          <h2 className="text-base font-semibold text-text-primary mb-4">Status history</h2>
+          <h2 className="text-base font-semibold text-text-primary mb-4">{t('reservations.statusHistory')}</h2>
           <ol style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 0 }}>
             {reservation.statusHistory.map((entry, i) => (
               <li
@@ -337,7 +339,7 @@ export default function ReservationDetailPage() {
                       hour: '2-digit',
                       minute: '2-digit',
                     })}
-                    {entry.changedByUser ? ` · ${entry.changedByUser.fullName}` : ' · System'}
+                    {entry.changedByUser ? ` · ${entry.changedByUser.fullName}` : ` · ${t('reservations.system')}`}
                   </p>
                   {entry.reason ? (
                     <p style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', marginTop: '0.125rem', fontStyle: 'italic' }}>
@@ -354,24 +356,24 @@ export default function ReservationDetailPage() {
       <Dialog
         open={rejectOpen}
         onOpenChange={setRejectOpen}
-        title="Reject this reservation?"
-        description="The customer will be notified. This cannot be undone."
+        title={t('reservations.rejectTitle')}
+        description={t('reservations.rejectDesc')}
         footer={
           <>
             <Button variant="secondary" onClick={() => setRejectOpen(false)} disabled={busy}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button
               variant="destructive"
               loading={busy}
               onClick={() => runAction('reject', { reason: reasonInput || undefined })}
             >
-              Reject
+              {t('reservations.actionReject')}
             </Button>
           </>
         }
       >
-        <FormField label="Reason" optional>
+        <FormField label={t('reservations.reasonLabel')} optional>
           {(fieldProps) => (
             <Textarea
               {...fieldProps}
@@ -386,24 +388,24 @@ export default function ReservationDetailPage() {
       <Dialog
         open={cancelOpen}
         onOpenChange={setCancelOpen}
-        title="Cancel this reservation?"
-        description="The customer will be notified. This cannot be undone."
+        title={t('reservations.cancelTitle')}
+        description={t('reservations.cancelDesc')}
         footer={
           <>
             <Button variant="secondary" onClick={() => setCancelOpen(false)} disabled={busy}>
-              Keep reservation
+              {t('reservations.keepReservation')}
             </Button>
             <Button
               variant="destructive"
               loading={busy}
               onClick={() => runAction('cancel', { reason: reasonInput || undefined })}
             >
-              Cancel reservation
+              {t('reservations.cancelReservation')}
             </Button>
           </>
         }
       >
-        <FormField label="Reason" optional>
+        <FormField label={t('reservations.reasonLabel')} optional>
           {(fieldProps) => (
             <Textarea
               {...fieldProps}
@@ -418,12 +420,12 @@ export default function ReservationDetailPage() {
       <Dialog
         open={rescheduleOpen}
         onOpenChange={setRescheduleOpen}
-        title="Reschedule this reservation"
-        description="The new time is re-checked for availability before saving."
+        title={t('reservations.rescheduleTitle')}
+        description={t('reservations.rescheduleDesc')}
         footer={
           <>
             <Button variant="secondary" onClick={() => setRescheduleOpen(false)} disabled={busy}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button
               loading={busy}
@@ -434,13 +436,13 @@ export default function ReservationDetailPage() {
                 })
               }
             >
-              Save new time
+              {t('reservations.saveNewTime')}
             </Button>
           </>
         }
       >
         <div className="flex flex-col gap-4">
-          <FormField label="New start time">
+          <FormField label={t('reservations.newStartTime')}>
             {(fieldProps) => (
               <Input
                 {...fieldProps}
@@ -450,7 +452,7 @@ export default function ReservationDetailPage() {
               />
             )}
           </FormField>
-          <FormField label="Stylist">
+          <FormField label={t('reservations.stylist')}>
             {(fieldProps) => (
               <Select
                 {...fieldProps}
@@ -471,9 +473,9 @@ export default function ReservationDetailPage() {
       <ConfirmDialog
         open={noShowOpen}
         onOpenChange={setNoShowOpen}
-        title="Mark as no-show?"
-        description="The customer did not arrive for this appointment. This cannot be undone."
-        confirmLabel="Mark no-show"
+        title={t('reservations.noShowTitle')}
+        description={t('reservations.noShowDesc')}
+        confirmLabel={t('reservations.actionMarkNoShow')}
         destructive
         confirming={busy}
         onConfirm={() => runAction('no-show')}

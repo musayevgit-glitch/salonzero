@@ -14,6 +14,7 @@ import {
 import NextLink from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { apiFetch, ApiError } from '../../../../../lib/api-client';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -58,6 +59,7 @@ const PAGE_SIZE = 25;
 export default function CustomersPage() {
   const router = useRouter();
   const { salonId } = useParams<{ salonId: string }>();
+  const t = useTranslations('salonAdmin');
   const [state, setState] = useState<LoadState>({ kind: 'loading' });
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -100,7 +102,7 @@ export default function CustomersPage() {
 
   if (state.kind === 'permission-denied') return <PermissionDeniedState />;
   if (state.kind === 'error') {
-    return <ErrorState title="Failed to load customers" description={state.message} />;
+    return <ErrorState title={t('customers.errorLoad')} description={state.message} />;
   }
 
   const data = state.kind === 'ready' ? state.data : null;
@@ -110,10 +112,10 @@ export default function CustomersPage() {
     <div className="flex flex-col gap-6">
       {/* Header */}
       <div>
-        <h1 className="text-xl font-semibold text-text-primary">Customers</h1>
+        <h1 className="text-xl font-semibold text-text-primary">{t('customers.title')}</h1>
         {data ? (
           <p className="mt-1 text-sm text-text-secondary">
-            {data.total} customer{data.total !== 1 ? 's' : ''}
+            {data.total} {t('customers.title').toLowerCase()}
           </p>
         ) : null}
       </div>
@@ -122,10 +124,10 @@ export default function CustomersPage() {
       <div className="max-w-xs">
         <Input
           type="search"
-          placeholder="Search by name or email…"
+          placeholder={t('customers.searchPlaceholder')}
           value={search}
           onChange={(e) => handleSearchChange(e.target.value)}
-          aria-label="Search customers"
+          aria-label={t('customers.searchPlaceholder')}
         />
       </div>
 
@@ -141,11 +143,11 @@ export default function CustomersPage() {
       {/* Empty */}
       {data && data.items.length === 0 ? (
         <EmptyState
-          title={search ? 'No customers found' : 'No customers yet'}
+          title={search ? t('customers.noCustomersFound') : t('customers.noCustomers')}
           description={
             search
-              ? `No customers match "${search}". Try a different search.`
-              : 'Customers appear here once they make a reservation.'
+              ? t('customers.noCustomersFoundDesc')
+              : t('customers.noCustomersDesc')
           }
         />
       ) : null}
@@ -158,7 +160,7 @@ export default function CustomersPage() {
             columns={[
               {
                 key: 'name',
-                header: 'Customer',
+                header: t('customers.customer'),
                 render: (c) => (
                   <NextLink
                     href={`/salon/${salonId}/customers/${c.id}`}
@@ -174,14 +176,14 @@ export default function CustomersPage() {
               },
               {
                 key: 'email',
-                header: 'Email',
+                header: t('customers.email'),
                 render: (c) => (
                   <span className="text-text-secondary">{c.email}</span>
                 ),
               },
               {
                 key: 'visits',
-                header: 'Total visits',
+                header: t('customers.totalVisits'),
                 render: (c) => (
                   <Badge tone={c.totalVisits > 0 ? 'success' : 'neutral'}>
                     {c.totalVisits}
@@ -190,14 +192,14 @@ export default function CustomersPage() {
               },
               {
                 key: 'lastVisit',
-                header: 'Last visit',
+                header: t('customers.lastVisit'),
                 render: (c) => (
                   <span className="text-text-secondary">{formatDate(c.lastVisit)}</span>
                 ),
               },
               {
                 key: 'nextBooking',
-                header: 'Next booking',
+                header: t('customers.nextBooking'),
                 render: (c) =>
                   c.nextBooking ? (
                     <span className="font-medium">{formatDate(c.nextBooking)}</span>
@@ -223,7 +225,7 @@ export default function CustomersPage() {
               </NextLink>
             )}
             renderSecondary={(c) =>
-              `${c.email} · ${c.totalVisits} visit${c.totalVisits !== 1 ? 's' : ''}${c.nextBooking ? ` · Next: ${formatDate(c.nextBooking)}` : ''}`
+              `${c.email} · ${c.totalVisits} ${t('customers.visits').toLowerCase()}${c.nextBooking ? ` · ${formatDate(c.nextBooking)}` : ''}`
             }
           />
 

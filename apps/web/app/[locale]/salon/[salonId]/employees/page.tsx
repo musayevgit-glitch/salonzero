@@ -15,6 +15,7 @@ import {
 } from '@salonomia/ui';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { apiFetch, ApiError } from '../../../../../lib/api-client';
 
 interface EmployeeListItem {
@@ -42,6 +43,7 @@ type LoadState =
 export default function SalonEmployeesPage() {
   const router = useRouter();
   const { salonId } = useParams<{ salonId: string }>();
+  const t = useTranslations('salonAdmin');
   const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState<'' | 'true' | 'false'>('');
   const [page, setPage] = useState(1);
@@ -100,7 +102,7 @@ export default function SalonEmployeesPage() {
   if (state.kind === 'error') {
     return (
       <main className="p-8">
-        <ErrorState title="Couldn't load employees" description={state.message} />
+        <ErrorState title={t('employees.errorLoad')} description={state.message} />
       </main>
     );
   }
@@ -111,13 +113,13 @@ export default function SalonEmployeesPage() {
   return (
     <main className="flex flex-col gap-6 p-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-text-primary">Employees</h1>
-        <Link href={`/salon/${salonId}/employees/new`}>+ New employee</Link>
+        <h1 className="text-xl font-semibold text-text-primary">{t('employees.title')}</h1>
+        <Link href={`/salon/${salonId}/employees/new`}>+ {t('employees.new')}</Link>
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row">
         <Input
-          placeholder="Search by name"
+          placeholder={t('employees.searchPlaceholder')}
           value={search}
           onChange={(e) => {
             setPage(1);
@@ -133,16 +135,16 @@ export default function SalonEmployeesPage() {
           }}
           className="sm:max-w-40"
         >
-          <option value="">All statuses</option>
-          <option value="true">Active</option>
-          <option value="false">Inactive</option>
+          <option value="">{t('employees.allStatuses')}</option>
+          <option value="true">{t('employees.active')}</option>
+          <option value="false">{t('employees.inactive')}</option>
         </Select>
       </div>
 
       {items.length === 0 ? (
         <EmptyState
-          title="No employees found"
-          description="Try a different search or status filter."
+          title={t('employees.noEmployeesFound')}
+          description={t('employees.noEmployeesFoundDesc')}
         />
       ) : (
         <>
@@ -150,18 +152,18 @@ export default function SalonEmployeesPage() {
             columns={[
               {
                 key: 'fullName',
-                header: 'Name',
+                header: t('employees.name'),
                 render: (row: EmployeeListItem) => (
                   <Link href={`/salon/${salonId}/employees/${row.id}`}>{row.fullName}</Link>
                 ),
               },
-              { key: 'bio', header: 'Bio', render: (row: EmployeeListItem) => row.bio ?? '—' },
+              { key: 'bio', header: t('employees.bio'), render: (row: EmployeeListItem) => row.bio ?? '—' },
               {
                 key: 'isActive',
-                header: 'Status',
+                header: t('employees.status'),
                 render: (row: EmployeeListItem) => (
                   <Badge tone={row.isActive ? 'success' : 'neutral'}>
-                    {row.isActive ? 'Active' : 'Inactive'}
+                    {row.isActive ? t('employees.active') : t('employees.inactive')}
                   </Badge>
                 ),
               },
@@ -178,7 +180,7 @@ export default function SalonEmployeesPage() {
             renderSecondary={(row) => row.bio ?? ''}
             renderAction={(row) => (
               <Badge tone={row.isActive ? 'success' : 'neutral'}>
-                {row.isActive ? 'Active' : 'Inactive'}
+                {row.isActive ? t('employees.active') : t('employees.inactive')}
               </Badge>
             )}
           />

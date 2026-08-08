@@ -16,6 +16,7 @@ import {
 } from '@salonomia/ui';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { apiFetch, ApiError } from '../../../../../lib/api-client';
 
 interface ReservationListItem {
@@ -93,6 +94,7 @@ type ViewMode = 'today' | 'day' | 'week';
 export default function SalonReservationsPage() {
   const router = useRouter();
   const { salonId } = useParams<{ salonId: string }>();
+  const t = useTranslations('salonAdmin');
   const [viewMode, setViewMode] = useState<ViewMode>('today');
   const [selectedDate, setSelectedDate] = useState(() => toLocalDateInput(new Date()));
   const [status, setStatus] = useState('');
@@ -162,9 +164,9 @@ export default function SalonReservationsPage() {
   useEffect(load, [salonId, viewMode, selectedDate, status, employeeId, search, page]);
 
   const QUICK_ACTION = {
-    confirm: { label: 'Confirm', path: 'confirm' },
-    checkIn: { label: 'Check in', path: 'check-in' },
-    complete: { label: 'Complete', path: 'complete' },
+    confirm: { label: t('reservations.actionConfirm'), path: 'confirm' },
+    checkIn: { label: t('reservations.actionCheckIn'), path: 'check-in' },
+    complete: { label: t('reservations.actionComplete'), path: 'complete' },
   } as const;
   type QuickActionKey = keyof typeof QUICK_ACTION;
 
@@ -182,7 +184,7 @@ export default function SalonReservationsPage() {
       load();
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
-        setBanner('That reservation changed since this list loaded — refreshing.');
+        setBanner(err.message || 'That reservation changed since this list loaded — refreshing.');
         load();
       } else {
         setBanner(err instanceof ApiError ? err.message : 'Something went wrong.');
@@ -203,7 +205,7 @@ export default function SalonReservationsPage() {
   if (state.kind === 'error') {
     return (
       <main className="p-8">
-        <ErrorState title="Couldn't load reservations" description={state.message} />
+        <ErrorState title={t('reservations.errorLoad')} description={state.message} />
       </main>
     );
   }
@@ -216,9 +218,9 @@ export default function SalonReservationsPage() {
   return (
     <main className="flex flex-col gap-6 p-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-xl font-semibold text-text-primary">Reservations</h1>
+        <h1 className="text-xl font-semibold text-text-primary">{t('reservations.title')}</h1>
         <Link href={`/salon/${salonId}/reservations/new`}>
-          <Button>New reservation</Button>
+          <Button>{t('reservations.new')}</Button>
         </Link>
       </div>
 
@@ -228,7 +230,7 @@ export default function SalonReservationsPage() {
         </div>
       ) : null}
 
-      <div className="flex flex-wrap gap-2" role="group" aria-label="View">
+      <div className="flex flex-wrap gap-2" role="group" aria-label={t('reservations.title')}>
         {(['today', 'day', 'week'] as ViewMode[]).map((mode) => (
           <Button
             key={mode}
@@ -238,7 +240,7 @@ export default function SalonReservationsPage() {
               setPage(1);
             }}
           >
-            {mode === 'today' ? 'Today' : mode === 'day' ? 'Day' : 'Week'}
+            {mode === 'today' ? t('reservations.today') : mode === 'day' ? t('reservations.day') : t('reservations.week')}
           </Button>
         ))}
         {viewMode !== 'today' ? (
@@ -249,7 +251,7 @@ export default function SalonReservationsPage() {
               setSelectedDate(e.target.value);
               setPage(1);
             }}
-            aria-label={viewMode === 'week' ? 'Any day in the target week' : 'Day'}
+            aria-label={viewMode === 'week' ? 'Any day in the target week' : t('reservations.day')}
             className="w-auto"
           />
         ) : null}
@@ -257,13 +259,13 @@ export default function SalonReservationsPage() {
 
       <div className="flex flex-wrap gap-3">
         <Input
-          placeholder="Search customer name or email"
+          placeholder={t('reservations.searchCustomer')}
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
             setPage(1);
           }}
-          aria-label="Search"
+          aria-label={t('common.search')}
           className="max-w-xs"
         />
         <Select
@@ -272,10 +274,10 @@ export default function SalonReservationsPage() {
             setStatus(e.target.value);
             setPage(1);
           }}
-          aria-label="Status"
+          aria-label={t('reservations.status')}
           className="max-w-[200px]"
         >
-          <option value="">All statuses</option>
+          <option value="">{t('reservations.allStatuses')}</option>
           {Object.keys(STATUS_LABEL).map((s) => (
             <option key={s} value={s}>
               {STATUS_LABEL[s]}
@@ -288,10 +290,10 @@ export default function SalonReservationsPage() {
             setEmployeeId(e.target.value);
             setPage(1);
           }}
-          aria-label="Stylist"
+          aria-label={t('reservations.stylist')}
           className="max-w-[200px]"
         >
-          <option value="">All stylists</option>
+          <option value="">{t('reservations.allStylists')}</option>
           {employees.map((e) => (
             <option key={e.id} value={e.id}>
               {e.fullName}
@@ -304,8 +306,8 @@ export default function SalonReservationsPage() {
         <Skeleton className="h-64 w-full" />
       ) : items.length === 0 ? (
         <EmptyState
-          title="No reservations"
-          description="No reservations match the current filters for this range."
+          title={t('reservations.noReservations')}
+          description={t('reservations.noReservationsDesc')}
         />
       ) : (
         <>
@@ -313,7 +315,7 @@ export default function SalonReservationsPage() {
             columns={[
               {
                 key: 'time',
-                header: 'Time',
+                header: t('reservations.time'),
                 render: (r: ReservationListItem) => (
                   <Link href={`/salon/${salonId}/reservations/${r.id}`}>
                     {new Date(r.startAt).toLocaleString(undefined, {
@@ -328,22 +330,22 @@ export default function SalonReservationsPage() {
               },
               {
                 key: 'customer',
-                header: 'Customer',
+                header: t('reservations.customer'),
                 render: (r: ReservationListItem) => r.customer.fullName,
               },
               {
                 key: 'service',
-                header: 'Service',
+                header: t('reservations.service'),
                 render: (r: ReservationListItem) => r.service.name,
               },
               {
                 key: 'stylist',
-                header: 'Stylist',
+                header: t('reservations.stylist'),
                 render: (r: ReservationListItem) => r.employee.fullName,
               },
               {
                 key: 'status',
-                header: 'Status',
+                header: t('reservations.status'),
                 render: (r: ReservationListItem) => (
                   <Badge tone={STATUS_TONE[r.status] ?? 'neutral'}>
                     {STATUS_LABEL[r.status] ?? r.status}

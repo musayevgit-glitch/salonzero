@@ -3,6 +3,7 @@
 import { Button, Card, FormField, Input, Skeleton, Table } from '@salonomia/ui';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { apiFetch, ApiError } from '../../../../../lib/api-client';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -47,13 +48,6 @@ const STATUS_LABEL: Record<string, string> = {
   NO_SHOW: 'No show',
 };
 
-const PRESETS = [
-  { label: 'Today', from: () => getToday(), to: () => getToday() },
-  { label: 'Last 7 days', from: () => daysAgo(6), to: () => getToday() },
-  { label: 'Last 30 days', from: () => daysAgo(29), to: () => getToday() },
-  { label: 'This month', from: () => firstDayOfMonth(), to: () => getToday() },
-];
-
 // ─── Components ───────────────────────────────────────────────────────────────
 
 function KpiCard({ label, value }: { label: string; value: string }) {
@@ -69,16 +63,24 @@ function KpiCard({ label, value }: { label: string; value: string }) {
 
 export default function SalonReportsPage() {
   const { salonId } = useParams<{ salonId: string }>();
+  const t = useTranslations('salonAdmin');
   const [from, setFrom] = useState(daysAgo(29));
   const [to, setTo] = useState(getToday());
   const [report, setReport] = useState<SalonReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  function load(f = from, t = to) {
+  const PRESETS = [
+    { label: t('reports.today'), from: () => getToday(), to: () => getToday() },
+    { label: t('reports.last7Days'), from: () => daysAgo(6), to: () => getToday() },
+    { label: t('reports.last30Days'), from: () => daysAgo(29), to: () => getToday() },
+    { label: t('reports.thisMonth'), from: () => firstDayOfMonth(), to: () => getToday() },
+  ];
+
+  function load(f = from, t2 = to) {
     setLoading(true);
     setError(null);
-    apiFetch<SalonReport>(`/salons/${salonId}/reports?from=${f}&to=${t}`)
+    apiFetch<SalonReport>(`/salons/${salonId}/reports?from=${f}&to=${t2}`)
       .then((r) => setReport(r))
       .catch((err) => setError(err instanceof ApiError ? err.message : 'Failed to load report.'))
       .finally(() => setLoading(false));
@@ -90,10 +92,10 @@ export default function SalonReportsPage() {
 
   function applyPreset(preset: (typeof PRESETS)[0]) {
     const f = preset.from();
-    const t = preset.to();
+    const t2 = preset.to();
     setFrom(f);
-    setTo(t);
-    load(f, t);
+    setTo(t2);
+    load(f, t2);
   }
 
   const today = getToday();
@@ -106,7 +108,7 @@ export default function SalonReportsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-semibold text-text-primary">Reports</h1>
+      <h1 className="text-xl font-semibold text-text-primary">{t('reports.title')}</h1>
 
       {/* Controls */}
       <Card>
@@ -146,7 +148,7 @@ export default function SalonReportsPage() {
             }}
             className="flex flex-wrap items-end gap-3"
           >
-            <FormField label="From">
+            <FormField label={t('reports.from')}>
               {(fieldProps) => (
                 <Input
                   {...fieldProps}
@@ -157,7 +159,7 @@ export default function SalonReportsPage() {
                 />
               )}
             </FormField>
-            <FormField label="To">
+            <FormField label={t('reports.to')}>
               {(fieldProps) => (
                 <Input
                   {...fieldProps}
@@ -170,7 +172,7 @@ export default function SalonReportsPage() {
               )}
             </FormField>
             <Button type="submit" loading={loading} disabled={loading}>
-              Apply
+              {t('reports.apply')}
             </Button>
           </form>
         </div>
@@ -194,17 +196,17 @@ export default function SalonReportsPage() {
         >
           {/* KPIs */}
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <KpiCard label="Total reservations" value={String(report.total)} />
+            <KpiCard label={t('reports.totalReservations')} value={String(report.total)} />
             {Object.entries(report.revenue).map(([currency, amount]) => (
               <KpiCard
                 key={currency}
-                label={`Revenue (${currency})`}
+                label={t('reports.revenueWithCurrency').replace('{currency}', currency)}
                 value={formatMoney(amount, currency)}
               />
             ))}
-            <KpiCard label="Completed" value={String(report.byStatus['COMPLETED'] ?? 0)} />
+            <KpiCard label={t('reports.completed')} value={String(report.byStatus['COMPLETED'] ?? 0)} />
             <KpiCard
-              label="Cancellations"
+              label={t('reports.cancellations')}
               value={String(
                 (report.byStatus['CANCELLED_BY_CUSTOMER'] ?? 0) +
                   (report.byStatus['CANCELLED_BY_SALON'] ?? 0),
@@ -214,7 +216,7 @@ export default function SalonReportsPage() {
 
           {/* Status breakdown */}
           <Card>
-            <h2 className="mb-4 text-sm font-semibold text-text-primary">By status</h2>
+            <h2 className="mb-4 text-sm font-semibold text-text-primary">{t('reports.byStatus')}</h2>
             <dl className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
               {Object.entries(report.byStatus).map(([status, count]) => (
                 <div key={status}>
@@ -228,7 +230,7 @@ export default function SalonReportsPage() {
           {/* Top services */}
           {report.topServices.length > 0 ? (
             <Card>
-              <h2 className="mb-4 text-sm font-semibold text-text-primary">Top services</h2>
+              <h2 className="mb-4 text-sm font-semibold text-text-primary">{t('reports.topServices')}</h2>
               <div className="flex flex-col gap-3">
                 {report.topServices.map((s, i) => {
                   const max = report.topServices[0]?.count ?? 1;
@@ -271,14 +273,14 @@ export default function SalonReportsPage() {
           {dayRows.length > 0 ? (
             <Card style={{ padding: 0, overflow: 'hidden' }}>
               <h2 className="px-5 py-4 text-sm font-semibold text-text-primary border-b border-border">
-                Daily reservations
+                {t('reports.dailyReservations')}
               </h2>
               <Table<DayRow>
                 columns={[
-                  { key: 'date', header: 'Date', render: (row) => <span>{row.day}</span> },
+                  { key: 'date', header: t('reports.date'), render: (row) => <span>{row.day}</span> },
                   {
                     key: 'count',
-                    header: 'Reservations',
+                    header: t('reports.reservations'),
                     render: (row) => <span className="font-medium">{row.count}</span>,
                   },
                 ]}

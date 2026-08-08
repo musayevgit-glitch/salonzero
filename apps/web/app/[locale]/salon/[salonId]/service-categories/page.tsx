@@ -13,6 +13,7 @@ import {
 } from '@salonomia/ui';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { apiFetch, ApiError } from '../../../../../lib/api-client';
 
 interface ServiceCategory {
@@ -32,6 +33,7 @@ export default function ServiceCategoriesPage() {
   const router = useRouter();
   const { salonId } = useParams<{ salonId: string }>();
   const { showToast } = useToast();
+  const t = useTranslations('salonAdmin');
   const [state, setState] = useState<LoadState>({ kind: 'loading' });
 
   const basePath = `/salons/${salonId}/service-categories`;
@@ -74,7 +76,7 @@ export default function ServiceCategoriesPage() {
         body: JSON.stringify({ categoryIds: reordered.map((item) => item.id) }),
       });
     } catch (err) {
-      showToast(err instanceof ApiError ? err.message : 'Could not reorder categories.', 'danger');
+      showToast(err instanceof ApiError ? err.message : t('categories.reorderError'), 'danger');
       load();
     }
   }
@@ -88,7 +90,7 @@ export default function ServiceCategoriesPage() {
           body: JSON.stringify({}),
         },
       );
-      showToast(category.isActive ? 'Category deactivated' : 'Category activated');
+      showToast(category.isActive ? t('categories.deactivated') : t('categories.activated'));
       load();
     } catch (err) {
       showToast(err instanceof ApiError ? err.message : 'Something went wrong.', 'danger');
@@ -115,7 +117,7 @@ export default function ServiceCategoriesPage() {
   if (state.kind === 'error') {
     return (
       <main className="p-8">
-        <ErrorState title="Couldn't load service categories" description={state.message} />
+        <ErrorState title={t('categories.errorLoad')} description={state.message} />
       </main>
     );
   }
@@ -125,14 +127,14 @@ export default function ServiceCategoriesPage() {
   return (
     <main className="flex flex-col gap-6 p-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-text-primary">Service categories</h1>
-        <Link href={`/salon/${salonId}/service-categories/new`}>+ New category</Link>
+        <h1 className="text-xl font-semibold text-text-primary">{t('categories.title')}</h1>
+        <Link href={`/salon/${salonId}/service-categories/new`}>+ {t('categories.new')}</Link>
       </div>
 
       {items.length === 0 ? (
         <EmptyState
-          title="No service categories yet"
-          description="Create your first category to start grouping services."
+          title={t('categories.noCategories')}
+          description={t('categories.noCategoriesDesc')}
         />
       ) : (
         <ul className="flex flex-col gap-2">
@@ -146,24 +148,24 @@ export default function ServiceCategoriesPage() {
                   {category.name}
                 </Link>
                 <Badge tone={category.isActive ? 'success' : 'neutral'}>
-                  {category.isActive ? 'Active' : 'Inactive'}
+                  {category.isActive ? t('common.active') : t('common.inactive')}
                 </Badge>
               </div>
               <div className="flex items-center gap-1">
                 <IconButton
-                  label="Move earlier"
+                  label={t('categories.moveEarlier')}
                   icon={<span aria-hidden="true">←</span>}
                   disabled={index === 0}
                   onClick={() => move(index, -1)}
                 />
                 <IconButton
-                  label="Move later"
+                  label={t('categories.moveLater')}
                   icon={<span aria-hidden="true">→</span>}
                   disabled={index === items.length - 1}
                   onClick={() => move(index, 1)}
                 />
                 <Button variant="secondary" onClick={() => toggleActive(category)}>
-                  {category.isActive ? 'Deactivate' : 'Activate'}
+                  {category.isActive ? t('common.deactivate') : t('common.activate')}
                 </Button>
               </div>
             </li>

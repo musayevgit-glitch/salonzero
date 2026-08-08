@@ -13,6 +13,7 @@ import {
 } from '@salonomia/ui';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { apiFetch, ApiError } from '../../../../../lib/api-client';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -50,6 +51,7 @@ function formatDatetime(iso: string): string {
 
 export default function SalonAuditLogsPage() {
   const { salonId } = useParams<{ salonId: string }>();
+  const t = useTranslations('salonAdmin');
   const [page, setPage] = useState(1);
   const [actionFilter, setActionFilter] = useState('');
   const [pendingFilter, setPendingFilter] = useState('');
@@ -84,10 +86,10 @@ export default function SalonAuditLogsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-semibold text-text-primary">Audit log</h1>
+        <h1 className="text-xl font-semibold text-text-primary">{t('auditLog.title')}</h1>
         {data ? (
           <p className="mt-1 text-sm text-text-secondary">
-            {data.total} event{data.total !== 1 ? 's' : ''}
+            {data.total} {t('auditLog.events')}
           </p>
         ) : null}
       </div>
@@ -98,15 +100,15 @@ export default function SalonAuditLogsPage() {
           type="search"
           value={pendingFilter}
           onChange={(e) => setPendingFilter(e.target.value)}
-          placeholder="Filter by action (e.g. reservation.created)"
-          aria-label="Filter audit log by action"
+          placeholder={t('auditLog.filterPlaceholder')}
+          aria-label={t('auditLog.filterPlaceholder')}
         />
         <Button type="submit" variant="secondary" loading={loading}>
-          Search
+          {t('common.search')}
         </Button>
       </form>
 
-      {error ? <ErrorState title="Failed to load audit log" description={error} /> : null}
+      {error ? <ErrorState title={t('auditLog.errorLoad')} description={error} /> : null}
 
       {/* Skeleton */}
       {loading && !data ? (
@@ -122,11 +124,11 @@ export default function SalonAuditLogsPage() {
         <>
           {data.items.length === 0 ? (
             <EmptyState
-              title="No audit events found"
+              title={t('auditLog.noEventsFound')}
               description={
                 actionFilter
                   ? `No events match "${actionFilter}". Try a different filter.`
-                  : 'No audit events have been recorded yet.'
+                  : t('auditLog.noEventsDesc')
               }
             />
           ) : (
@@ -137,7 +139,7 @@ export default function SalonAuditLogsPage() {
                   columns={[
                     {
                       key: 'time',
-                      header: 'Time',
+                      header: t('auditLog.time'),
                       render: (log) => (
                         <span style={{ fontSize: '0.8125rem', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>
                           {formatDatetime(log.createdAt)}
@@ -146,7 +148,7 @@ export default function SalonAuditLogsPage() {
                     },
                     {
                       key: 'action',
-                      header: 'Action',
+                      header: t('auditLog.action'),
                       render: (log) => (
                         <code
                           style={{
@@ -165,7 +167,7 @@ export default function SalonAuditLogsPage() {
                     },
                     {
                       key: 'target',
-                      header: 'Target',
+                      header: t('auditLog.target'),
                       render: (log) => (
                         <span style={{ fontSize: '0.8125rem', color: 'var(--color-text-secondary)' }}>
                           {log.targetType}{' '}
@@ -177,7 +179,7 @@ export default function SalonAuditLogsPage() {
                     },
                     {
                       key: 'actor',
-                      header: 'Actor',
+                      header: t('auditLog.actor'),
                       render: (log) =>
                         log.actor ? (
                           <span title={log.actor.email} style={{ fontSize: '0.875rem' }}>
@@ -185,7 +187,7 @@ export default function SalonAuditLogsPage() {
                           </span>
                         ) : (
                           <span style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)' }}>
-                            System
+                            {t('auditLog.system')}
                           </span>
                         ),
                     },
@@ -204,7 +206,7 @@ export default function SalonAuditLogsPage() {
                     </code>
                   )}
                   renderSecondary={(log) =>
-                    `${formatDatetime(log.createdAt)} · ${log.actor?.fullName ?? 'System'}`
+                    `${formatDatetime(log.createdAt)} · ${log.actor?.fullName ?? t('auditLog.system')}`
                   }
                 />
               </div>

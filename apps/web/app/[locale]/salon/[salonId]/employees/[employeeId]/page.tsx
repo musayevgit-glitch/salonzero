@@ -14,6 +14,7 @@ import {
 } from '@salonomia/ui';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { apiFetch, ApiError } from '../../../../../../lib/api-client';
 import { PortfolioGallery } from './portfolio-gallery';
 import { PhotoUpload } from './photo-upload';
@@ -41,6 +42,7 @@ export default function EmployeeDetailPage() {
   const router = useRouter();
   const { salonId, employeeId } = useParams<{ salonId: string; employeeId: string }>();
   const { showToast } = useToast();
+  const t = useTranslations('salonAdmin');
   const [state, setState] = useState<LoadState>({ kind: 'loading' });
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [lifecycleBusy, setLifecycleBusy] = useState(false);
@@ -77,7 +79,7 @@ export default function EmployeeDetailPage() {
         method: 'POST',
         body: JSON.stringify({}),
       });
-      showToast(action === 'deactivate' ? 'Employee deactivated' : 'Employee activated');
+      showToast(action === 'deactivate' ? t('employees.deactivated') : t('employees.activated'));
       setConfirmOpen(false);
       load();
     } catch (err) {
@@ -106,7 +108,7 @@ export default function EmployeeDetailPage() {
   if (state.kind === 'error') {
     return (
       <main className="p-8">
-        <ErrorState title="Couldn't load this employee" description={state.message} />
+        <ErrorState title={t('employees.errorLoadOne')} description={state.message} />
       </main>
     );
   }
@@ -117,7 +119,7 @@ export default function EmployeeDetailPage() {
     <main className="flex flex-col gap-6 p-8">
       <Breadcrumbs
         items={[
-          { label: 'Employees', href: `/salon/${salonId}/employees` },
+          { label: t('employees.title'), href: `/salon/${salonId}/employees` },
           { label: employee.fullName },
         ]}
       />
@@ -125,7 +127,7 @@ export default function EmployeeDetailPage() {
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold text-text-primary">{employee.fullName}</h1>
           <Badge tone={employee.isActive ? 'success' : 'neutral'}>
-            {employee.isActive ? 'Active' : 'Inactive'}
+            {employee.isActive ? t('employees.active') : t('employees.inactive')}
           </Badge>
         </div>
         {employee.bio ? <p className="mt-4 text-sm text-text-secondary">{employee.bio}</p> : null}
@@ -135,19 +137,19 @@ export default function EmployeeDetailPage() {
             href={`/salon/${salonId}/employees/${employee.id}/edit`}
             className="btn-lg btn-lg-secondary inline-flex min-h-11 items-center justify-center px-5 text-sm font-medium rounded-[var(--radius-lg)] no-underline hover:no-underline"
           >
-            Edit
+            {t('common.edit')}
           </Link>
           <Button
             variant={employee.isActive ? 'destructive' : 'secondary'}
             onClick={() => setConfirmOpen(true)}
           >
-            {employee.isActive ? 'Deactivate' : 'Activate'}
+            {employee.isActive ? t('employees.deactivate') : t('employees.activate')}
           </Button>
         </div>
       </Card>
 
       <Card className="max-w-lg">
-        <h2 className="text-lg font-semibold text-text-primary">Profile photo</h2>
+        <h2 className="text-lg font-semibold text-text-primary">{t('employees.profilePhoto')}</h2>
         <div className="mt-4">
           <PhotoUpload
             salonId={salonId}
@@ -159,35 +161,35 @@ export default function EmployeeDetailPage() {
       </Card>
 
       <Card className="max-w-2xl">
-        <h2 className="text-lg font-semibold text-text-primary">Portfolio</h2>
+        <h2 className="text-lg font-semibold text-text-primary">{t('employees.portfolio')}</h2>
         <div className="mt-4">
           <PortfolioGallery salonId={salonId} employeeId={employee.id} />
         </div>
       </Card>
 
       <Card className="max-w-lg">
-        <h2 className="text-lg font-semibold text-text-primary">Eligible services</h2>
+        <h2 className="text-lg font-semibold text-text-primary">{t('employees.eligibleServices')}</h2>
         <div className="mt-4">
           <ServiceAssignment salonId={salonId} employeeId={employee.id} />
         </div>
       </Card>
 
       <Card className="max-w-2xl">
-        <h2 className="text-lg font-semibold text-text-primary">Weekly working schedule</h2>
+        <h2 className="text-lg font-semibold text-text-primary">{t('employees.weeklySchedule')}</h2>
         <div className="mt-4">
           <WorkingScheduleEditor salonId={salonId} employeeId={employee.id} />
         </div>
       </Card>
 
       <Card className="max-w-2xl">
-        <h2 className="text-lg font-semibold text-text-primary">Breaks</h2>
+        <h2 className="text-lg font-semibold text-text-primary">{t('employees.breaks')}</h2>
         <div className="mt-4">
           <BreaksEditor salonId={salonId} employeeId={employee.id} />
         </div>
       </Card>
 
       <Card className="max-w-2xl">
-        <h2 className="text-lg font-semibold text-text-primary">Time off</h2>
+        <h2 className="text-lg font-semibold text-text-primary">{t('employees.timeOff')}</h2>
         <div className="mt-4">
           <TimeOffEditor salonId={salonId} employeeId={employee.id} />
         </div>
@@ -196,13 +198,13 @@ export default function EmployeeDetailPage() {
       <ConfirmDialog
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
-        title={employee.isActive ? 'Deactivate this employee?' : 'Activate this employee?'}
+        title={employee.isActive ? t('employees.deactivateTitle') : t('employees.activateTitle')}
         description={
           employee.isActive
-            ? 'They will no longer be bookable for services. This does not affect existing reservations.'
-            : 'They will become bookable again.'
+            ? t('employees.deactivateDesc')
+            : t('employees.activateDesc')
         }
-        confirmLabel={employee.isActive ? 'Deactivate' : 'Activate'}
+        confirmLabel={employee.isActive ? t('employees.deactivate') : t('employees.activate')}
         destructive={employee.isActive}
         confirming={lifecycleBusy}
         onConfirm={handleLifecycleConfirm}

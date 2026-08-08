@@ -2,6 +2,7 @@
 
 import { Button, ConfirmDialog, IconButton, Select, useToast } from '@salonomia/ui';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { apiFetch, ApiError } from '../../../../../../lib/api-client';
 
 interface AssignedService {
@@ -27,12 +28,14 @@ export function ServiceAssignment({
   employeeId: string;
 }) {
   const { showToast } = useToast();
+  const t = useTranslations('salonAdmin');
   const [assigned, setAssigned] = useState<AssignedService[] | null>(null);
   const [allServices, setAllServices] = useState<ServiceListItem[]>([]);
   const [selectedServiceId, setSelectedServiceId] = useState('');
   const [assigning, setAssigning] = useState(false);
   const [unassignTarget, setUnassignTarget] = useState<AssignedService | null>(null);
   const [unassigning, setUnassigning] = useState(false);
+  const [loadingServices, setLoadingServices] = useState(true);
 
   const basePath = `/salons/${salonId}/employees/${employeeId}/services`;
 
@@ -45,9 +48,11 @@ export function ServiceAssignment({
   useEffect(load, [salonId, employeeId]);
 
   useEffect(() => {
+    setLoadingServices(true);
     apiFetch<ServiceListResponse>(`/salons/${salonId}/services?isActive=true&pageSize=100`)
       .then((res) => setAllServices(res.items))
-      .catch(() => undefined);
+      .catch(() => setAllServices([]))
+      .finally(() => setLoadingServices(false));
   }, [salonId]);
 
   const assignedIds = new Set((assigned ?? []).map((s) => s.id));
@@ -61,11 +66,11 @@ export function ServiceAssignment({
         method: 'POST',
         body: JSON.stringify({ serviceId: selectedServiceId }),
       });
-      showToast('Service assigned');
+      showToast(t('employees.serviceAssignment.serviceAssigned'));
       setSelectedServiceId('');
       load();
     } catch (err) {
-      showToast(err instanceof ApiError ? err.message : 'Could not assign service.', 'danger');
+      showToast(err instanceof ApiError ? err.message : t('employees.serviceAssignment.assignError'), 'danger');
     } finally {
       setAssigning(false);
     }
@@ -76,14 +81,29 @@ export function ServiceAssignment({
     setUnassigning(true);
     try {
       await apiFetch(`${basePath}/${unassignTarget.id}`, { method: 'DELETE' });
-      showToast('Service unassigned');
+      showToast(t('employees.serviceAssignment.serviceUnassigned'));
       setUnassignTarget(null);
       load();
     } catch (err) {
-      showToast(err instanceof ApiError ? err.message : 'Could not unassign service.', 'danger');
+      showToast(err instanceof ApiError ? err.message : t('employees.serviceAssignment.unassignError'), 'danger');
     } finally {
       setUnassigning(false);
     }
+  }
+
+  if (loadingServices) {
+    return <p className="text-sm text-text-secondary">{t('common.loading')}</p>;
+  }
+
+  if (allServices.length === 0) {
+    return (
+      <p className="text-sm text-text-secondary">
+        {t('services.noServices')}{' '}
+        <a href={`/salon/${salonId}/services/new`} className="text-accent underline-offset-4 hover:underline">
+          + {t('services.new')}
+        </a>
+      </p>
+    );
   }
 
   return (
@@ -93,9 +113,9 @@ export function ServiceAssignment({
           value={selectedServiceId}
           onChange={(e) => setSelectedServiceId(e.target.value)}
           className="sm:max-w-xs"
-          aria-label="Service to assign"
+          aria-label={t('employees.serviceAssignment.selectService')}
         >
-          <option value="">Select a service…</option>
+          <option value="">{t('employees.serviceAssignment.selectService')}</option>
           {availableToAssign.map((service) => (
             <option key={service.id} value={service.id}>
               {service.name}
@@ -108,12 +128,12 @@ export function ServiceAssignment({
           loading={assigning}
           disabled={assigning || !selectedServiceId}
         >
-          Assign
+          {t('employees.serviceAssignment.assign')}
         </Button>
       </div>
 
       {!assigned || assigned.length === 0 ? (
-        <p className="text-sm text-text-secondary">No services assigned yet.</p>
+        <p className="text-sm text-text-secondary">{t('employees.serviceAssignment.noServicesAssigned')}</p>
       ) : (
         <ul className="flex flex-col gap-2">
           {assigned.map((service) => (
@@ -123,7 +143,7 @@ export function ServiceAssignment({
             >
               <span>{service.name}</span>
               <IconButton
-                label={`Unassign ${service.name}`}
+                label={`${t('employees.serviceAssignment.unassign')} ${service.name}`}
                 icon={<span aria-hidden="true">✕</span>}
                 onClick={() => setUnassignTarget(service)}
               />
@@ -135,9 +155,9 @@ export function ServiceAssignment({
       <ConfirmDialog
         open={unassignTarget !== null}
         onOpenChange={(open) => !open && setUnassignTarget(null)}
-        title={`Unassign ${unassignTarget?.name ?? 'this service'}?`}
-        description="The employee will no longer be bookable for this service."
-        confirmLabel="Unassign"
+        title={`${t('employees.serviceAssignment.unassign')} ${unassignTarget?.name ?? ''}?`}
+        description={t('employees.serviceAssignment.unassignDesc')}
+        confirmLabel={t('employees.serviceAssignment.unassign')}
         destructive
         confirming={unassigning}
         onConfirm={handleUnassignConfirm}

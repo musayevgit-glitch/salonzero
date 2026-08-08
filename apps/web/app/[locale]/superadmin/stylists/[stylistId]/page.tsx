@@ -271,21 +271,112 @@ function PortfolioTab({ stylist, onReload }: { stylist: StylistDetail; onReload:
 }
 
 // ── Services Tab ─────────────────────────────────────────────────────────
-function ServicesTab({ stylist }: { stylist: StylistDetail }) {
-  if (stylist.services.length === 0) {
-    return <p className="py-8 text-center text-sm text-text-secondary">Bu stilistə xidmət təyin edilməyib.</p>;
+interface SalonService { id: string; name: string; isActive: boolean; }
+interface SalonServiceList { items: SalonService[]; }
+interface AssignedService { id: string; name: string; }
+
+function ServicesTab({ stylist, onReload }: { stylist: StylistDetail; onReload: () => void }) {
+  const { showToast } = useToast();
+  const [assigned, setAssigned] = useState<AssignedService[]>([]);
+  const [allServices, setAllServices] = useState<SalonService[]>([]);
+  const [selectedId, setSelectedId] = useState('');
+  const [assigning, setAssigning] = useState(false);
+  const [unassignTarget, setUnassignTarget] = useState<AssignedService | null>(null);
+  const [unassigning, setUnassigning] = useState(false);
+
+  const salonId = stylist.salon.id;
+  const employeeId = stylist.id;
+  const basePath = `/salons/${salonId}/employees/${employeeId}/services`;
+
+  function loadAssigned() {
+    apiFetch<AssignedService[]>(basePath)
+      .then(setAssigned)
+      .catch(() => setAssigned([]));
   }
+
+  useEffect(() => {
+    loadAssigned();
+    apiFetch<SalonServiceList>(`/salons/${salonId}/services?isActive=true&pageSize=100`)
+      .then((r) => setAllServices(r.items))
+      .catch(() => undefined);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [salonId, employeeId]);
+
+  const assignedIds = new Set(assigned.map((s) => s.id));
+  const available = allServices.filter((s) => !assignedIds.has(s.id));
+
+  async function handleAssign() {
+    if (!selectedId) return;
+    setAssigning(true);
+    try {
+      await apiFetch(basePath, { method: 'POST', body: JSON.stringify({ serviceId: selectedId }) });
+      showToast('Xidmət təyin edildi');
+      setSelectedId('');
+      loadAssigned();
+      onReload();
+    } catch (err) {
+      showToast(err instanceof ApiError ? err.message : 'Xəta baş verdi.', 'danger');
+    } finally { setAssigning(false); }
+  }
+
+  async function handleUnassign() {
+    if (!unassignTarget) return;
+    setUnassigning(true);
+    try {
+      await apiFetch(`${basePath}/${unassignTarget.id}`, { method: 'DELETE' });
+      showToast('Xidmət silindi');
+      setUnassignTarget(null);
+      loadAssigned();
+      onReload();
+    } catch (err) {
+      showToast(err instanceof ApiError ? err.message : 'Xəta baş verdi.', 'danger');
+    } finally { setUnassigning(false); }
+  }
+
   return (
-    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-      {stylist.services.map((svc) => (
-        <div key={svc.id} className="flex items-center justify-between rounded-[var(--radius-md)] border border-border px-4 py-3">
-          <div>
-            <Link href={`/superadmin/services/${svc.id}`} className="text-sm font-medium">{svc.name}</Link>
-            <p className="text-xs text-text-secondary">{fmt(svc.priceAmount, svc.currency)}</p>
-          </div>
-          <Badge tone={svc.isActive ? 'success' : 'neutral'}>{svc.isActive ? 'Aktiv' : 'Deaktiv'}</Badge>
-        </div>
-      ))}
+    <div className="flex flex-col gap-4">
+      {/* Assign row */}
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <select
+          value={selectedId}
+          onChange={(e) => setSelectedId(e.target.value)}
+          aria-label="Xidmət seç"
+          className="flex-1 rounded-[var(--radius-md)] border border-border bg-surface px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-focus-ring sm:max-w-xs"
+        >
+          <option value="">Xidmət seç…</option>
+          {available.map((s) => (
+            <option key={s.id} value={s.id}>{s.name}</option>
+          ))}
+        </select>
+        <Button type="button" onClick={handleAssign} loading={assigning} disabled={assigning || !selectedId}>
+          Təyin et
+        </Button>
+      </div>
+
+      {/* Assigned list */}
+      {assigned.length === 0 ? (
+        <p className="py-4 text-sm text-text-secondary">Bu stilistə xidmət təyin edilməyib.</p>
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {assigned.map((svc) => (
+            <li key={svc.id} className="flex items-center justify-between rounded-[var(--radius-md)] border border-border px-4 py-3">
+              <span className="text-sm font-medium text-text-primary">{svc.name}</span>
+              <IconButton label={`Sil: ${svc.name}`} icon={<span aria-hidden="true">✕</span>} onClick={() => setUnassignTarget(svc)} />
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <ConfirmDialog
+        open={unassignTarget !== null}
+        onOpenChange={(open) => !open && setUnassignTarget(null)}
+        title={`"${unassignTarget?.name ?? ''}" xidmətini silmək istəyirsiniz?`}
+        description="Stilist bu xidmət üzrə rezervasiya qəbul edə bilməyəcək."
+        confirmLabel="Sil"
+        destructive
+        confirming={unassigning}
+        onConfirm={handleUnassign}
+      />
     </div>
   );
 }
@@ -352,7 +443,7 @@ export default function SuperadminStylistDetailPage() {
         tabs={[
           { value: 'profile', label: 'Profil', content: <ProfileTab stylist={stylist} onReload={load} /> },
           { value: 'portfolio', label: `Portfolio (${stylist.portfolio.length})`, content: <PortfolioTab stylist={stylist} onReload={load} /> },
-          { value: 'services', label: `Xidmətlər (${stylist.services.length})`, content: <ServicesTab stylist={stylist} /> },
+          { value: 'services', label: `Xidmətlər (${stylist.services.length})`, content: <ServicesTab stylist={stylist} onReload={load} /> },
         ]}
       />
     </main>

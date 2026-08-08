@@ -10,6 +10,7 @@ import {
 } from '@salonomia/ui';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { apiFetch, ApiError } from '../../../../../../lib/api-client';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -88,6 +89,7 @@ function formatDatetime(iso: string): string {
 export default function CustomerDetailPage() {
   const router = useRouter();
   const { salonId, customerId } = useParams<{ salonId: string; customerId: string }>();
+  const t = useTranslations('salonAdmin');
   const [state, setState] = useState<LoadState>({ kind: 'loading' });
 
   useEffect(() => {
@@ -121,7 +123,7 @@ export default function CustomerDetailPage() {
 
   if (state.kind === 'permission-denied') return <PermissionDeniedState />;
   if (state.kind === 'error') {
-    return <ErrorState title="Couldn't load customer" description={state.message} />;
+    return <ErrorState title={t('customers.errorLoadOne')} description={state.message} />;
   }
 
   const { customer } = state;
@@ -130,7 +132,7 @@ export default function CustomerDetailPage() {
     <div className="flex flex-col gap-6">
       <Breadcrumbs
         items={[
-          { label: 'Customers', href: `/salon/${salonId}/customers` },
+          { label: t('customers.title'), href: `/salon/${salonId}/customers` },
           { label: customer.fullName },
         ]}
       />
@@ -140,7 +142,7 @@ export default function CustomerDetailPage() {
         <h1 className="text-xl font-semibold text-text-primary">{customer.fullName}</h1>
         <dl className="mt-4 flex flex-col gap-2 text-sm">
           <div className="flex flex-wrap justify-between gap-x-4">
-            <dt className="text-text-secondary">Email</dt>
+            <dt className="text-text-secondary">{t('customers.email')}</dt>
             <dd className="break-all">{customer.email}</dd>
           </div>
         </dl>
@@ -148,23 +150,23 @@ export default function CustomerDetailPage() {
 
       {/* Stats row */}
       <div className="grid grid-cols-2 gap-4 max-w-lg sm:grid-cols-4">
-        <StatMini label="Total visits" value={customer.stats.completed} />
-        <StatMini label="Completed" value={customer.stats.completed} color="#16a34a" />
-        <StatMini label="Cancelled" value={customer.stats.cancelled} color="#d97706" />
-        <StatMini label="No-shows" value={customer.stats.noShows} color="#dc2626" />
+        <StatMini label={t('customers.totalVisits')} value={customer.stats.completed} />
+        <StatMini label={t('customers.completed')} value={customer.stats.completed} color="#16a34a" />
+        <StatMini label={t('customers.cancelled')} value={customer.stats.cancelled} color="#d97706" />
+        <StatMini label={t('customers.noShows')} value={customer.stats.noShows} color="#dc2626" />
       </div>
 
       {/* Reservation history */}
       <Card>
         <h2 className="text-base font-semibold text-text-primary mb-4">
-          Reservation history
+          {t('customers.reservationHistory')}
           <span className="ml-2 text-sm font-normal text-text-secondary">
-            ({customer.reservations.length} most recent)
+            ({customer.reservations.length})
           </span>
         </h2>
 
         {customer.reservations.length === 0 ? (
-          <p className="text-sm text-text-secondary">No reservations found.</p>
+          <p className="text-sm text-text-secondary">{t('customers.noReservationsFound')}</p>
         ) : (
           <div className="flex flex-col divide-y divide-border">
             {customer.reservations.map((r) => (

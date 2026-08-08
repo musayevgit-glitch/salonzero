@@ -14,6 +14,7 @@ import {
 } from '@salonomia/ui';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { apiFetch, ApiError } from '../../../../../lib/api-client';
 
 interface SettingsData {
@@ -44,6 +45,7 @@ export default function SalonSettingsPage() {
   const router = useRouter();
   const { salonId } = useParams<{ salonId: string }>();
   const { showToast } = useToast();
+  const t = useTranslations('salonAdmin');
   const [state, setState] = useState<LoadState>({ kind: 'loading' });
 
   // Form states
@@ -119,10 +121,10 @@ export default function SalonSettingsPage() {
           rescheduleWindowHours,
         }),
       });
-      showToast('Salon nizamlamaları uğurla yadda saxlanıldı');
+      showToast(t('settings.saveSuccess'));
       load();
     } catch (err) {
-      showToast(err instanceof ApiError ? err.message : 'Nəsə xəta baş verdi', 'danger');
+      showToast(err instanceof ApiError ? err.message : 'Something went wrong.', 'danger');
     } finally {
       setSaving(false);
     }
@@ -148,7 +150,7 @@ export default function SalonSettingsPage() {
   if (state.kind === 'error') {
     return (
       <main className="p-8">
-        <ErrorState title="Ayarları yükləmək mümkün olmadı" description={state.message} />
+        <ErrorState title={t('settings.errorLoad')} description={state.message} />
       </main>
     );
   }
@@ -156,30 +158,30 @@ export default function SalonSettingsPage() {
   return (
     <main className="flex flex-col gap-6 p-8 max-w-3xl">
       <div>
-        <h1 className="text-xl font-semibold text-text-primary">Salon Nizamlamaları & Qaydaları</h1>
+        <h1 className="text-xl font-semibold text-text-primary">{t('settings.pageTitle')}</h1>
         <p className="text-sm text-text-secondary mt-1">
-          Salonun profil məlumatlarını və rezervasiya siyasətini buradan idarə edə bilərsiniz.
+          {t('settings.subtitle')}
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         <Card className="flex flex-col gap-4">
-          <h2 className="font-semibold text-text-primary">Profil Məlumatları</h2>
+          <h2 className="font-semibold text-text-primary">{t('settings.profileInfo')}</h2>
 
-          <FormField label="Salon təsviri (Haqqında)" optional>
+          <FormField label={t('settings.descriptionLabel')} optional>
             {(fieldProps) => (
               <Textarea
                 {...fieldProps}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Salon haqqında məlumat..."
+                placeholder={t('settings.descriptionPlaceholder')}
                 rows={4}
               />
             )}
           </FormField>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormField label="Telefon" optional>
+            <FormField label={t('settings.phoneLabel')} optional>
               {(fieldProps) => (
                 <Input
                   {...fieldProps}
@@ -191,7 +193,7 @@ export default function SalonSettingsPage() {
               )}
             </FormField>
 
-            <FormField label="E-poçt" optional>
+            <FormField label={t('settings.emailLabel')} optional>
               {(fieldProps) => (
                 <Input
                   {...fieldProps}
@@ -204,37 +206,36 @@ export default function SalonSettingsPage() {
             </FormField>
           </div>
 
-          <FormField label="Ünvan" optional>
+          <FormField label={t('settings.addressLabel')} optional>
             {(fieldProps) => (
               <Input
                 {...fieldProps}
                 value={addressLine}
                 onChange={(e) => setAddressLine(e.target.value)}
-                placeholder="Küçə adı, bina nömrəsi və s."
               />
             )}
           </FormField>
 
-          <FormField label="Hədəf Kütləsi" optional>
+          <FormField label={t('settings.genderFocus')} optional>
             {(fieldProps) => (
               <Select
                 {...fieldProps}
                 value={genderFocus}
                 onChange={(e) => setGenderFocus(e.target.value as typeof genderFocus)}
               >
-                <option value="">Seçilməyib</option>
-                <option value="WOMEN">Qadınlar (Women)</option>
-                <option value="MEN">Kişilər (Men)</option>
-                <option value="UNISEX">Hər kəs (Unisex)</option>
+                <option value="">{t('settings.genderNotSet')}</option>
+                <option value="WOMEN">{t('settings.genderWomen')}</option>
+                <option value="MEN">{t('settings.genderMen')}</option>
+                <option value="UNISEX">{t('settings.genderUnisex')}</option>
               </Select>
             )}
           </FormField>
         </Card>
 
         <Card className="flex flex-col gap-4">
-          <h2 className="font-semibold text-text-primary">Rezervasiya Qaydaları</h2>
+          <h2 className="font-semibold text-text-primary">{t('settings.bookingPolicy')}</h2>
 
-          <FormField label="Avtomatik təsdiqlənmə" optional>
+          <FormField label={t('settings.autoConfirm')} optional>
             {() => (
               <div className="flex items-center gap-2 mt-1">
                 <input
@@ -245,14 +246,14 @@ export default function SalonSettingsPage() {
                   className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                 />
                 <label htmlFor="autoConfirm" className="text-sm text-text-primary">
-                  Müştəri tərəfindən edilən rezervasiyaları avtomatik təsdiq et
+                  {t('settings.autoConfirmDesc')}
                 </label>
               </div>
             )}
           </FormField>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormField label="Minimum rezervasiya bildirişi (dəqiqə)">
+            <FormField label={t('settings.minNoticeMinutes')}>
               {(fieldProps) => (
                 <Input
                   {...fieldProps}
@@ -264,7 +265,7 @@ export default function SalonSettingsPage() {
               )}
             </FormField>
 
-            <FormField label="Maksimum qabaqcadan rezervasiya limiti (gün)">
+            <FormField label={t('settings.maxAdvanceDays')}>
               {(fieldProps) => (
                 <Input
                   {...fieldProps}
@@ -278,7 +279,7 @@ export default function SalonSettingsPage() {
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormField label="Ləğvetmə pəncərəsi (saat)">
+            <FormField label={t('settings.cancellationWindow')}>
               {(fieldProps) => (
                 <Input
                   {...fieldProps}
@@ -290,7 +291,7 @@ export default function SalonSettingsPage() {
               )}
             </FormField>
 
-            <FormField label="Vaxt dəyişmə pəncərəsi (saat)">
+            <FormField label={t('settings.rescheduleWindow')}>
               {(fieldProps) => (
                 <Input
                   {...fieldProps}
@@ -306,7 +307,7 @@ export default function SalonSettingsPage() {
 
         <div className="flex justify-end gap-3">
           <Button type="submit" loading={saving}>
-            Yadda saxla
+            {t('common.save')}
           </Button>
         </div>
       </form>

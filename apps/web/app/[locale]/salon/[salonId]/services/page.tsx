@@ -15,6 +15,7 @@ import {
 } from '@salonomia/ui';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { apiFetch, ApiError } from '../../../../../lib/api-client';
 
 interface ServiceListItem {
@@ -55,6 +56,7 @@ function formatPrice(priceAmount: number, currency: string): string {
 export default function ServicesPage() {
   const router = useRouter();
   const { salonId } = useParams<{ salonId: string }>();
+  const t = useTranslations('salonAdmin');
   const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState<'' | 'true' | 'false'>('');
   const [categoryFilter, setCategoryFilter] = useState('');
@@ -122,7 +124,7 @@ export default function ServicesPage() {
   if (state.kind === 'error') {
     return (
       <main className="p-8">
-        <ErrorState title="Couldn't load services" description={state.message} />
+        <ErrorState title={t('services.errorLoad')} description={state.message} />
       </main>
     );
   }
@@ -130,18 +132,18 @@ export default function ServicesPage() {
   const { items, total, pageSize } = state.data;
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
   const categoryName = (id: string | null) =>
-    categories.find((c) => c.id === id)?.name ?? (id ? '—' : 'Uncategorized');
+    categories.find((c) => c.id === id)?.name ?? (id ? '—' : t('services.uncategorized'));
 
   return (
     <main className="flex flex-col gap-6 p-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-text-primary">Services</h1>
-        <Link href={`/salon/${salonId}/services/new`}>+ New service</Link>
+        <h1 className="text-xl font-semibold text-text-primary">{t('services.title')}</h1>
+        <Link href={`/salon/${salonId}/services/new`}>+ {t('services.new')}</Link>
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row">
         <Input
-          placeholder="Search by name"
+          placeholder={t('services.searchPlaceholder')}
           value={search}
           onChange={(e) => {
             setPage(1);
@@ -157,9 +159,9 @@ export default function ServicesPage() {
           }}
           className="sm:max-w-40"
         >
-          <option value="">All statuses</option>
-          <option value="true">Active</option>
-          <option value="false">Inactive</option>
+          <option value="">{t('services.allStatuses')}</option>
+          <option value="true">{t('services.active')}</option>
+          <option value="false">{t('services.inactive')}</option>
         </Select>
         <Select
           value={categoryFilter}
@@ -169,7 +171,7 @@ export default function ServicesPage() {
           }}
           className="sm:max-w-48"
         >
-          <option value="">All categories</option>
+          <option value="">{t('services.allCategories')}</option>
           {categories.map((category) => (
             <option key={category.id} value={category.id}>
               {category.name}
@@ -179,39 +181,39 @@ export default function ServicesPage() {
       </div>
 
       {items.length === 0 ? (
-        <EmptyState title="No services found" description="Try a different search or filter." />
+        <EmptyState title={t('services.noServicesFound')} description={t('services.noServicesFoundDesc')} />
       ) : (
         <>
           <Table
             columns={[
               {
                 key: 'name',
-                header: 'Name',
+                header: t('services.name'),
                 render: (row: ServiceListItem) => (
                   <Link href={`/salon/${salonId}/services/${row.id}`}>{row.name}</Link>
                 ),
               },
               {
                 key: 'categoryId',
-                header: 'Category',
+                header: t('services.category'),
                 render: (row: ServiceListItem) => categoryName(row.categoryId),
               },
               {
                 key: 'priceAmount',
-                header: 'Price',
+                header: t('services.price'),
                 render: (row: ServiceListItem) => formatPrice(row.priceAmount, row.currency),
               },
               {
                 key: 'durationMinutes',
-                header: 'Duration',
-                render: (row: ServiceListItem) => `${row.durationMinutes} min`,
+                header: t('services.duration'),
+                render: (row: ServiceListItem) => `${row.durationMinutes} ${t('common.minutes')}`,
               },
               {
                 key: 'isActive',
-                header: 'Status',
+                header: t('employees.status'),
                 render: (row: ServiceListItem) => (
                   <Badge tone={row.isActive ? 'success' : 'neutral'}>
-                    {row.isActive ? 'Active' : 'Inactive'}
+                    {row.isActive ? t('services.active') : t('services.inactive')}
                   </Badge>
                 ),
               },
@@ -226,11 +228,11 @@ export default function ServicesPage() {
               <Link href={`/salon/${salonId}/services/${row.id}`}>{row.name}</Link>
             )}
             renderSecondary={(row) =>
-              `${formatPrice(row.priceAmount, row.currency)} · ${row.durationMinutes} min`
+              `${formatPrice(row.priceAmount, row.currency)} · ${row.durationMinutes} ${t('common.minutes')}`
             }
             renderAction={(row) => (
               <Badge tone={row.isActive ? 'success' : 'neutral'}>
-                {row.isActive ? 'Active' : 'Inactive'}
+                {row.isActive ? t('services.active') : t('services.inactive')}
               </Badge>
             )}
           />
