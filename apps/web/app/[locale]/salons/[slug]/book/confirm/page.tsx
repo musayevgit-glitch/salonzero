@@ -87,7 +87,7 @@ export default function ConfirmStep() {
       }
       clearDraft();
       // `replace` so Back does not return to the confirm screen with a spent draft.
-      router.replace('/account/reservations');
+      router.replace(`/salons/${salon.slug}/book/result/${res.id}`);
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
         setStartAt(undefined);

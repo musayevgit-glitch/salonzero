@@ -12,14 +12,17 @@ import {
 } from '@salonomia/ui';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { apiFetch, ApiError } from '../../../../../../lib/api-client';
 
 interface ServiceCategory {
   id: string;
   name: string;
+  isActive: boolean;
 }
 
 export default function NewServicePage() {
+  const t = useTranslations('salonAdmin');
   const router = useRouter();
   const { salonId } = useParams<{ salonId: string }>();
 
@@ -28,7 +31,7 @@ export default function NewServicePage() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
-  const [currency, setCurrency] = useState('USD');
+  const [currency, setCurrency] = useState('AZN');
   const [durationMinutes, setDurationMinutes] = useState('45');
   const [bufferMinutes, setBufferMinutes] = useState('0');
   const [error, setError] = useState<string | null>(null);
@@ -36,8 +39,8 @@ export default function NewServicePage() {
 
   useEffect(() => {
     apiFetch<ServiceCategory[]>(`/salons/${salonId}/service-categories`)
-      .then(setCategories)
-      .catch(() => undefined);
+      .then((cats) => setCategories(cats.filter((c) => c.isActive)))
+      .catch(() => setCategories([]));
   }, [salonId]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -47,15 +50,19 @@ export default function NewServicePage() {
     setError(null);
     try {
       const priceAmount = Math.round(Number(price) * 100);
+      if (isNaN(priceAmount) || priceAmount < 0) {
+        setError(t('services.invalidPrice'));
+        return;
+      }
       const body: Record<string, unknown> = {
-        name,
+        name: name.trim(),
         priceAmount,
         currency: currency.trim().toUpperCase(),
         durationMinutes: Number(durationMinutes),
         bufferMinutes: Number(bufferMinutes),
       };
       if (categoryId) body.categoryId = categoryId;
-      if (description) body.description = description;
+      if (description.trim()) body.description = description.trim();
 
       const created = await apiFetch<{ id: string }>(`/salons/${salonId}/services`, {
         method: 'POST',
@@ -63,7 +70,7 @@ export default function NewServicePage() {
       });
       router.push(`/salon/${salonId}/services/${created.id}`);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Something went wrong. Please try again.');
+      setError(err instanceof ApiError ? err.message : t('common.errorGeneric'));
     } finally {
       setSubmitting(false);
     }
@@ -72,14 +79,14 @@ export default function NewServicePage() {
   return (
     <main className="dashboard-page">
       <Breadcrumbs
-        items={[{ label: 'Services', href: `/salon/${salonId}/services` }, { label: 'New' }]}
+        items={[{ label: t('services.title'), href: `/salon/${salonId}/services` }, { label: t('services.new') }]}
       />
       <Card className="max-w-lg">
-        <h1 className="text-xl font-semibold text-text-primary">New service</h1>
+        <h1 className="text-xl font-semibold text-text-primary">{t('services.newTitle')}</h1>
         <form className="mt-6 flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
           {error ? <Alert tone="danger" title={error} /> : null}
 
-          <FormField label="Name">
+          <FormField label={t('services.name')}>
             {(fieldProps) => (
               <Input
                 {...fieldProps}
@@ -90,14 +97,14 @@ export default function NewServicePage() {
             )}
           </FormField>
 
-          <FormField label="Category" optional>
+          <FormField label={t('services.category')} optional>
             {(fieldProps) => (
               <Select
                 {...fieldProps}
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
               >
-                <option value="">Uncategorized</option>
+                <option value="">{t('services.uncategorized')}</option>
                 {categories.map((category) => (
                   <option key={category.id} value={category.id}>
                     {category.name}
@@ -107,7 +114,7 @@ export default function NewServicePage() {
             )}
           </FormField>
 
-          <FormField label="Description" optional>
+          <FormField label={t('services.description')} optional>
             {(fieldProps) => (
               <Textarea
                 {...fieldProps}
@@ -118,7 +125,7 @@ export default function NewServicePage() {
           </FormField>
 
           <div className="flex flex-col gap-4 sm:flex-row">
-            <FormField label="Price">
+            <FormField label={t('services.price')}>
               {(fieldProps) => (
                 <Input
                   {...fieldProps}
@@ -126,26 +133,30 @@ export default function NewServicePage() {
                   type="number"
                   min="0"
                   step="0.01"
+                  placeholder="0.00"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
                 />
               )}
             </FormField>
-            <FormField label="Currency">
+            <FormField label={t('services.currency')}>
               {(fieldProps) => (
-                <Input
+                <Select
                   {...fieldProps}
-                  required
-                  maxLength={3}
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value)}
-                />
+                >
+                  <option value="AZN">AZN — Manat</option>
+                  <option value="USD">USD — Dollar</option>
+                  <option value="EUR">EUR — Euro</option>
+                  <option value="TRY">TRY — Lirə</option>
+                </Select>
               )}
             </FormField>
           </div>
 
           <div className="flex flex-col gap-4 sm:flex-row">
-            <FormField label="Duration (minutes)">
+            <FormField label={t('services.duration')}>
               {(fieldProps) => (
                 <Input
                   {...fieldProps}
@@ -158,7 +169,7 @@ export default function NewServicePage() {
                 />
               )}
             </FormField>
-            <FormField label="Buffer (minutes)" optional>
+            <FormField label={t('services.buffer')} optional>
               {(fieldProps) => (
                 <Input
                   {...fieldProps}
@@ -173,7 +184,7 @@ export default function NewServicePage() {
           </div>
 
           <Button type="submit" loading={submitting} disabled={submitting}>
-            Create service
+            {t('services.create')}
           </Button>
         </form>
       </Card>

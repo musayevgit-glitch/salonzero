@@ -379,6 +379,128 @@ function ServicesTab({ salonId }: { salonId: string }) {
   );
 }
 
+// ── Tab: Kateqoriyalar ───────────────────────────────────────────────────────
+interface Category { id: string; name: string; isActive: boolean; sortOrder: number; }
+
+function CategoriesTab({ salonId }: { salonId: string }) {
+  const { showToast } = useToast();
+  const [state, setState] = useState<LS<Category[]>>({ kind: 'loading' });
+  const [newName, setNewName] = useState('');
+  const [creating, setCreating] = useState(false);
+
+  function load() {
+    apiFetch<Category[]>(`/salons/${salonId}/service-categories`)
+      .then((data) => setState({ kind: 'ready', data }))
+      .catch((err: unknown) => setState({ kind: 'error', message: err instanceof ApiError ? err.message : 'Xəta' }));
+  }
+  useEffect(load, [salonId]);
+
+  async function handleCreate(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newName.trim() || creating) return;
+    setCreating(true);
+    try {
+      await apiFetch(`/salons/${salonId}/service-categories`, {
+        method: 'POST',
+        body: JSON.stringify({ name: newName.trim() }),
+      });
+      showToast('Kateqoriya yaradıldı');
+      setNewName('');
+      load();
+    } catch (err) {
+      showToast(err instanceof ApiError ? err.message : 'Xəta', 'danger');
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  async function toggleActive(cat: Category) {
+    try {
+      await apiFetch(`/salons/${salonId}/service-categories/${cat.id}/${cat.isActive ? 'deactivate' : 'activate'}`, {
+        method: 'POST', body: JSON.stringify({}),
+      });
+      showToast(cat.isActive ? 'Kateqoriya deaktiv edildi' : 'Kateqoriya aktivləşdirildi');
+      load();
+    } catch (err) {
+      showToast(err instanceof ApiError ? err.message : 'Xəta', 'danger');
+    }
+  }
+
+  async function move(items: Category[], index: number, direction: -1 | 1) {
+    const target = index + direction;
+    if (target < 0 || target >= items.length) return;
+    const reordered = [...items];
+    const temp = reordered[index]!;
+    reordered[index] = reordered[target]!;
+    reordered[target] = temp;
+    setState({ kind: 'ready', data: reordered });
+    try {
+      await apiFetch(`/salons/${salonId}/service-categories/reorder`, {
+        method: 'POST',
+        body: JSON.stringify({ categoryIds: reordered.map((c) => c.id) }),
+      });
+    } catch {
+      load();
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <form onSubmit={handleCreate} className="flex gap-3">
+        <Input
+          placeholder="Yeni kateqoriya adı"
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          className="max-w-xs"
+        />
+        <Button type="submit" disabled={!newName.trim() || creating}>
+          {creating ? 'Yaradılır...' : '+ Əlavə et'}
+        </Button>
+      </form>
+
+      {state.kind === 'loading' && <Skeleton className="h-48 w-full" />}
+      {state.kind === 'error' && <ErrorState title="Kateqoriyalar yüklənmədi" description={state.message} />}
+      {state.kind === 'ready' && (
+        state.data.length === 0
+          ? <EmptyState title="Kateqoriya tapılmadı" description="Yuxarıdakı formla ilk kateqoriyanı yaradın." />
+          : (
+            <ul className="flex flex-col gap-2">
+              {state.data.map((cat, index) => (
+                <li key={cat.id} className="flex items-center justify-between gap-3 rounded-[var(--radius-md)] border border-border p-3">
+                  <div className="flex items-center gap-3">
+                    <span className="font-medium text-sm text-text-primary">{cat.name}</span>
+                    <Badge tone={cat.isActive ? 'success' : 'neutral'}>
+                      {cat.isActive ? 'Aktiv' : 'Deaktiv'}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      disabled={index === 0}
+                      onClick={() => void move(state.data, index, -1)}
+                      className="rounded px-2 py-1 text-text-secondary hover:bg-surface disabled:opacity-30"
+                      aria-label="Yuxarı"
+                    >↑</button>
+                    <button
+                      type="button"
+                      disabled={index === state.data.length - 1}
+                      onClick={() => void move(state.data, index, 1)}
+                      className="rounded px-2 py-1 text-text-secondary hover:bg-surface disabled:opacity-30"
+                      aria-label="Aşağı"
+                    >↓</button>
+                    <Button variant="secondary" onClick={() => void toggleActive(cat)}>
+                      {cat.isActive ? 'Deaktiv et' : 'Aktivləşdir'}
+                    </Button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )
+      )}
+    </div>
+  );
+}
+
 // ── Tab: Rezervasiyalar ──────────────────────────────────────────────────────
 function ReservationsTab({ salonId }: { salonId: string }) {
   const [search, setSearch] = useState('');
@@ -499,6 +621,7 @@ export default function SuperadminSalonDetailPage() {
           { value: 'overview', label: 'Ümumi', content: <OverviewTab salon={salon} onReload={load} /> },
           { value: 'stylists', label: 'Stilistlər', content: <StylistsTab salonId={salonId} /> },
           { value: 'services', label: 'Xidmətlər', content: <ServicesTab salonId={salonId} /> },
+          { value: 'categories', label: 'Kateqoriyalar', content: <CategoriesTab salonId={salonId} /> },
           { value: 'reservations', label: 'Rezervasiyalar', content: <ReservationsTab salonId={salonId} /> },
         ]}
       />

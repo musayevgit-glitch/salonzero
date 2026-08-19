@@ -310,7 +310,9 @@
       "customers": "Customers",
       "reports": "Reports",
       "settings": "Settings",
-      "auditLog": "Audit Log"
+      "auditLog": "Audit Log",
+      "logout": "Log out",
+      "loggingOut": "Logging out..."
     },
     "dashboard": {
       "title": "Overview",
@@ -467,7 +469,12 @@
       "deactivateTitle": "Deactivate this service?",
       "deactivateDesc": "It will no longer be bookable. This does not affect existing reservations.",
       "activateTitle": "Activate this service?",
-      "activateDesc": "It will become bookable again."
+      "activateDesc": "It will become bookable again.",
+      "newTitle": "New service",
+      "description": "Description",
+      "currency": "Currency",
+      "create": "Create service",
+      "invalidPrice": "Enter a valid price"
     },
     "categories": {
       "title": "Categories",
@@ -591,7 +598,8 @@
       "minutes": "min",
       "activate": "Activate",
       "deactivate": "Deactivate",
-      "status": "Status"
+      "status": "Status",
+      "errorGeneric": "Something went wrong"
     }
   },
   "superadmin": {

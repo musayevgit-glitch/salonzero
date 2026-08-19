@@ -142,7 +142,6 @@ const NAV_ITEMS: NavItemDef[] = [
   { labelKey: 'nav.customers', segment: 'customers', sectionKey: 'nav.sectionSalon', icon: <PersonIcon /> },
   { labelKey: 'nav.reports', segment: 'reports', sectionKey: 'nav.sectionManagement', icon: <ChartIcon />, adminOnly: true },
   { labelKey: 'nav.settings', segment: 'settings', sectionKey: 'nav.sectionManagement', icon: <GearIcon /> },
-  { labelKey: 'nav.auditLog', segment: 'audit-logs', sectionKey: 'nav.sectionManagement', icon: <ListIcon />, adminOnly: true },
 ];
 
 interface CurrentUser {
@@ -280,6 +279,53 @@ function SidebarLanguageSwitcher({ label }: { label: string }) {
           ▾
         </span>
       </div>
+    </div>
+  );
+}
+
+// ─── Logout button ───────────────────────────────────────────────────────────
+
+function SalonLogoutButton() {
+  const t = useTranslations('salonAdmin');
+  const [busy, setBusy] = useState(false);
+
+  async function handleLogout() {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await apiFetch('/auth/logout', { method: 'POST' });
+    } catch {
+      // Cookie cleared server-side regardless
+    } finally {
+      window.location.replace('/login');
+    }
+  }
+
+  return (
+    <div style={{ padding: '0.5rem 1rem', borderTop: '1px solid var(--color-border)', flexShrink: 0 }}>
+      <button
+        type="button"
+        onClick={() => void handleLogout()}
+        disabled={busy}
+        className="dash-nav-link"
+        style={{
+          width: '100%',
+          background: 'none',
+          font: 'inherit',
+          fontWeight: 500,
+          textAlign: 'left',
+          cursor: busy ? 'not-allowed' : 'pointer',
+          opacity: busy ? 0.6 : 1,
+          color: 'var(--color-danger)',
+        }}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0 }}>
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+          <polyline points="16 17 21 12 16 7" />
+          <line x1="21" y1="12" x2="9" y2="12" />
+        </svg>
+        <span>{busy ? t('nav.loggingOut') : t('nav.logout')}</span>
+      </button>
     </div>
   );
 }
@@ -422,6 +468,7 @@ export function SalonShell({
             t={t}
           />
         </div>
+        <SalonLogoutButton />
         <SidebarLanguageSwitcher label={t('nav.selectLanguage')} />
       </aside>
 
@@ -496,6 +543,7 @@ export function SalonShell({
           onNavigate={() => setDrawerOpen(false)}
           t={t}
         />
+        <SalonLogoutButton />
         <SidebarLanguageSwitcher label={t('nav.selectLanguage')} />
       </Drawer>
     </div>

@@ -310,7 +310,9 @@
       "customers": "Müştərilər",
       "reports": "Hesabatlar",
       "settings": "Parametrlər",
-      "auditLog": "Audit Jurnalı"
+      "auditLog": "Audit Jurnalı",
+      "logout": "Çıxış et",
+      "loggingOut": "Çıxış edilir..."
     },
     "dashboard": {
       "title": "İcmal",
@@ -467,7 +469,12 @@
       "deactivateTitle": "Bu xidməti deaktiv etmək istəyirsiniz?",
       "deactivateDesc": "Artıq rezerv edilə bilməyəcək. Bu, mövcud rezervasiyalara təsir etmir.",
       "activateTitle": "Bu xidməti aktivləşdirmək istəyirsiniz?",
-      "activateDesc": "Yenidən rezerv edilə biləcək."
+      "activateDesc": "Yenidən rezerv edilə biləcək.",
+      "newTitle": "Yeni xidmət",
+      "description": "Təsvir",
+      "currency": "Valyuta",
+      "create": "Xidmət yarat",
+      "invalidPrice": "Düzgün qiymət daxil edin"
     },
     "categories": {
       "title": "Kateqoriyalar",
@@ -591,7 +598,8 @@
       "minutes": "dəq",
       "activate": "Aktivləşdir",
       "deactivate": "Deaktiv et",
-      "status": "Status"
+      "status": "Status",
+      "errorGeneric": "Xəta baş verdi"
     }
   },
   "superadmin": {

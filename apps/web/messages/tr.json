@@ -310,7 +310,9 @@
       "customers": "Müşteriler",
       "reports": "Raporlar",
       "settings": "Ayarlar",
-      "auditLog": "Denetim Günlüğü"
+      "auditLog": "Denetim Günlüğü",
+      "logout": "Çıkış yap",
+      "loggingOut": "Çıkış yapılıyor..."
     },
     "dashboard": {
       "title": "Genel Bakış",
@@ -467,7 +469,12 @@
       "deactivateTitle": "Bu hizmeti deaktive etmek istiyor musunuz?",
       "deactivateDesc": "Artık rezervasyon alınamayacak. Mevcut rezervasyonlar etkilenmez.",
       "activateTitle": "Bu hizmeti aktifleştirmek istiyor musunuz?",
-      "activateDesc": "Tekrar rezervasyon alınabilecek."
+      "activateDesc": "Tekrar rezervasyon alınabilecek.",
+      "newTitle": "Yeni hizmet",
+      "description": "Açıklama",
+      "currency": "Para birimi",
+      "create": "Hizmet oluştur",
+      "invalidPrice": "Geçerli bir fiyat girin"
     },
     "categories": {
       "title": "Kategoriler",
@@ -591,7 +598,8 @@
       "minutes": "dk",
       "activate": "Aktifleştir",
       "deactivate": "Pasifleştir",
-      "status": "Durum"
+      "status": "Durum",
+      "errorGeneric": "Bir hata oluştu"
     }
   },
   "superadmin": {
