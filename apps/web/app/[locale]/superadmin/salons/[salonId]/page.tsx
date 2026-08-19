@@ -23,6 +23,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { apiFetch, ApiError } from '../../../../../lib/api-client';
 import { PhotoUploadWidget } from '../../_components/PhotoUploadWidget';
+import { LinkButton } from '../../../../_components/admin/LinkButton';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 interface SalonDetail {
@@ -458,25 +459,37 @@ export default function SuperadminSalonDetailPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  if (state.kind === 'loading') return <main className="p-8"><Skeleton className="h-12 w-64 mb-6" /><Skeleton className="h-96 w-full" /></main>;
-  if (state.kind === 'not-found') return <main className="p-8"><PermissionDeniedState /></main>;
-  if (state.kind === 'error') return <main className="p-8"><ErrorState title="Salon yüklənmədi" description={state.message} /></main>;
+  if (state.kind === 'loading') return <main className="dashboard-page"><Skeleton className="h-12 w-64 mb-6" /><Skeleton className="h-96 w-full" /></main>;
+  if (state.kind === 'not-found') return <main className="dashboard-page"><PermissionDeniedState /></main>;
+  if (state.kind === 'error') return <main className="dashboard-page"><ErrorState title="Salon yüklənmədi" description={state.message} /></main>;
 
   const { salon } = state;
 
   return (
-    <main className="flex flex-col gap-6 p-6 lg:p-8">
+    <main className="dashboard-page">
       {/* Header */}
-      <div>
-        <Breadcrumbs items={[{ label: 'Salonlar', href: '/superadmin/salons' }, { label: salon.name }]} />
-        <div className="mt-3 flex items-center gap-4">
-          {salon.logoUrl && (
-            <img src={salon.logoUrl} alt={salon.name} className="h-12 w-12 rounded-full object-cover border border-border" />
-          )}
-          <div>
-            <h1 className="text-2xl font-bold text-text-primary">{salon.name}</h1>
-            <p className="text-sm text-text-secondary">{salon.city ?? salon.timezone} · <Badge tone={salon.status === 'ACTIVE' ? 'success' : 'neutral'}>{salon.status === 'ACTIVE' ? 'Aktiv' : 'Deaktiv'}</Badge></p>
+      <div className="page-header">
+        <div className="min-w-0">
+          <Breadcrumbs items={[{ label: 'Salonlar', href: '/superadmin/salons' }, { label: salon.name }]} />
+          <div className="mt-3 flex items-center gap-4">
+            {salon.logoUrl && (
+              <img src={salon.logoUrl} alt={salon.name} className="h-12 w-12 rounded-full border border-border object-cover" />
+            )}
+            <div className="min-w-0">
+              <h1 className="page-header-title">{salon.name}</h1>
+              <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-text-secondary">
+                <span>{salon.city ?? salon.timezone}</span>
+                <Badge tone={salon.status === 'ACTIVE' ? 'success' : 'neutral'}>
+                  {salon.status === 'ACTIVE' ? 'Aktiv' : 'Deaktiv'}
+                </Badge>
+              </p>
+            </div>
           </div>
+        </div>
+        <div className="page-header-actions">
+          <LinkButton href={`/superadmin/salons/${salonId}/edit`} variant="secondary">
+            Redaktə et
+          </LinkButton>
         </div>
       </div>
 

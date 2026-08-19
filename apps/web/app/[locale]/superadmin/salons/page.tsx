@@ -17,6 +17,9 @@ import {
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { apiFetch, ApiError } from '../../../../lib/api-client';
+import { FilterBar } from '../../../_components/admin/FilterBar';
+import { LinkButton } from '../../../_components/admin/LinkButton';
+import { PageHeader } from '../../../_components/admin/PageHeader';
 
 interface SalonListItem {
   id: string;
@@ -70,41 +73,49 @@ export default function SuperadminSalonsPage() {
   }, [search, status, page, router]);
 
   if (state.kind === 'loading') return (
-    <main className="flex flex-col gap-4 p-8">
+    <main className="dashboard-page">
       <Skeleton className="h-10 w-full max-w-md" />
-      <Skeleton className="h-64 w-full" />
+      <Skeleton className="h-64 w-full rounded-[var(--radius-lg)]" />
     </main>
   );
 
-  if (state.kind === 'permission-denied') return <main className="p-8"><PermissionDeniedState /></main>;
-  if (state.kind === 'error') return <main className="p-8"><ErrorState title="Salonlar yüklənmədi" description={state.message} /></main>;
+  if (state.kind === 'permission-denied') return <main className="dashboard-page"><PermissionDeniedState /></main>;
+  if (state.kind === 'error') return <main className="dashboard-page"><ErrorState title="Salonlar yüklənmədi" description={state.message} /></main>;
 
   const { items, total, pageSize } = state.data;
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
 
   return (
-    <main className="flex flex-col gap-6 p-6 lg:p-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary">Salonlar</h1>
-          <p className="text-sm text-text-secondary mt-0.5">Cəmi {total} salon</p>
-        </div>
-        <Link href="/superadmin/salons/new">+ Yeni salon</Link>
-      </div>
+    <main className="dashboard-page">
+      <PageHeader
+        title="Salonlar"
+        description={`Cəmi ${total} salon`}
+        actions={
+          <LinkButton href="/superadmin/salons/new">+ Yeni salon</LinkButton>
+        }
+      />
 
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <Input
-          placeholder="Ad və ya slug ilə axtar"
-          value={search}
-          onChange={(e) => { setPage(1); setSearch(e.target.value); }}
-          className="sm:max-w-xs"
-        />
-        <Select value={status} onChange={(e) => { setPage(1); setStatus(e.target.value as typeof status); }} className="sm:max-w-40">
+      <FilterBar
+        search={
+          <Input
+            placeholder="Ad və ya slug ilə axtar"
+            value={search}
+            onChange={(e) => { setPage(1); setSearch(e.target.value); }}
+            aria-label="Salon axtar"
+          />
+        }
+      >
+        <Select
+          value={status}
+          onChange={(e) => { setPage(1); setStatus(e.target.value as typeof status); }}
+          aria-label="Status filtri"
+          className="sm:max-w-44"
+        >
           <option value="">Bütün statuslar</option>
           <option value="ACTIVE">Aktiv</option>
           <option value="SUSPENDED">Deaktiv</option>
         </Select>
-      </div>
+      </FilterBar>
 
       {items.length === 0 ? (
         <EmptyState title="Salon tapılmadı" description="Axtarış parametrlərini dəyişin." />

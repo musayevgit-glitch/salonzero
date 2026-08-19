@@ -40,7 +40,7 @@ export default function ReportsStylistsPage() {
   const pageCount = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
 
   return (
-    <main style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '1.5rem 2rem' }}>
+    <main className="dashboard-page">
       <div>
         <h1 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>Stilist Hesabatları</h1>
         <p style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', marginTop: 2 }}>Hər stilist üzrə performans</p>
@@ -68,7 +68,7 @@ export default function ReportsStylistsPage() {
             columns={[
               { key: 'name', header: 'Stilist', render: (r: StylistRow) => (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                  <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#f3e8ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#7c3aed', fontSize: '0.8rem', flexShrink: 0, overflow: 'hidden' }}>
+                  <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--color-accent-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: 'var(--color-accent)', fontSize: '0.8rem', flexShrink: 0, overflow: 'hidden' }}>
                     {r.photoUrl ? <img src={r.photoUrl} alt={r.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : r.fullName.slice(0, 1)}
                   </div>
                   <Link href={`/superadmin/stylists/${r.employeeId}`}>{r.fullName}</Link>

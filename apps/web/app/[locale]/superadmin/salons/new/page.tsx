@@ -49,7 +49,7 @@ export default function NewSalonPage() {
   if (result) {
     const inviteLink = `${DASHBOARD_ORIGIN}/invitations/accept?token=${result.invitation.token}`;
     return (
-      <main className="flex flex-col gap-6 p-8">
+      <main className="dashboard-page">
         <Breadcrumbs items={[{ label: 'Salons', href: '/superadmin/salons' }, { label: 'New' }]} />
         <Card className="max-w-lg">
           <Alert tone="success" title="Salon created">
@@ -80,7 +80,7 @@ export default function NewSalonPage() {
   }
 
   return (
-    <main className="flex flex-col gap-6 p-8">
+    <main className="dashboard-page">
       <Breadcrumbs items={[{ label: 'Salons', href: '/superadmin/salons' }, { label: 'New' }]} />
       <Card className="max-w-lg">
         <h1 className="text-xl font-semibold text-text-primary">Create a salon</h1>

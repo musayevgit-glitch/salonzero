@@ -16,6 +16,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { apiFetch, ApiError } from '../../../../../lib/api-client';
+import { FilterBar } from '../../../../_components/admin/FilterBar';
+import { PageHeader } from '../../../../_components/admin/PageHeader';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -109,27 +111,23 @@ export default function CustomersPage() {
   const pageCount = data ? Math.ceil(data.total / data.pageSize) : 0;
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-xl font-semibold text-text-primary">{t('customers.title')}</h1>
-        {data ? (
-          <p className="mt-1 text-sm text-text-secondary">
-            {data.total} {t('customers.title').toLowerCase()}
-          </p>
-        ) : null}
-      </div>
+    <main className="dashboard-page">
+      <PageHeader
+        title={t('customers.title')}
+        description={data ? `${data.total} ${t('customers.title').toLocaleLowerCase()}` : undefined}
+      />
 
-      {/* Search */}
-      <div className="max-w-xs">
-        <Input
-          type="search"
-          placeholder={t('customers.searchPlaceholder')}
-          value={search}
-          onChange={(e) => handleSearchChange(e.target.value)}
-          aria-label={t('customers.searchPlaceholder')}
-        />
-      </div>
+      <FilterBar
+        search={
+          <Input
+            type="search"
+            placeholder={t('customers.searchPlaceholder')}
+            value={search}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            aria-label={t('customers.searchPlaceholder')}
+          />
+        }
+      />
 
       {/* Loading */}
       {state.kind === 'loading' ? (
@@ -241,6 +239,6 @@ export default function CustomersPage() {
           ) : null}
         </>
       ) : null}
-    </div>
+    </main>
   );
 }

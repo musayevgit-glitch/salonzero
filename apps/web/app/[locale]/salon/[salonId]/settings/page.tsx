@@ -16,6 +16,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { apiFetch, ApiError } from '../../../../../lib/api-client';
+import { PageHeader } from '../../../../_components/admin/PageHeader';
 
 interface SettingsData {
   id: string;
@@ -132,7 +133,7 @@ export default function SalonSettingsPage() {
 
   if (state.kind === 'loading') {
     return (
-      <main className="flex flex-col gap-4 p-8">
+      <main className="dashboard-page">
         <Skeleton className="h-10 w-full max-w-md" />
         <Skeleton className="h-64 w-full" />
       </main>
@@ -141,7 +142,7 @@ export default function SalonSettingsPage() {
 
   if (state.kind === 'permission-denied') {
     return (
-      <main className="p-8">
+      <main className="dashboard-page">
         <PermissionDeniedState />
       </main>
     );
@@ -149,20 +150,15 @@ export default function SalonSettingsPage() {
 
   if (state.kind === 'error') {
     return (
-      <main className="p-8">
+      <main className="dashboard-page">
         <ErrorState title={t('settings.errorLoad')} description={state.message} />
       </main>
     );
   }
 
   return (
-    <main className="flex flex-col gap-6 p-8 max-w-3xl">
-      <div>
-        <h1 className="text-xl font-semibold text-text-primary">{t('settings.pageTitle')}</h1>
-        <p className="text-sm text-text-secondary mt-1">
-          {t('settings.subtitle')}
-        </p>
-      </div>
+    <main className="dashboard-page max-w-3xl">
+      <PageHeader title={t('settings.pageTitle')} description={t('settings.subtitle')} />
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         <Card className="flex flex-col gap-4">

@@ -33,7 +33,7 @@ export default function ReportsRevenuePage() {
   const totalRevenue = data?.bySalon.reduce((sum, r) => sum + r.revenue, 0) ?? 0;
 
   return (
-    <main style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '1.5rem 2rem' }}>
+    <main className="dashboard-page">
       <div>
         <h1 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>Gəlir Hesabatları</h1>
         <p style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', marginTop: 2 }}>Salon üzrə gəlir analitikası (rezervasiya qiymət snapshotları əsasında)</p>

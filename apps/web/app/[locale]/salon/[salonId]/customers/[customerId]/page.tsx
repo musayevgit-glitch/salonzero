@@ -113,23 +113,32 @@ export default function CustomerDetailPage() {
 
   if (state.kind === 'loading') {
     return (
-      <div className="flex flex-col gap-6 p-8">
+      <main className="dashboard-page">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-40 w-full max-w-lg" />
         <Skeleton className="h-64 w-full" />
-      </div>
+      </main>
     );
   }
 
-  if (state.kind === 'permission-denied') return <PermissionDeniedState />;
+  if (state.kind === 'permission-denied')
+    return (
+      <main className="dashboard-page">
+        <PermissionDeniedState />
+      </main>
+    );
   if (state.kind === 'error') {
-    return <ErrorState title={t('customers.errorLoadOne')} description={state.message} />;
+    return (
+      <main className="dashboard-page">
+        <ErrorState title={t('customers.errorLoadOne')} description={state.message} />
+      </main>
+    );
   }
 
   const { customer } = state;
 
   return (
-    <div className="flex flex-col gap-6">
+    <main className="dashboard-page">
       <Breadcrumbs
         items={[
           { label: t('customers.title'), href: `/salon/${salonId}/customers` },
@@ -151,7 +160,7 @@ export default function CustomerDetailPage() {
       {/* Stats row */}
       <div className="grid grid-cols-2 gap-4 max-w-lg sm:grid-cols-4">
         <StatMini label={t('customers.totalVisits')} value={customer.stats.completed} />
-        <StatMini label={t('customers.completed')} value={customer.stats.completed} color="#16a34a" />
+        <StatMini label={t('customers.completed')} value={customer.stats.completed} color="var(--color-success)" />
         <StatMini label={t('customers.cancelled')} value={customer.stats.cancelled} color="#d97706" />
         <StatMini label={t('customers.noShows')} value={customer.stats.noShows} color="#dc2626" />
       </div>
@@ -190,7 +199,7 @@ export default function CustomerDetailPage() {
           </div>
         )}
       </Card>
-    </div>
+    </main>
   );
 }
 

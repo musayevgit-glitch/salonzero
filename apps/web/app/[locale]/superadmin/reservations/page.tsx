@@ -7,6 +7,8 @@ import {
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { apiFetch, ApiError } from '../../../../lib/api-client';
+import { FilterBar } from '../../../_components/admin/FilterBar';
+import { PageHeader } from '../../../_components/admin/PageHeader';
 
 interface Salon { id: string; name: string; }
 interface ReservationItem {
@@ -77,36 +79,36 @@ export default function SuperadminReservationsPage() {
     return () => { cancelled = true; };
   }, [search, salonFilter, statusFilter, from, to, page, router]);
 
-  if (state.kind === 'loading') return <main style={{ padding: '2rem' }}><Skeleton className="h-10 w-full max-w-md" /><div style={{ marginTop: '1rem' }}><Skeleton className="h-64 w-full" /></div></main>;
-  if (state.kind === 'permission-denied') return <main style={{ padding: '2rem' }}><PermissionDeniedState /></main>;
-  if (state.kind === 'error') return <main style={{ padding: '2rem' }}><ErrorState title="Rezervasiyalar yüklənmədi" description={state.message} /></main>;
+  if (state.kind === 'loading') return <main className="dashboard-page"><Skeleton className="h-10 w-full max-w-md" /><Skeleton className="h-64 w-full rounded-[var(--radius-lg)]" /></main>;
+  if (state.kind === 'permission-denied') return <main className="dashboard-page"><PermissionDeniedState /></main>;
+  if (state.kind === 'error') return <main className="dashboard-page"><ErrorState title="Rezervasiyalar yüklənmədi" description={state.message} /></main>;
 
   const { items, total, pageSize } = state.data;
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
 
   return (
-    <main style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '1.5rem 2rem' }}>
-      <div>
-        <h1 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>Rezervasiyalar</h1>
-        <p style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', marginTop: 2 }}>{total} rezervasiya tapıldı</p>
-      </div>
+    <main className="dashboard-page">
+      <PageHeader title="Rezervasiyalar" description={`${total} rezervasiya tapıldı`} />
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'flex-end' }}>
-        <Input placeholder="Axtar (müştəri, xidmət, stilist)..." value={search} onChange={(e) => { setPage(1); setSearch(e.target.value); }} style={{ maxWidth: 240 }} />
-        <Select value={salonFilter} onChange={(e) => { setPage(1); setSalonFilter(e.target.value); }} style={{ maxWidth: 180 }}>
+      <FilterBar
+        search={
+          <Input placeholder="Axtar (müştəri, xidmət, stilist)..." value={search} onChange={(e) => { setPage(1); setSearch(e.target.value); }} aria-label="Rezervasiya axtar" />
+        }
+      >
+        <Select value={salonFilter} onChange={(e) => { setPage(1); setSalonFilter(e.target.value); }} aria-label="Salon filtri" className="sm:max-w-48">
           <option value="">Bütün salonlar</option>
           {salons.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
         </Select>
-        <Select value={statusFilter} onChange={(e) => { setPage(1); setStatusFilter(e.target.value); }} style={{ maxWidth: 180 }}>
+        <Select value={statusFilter} onChange={(e) => { setPage(1); setStatusFilter(e.target.value); }} aria-label="Status filtri" className="sm:max-w-48">
           <option value="">Bütün statuslar</option>
           {Object.entries(STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
         </Select>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <input type="date" value={from} onChange={(e) => { setPage(1); setFrom(e.target.value); }} style={{ padding: '0.4rem 0.6rem', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', fontSize: '0.875rem', background: 'var(--color-surface)' }} />
+          <Input type="date" value={from} onChange={(e) => { setPage(1); setFrom(e.target.value); }} aria-label="Başlanğıc tarixi" className="sm:max-w-40" />
           <span style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>–</span>
-          <input type="date" value={to} onChange={(e) => { setPage(1); setTo(e.target.value); }} style={{ padding: '0.4rem 0.6rem', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', fontSize: '0.875rem', background: 'var(--color-surface)' }} />
+          <Input type="date" value={to} onChange={(e) => { setPage(1); setTo(e.target.value); }} aria-label="Bitmə tarixi" className="sm:max-w-40" />
         </div>
-      </div>
+      </FilterBar>
 
       {items.length === 0 ? (
         <EmptyState title="Rezervasiya tapılmadı" description="Filtr parametrlərini dəyişin." />

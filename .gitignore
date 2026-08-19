@@ -16,3 +16,6 @@ packages/database/generated/
 *.tsbuildinfo
 .local-storage/
 apps/api/.local-storage/
+
+# Claude Code agent worktrees (local only)
+.claude/worktrees/

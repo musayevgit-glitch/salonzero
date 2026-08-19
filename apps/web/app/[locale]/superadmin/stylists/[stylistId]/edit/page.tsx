@@ -91,19 +91,19 @@ export default function EditStylistPage() {
   }
 
   if (state.kind === 'loading') return (
-    <main className="p-8"><Skeleton className="h-80 w-full max-w-lg" /></main>
+    <main className="dashboard-page"><Skeleton className="h-80 w-full max-w-lg" /></main>
   );
   if (state.kind === 'not-found') return (
-    <main className="p-8"><PermissionDeniedState /></main>
+    <main className="dashboard-page"><PermissionDeniedState /></main>
   );
   if (state.kind === 'error') return (
-    <main className="p-8"><ErrorState title="Stilist yüklənmədi" description={state.message} /></main>
+    <main className="dashboard-page"><ErrorState title="Stilist yüklənmədi" description={state.message} /></main>
   );
 
   const { stylist } = state;
 
   return (
-    <main className="flex flex-col gap-6 p-6 lg:p-8">
+    <main className="dashboard-page">
       <Breadcrumbs
         items={[
           { label: 'Stilistlər', href: '/superadmin/stylists' },

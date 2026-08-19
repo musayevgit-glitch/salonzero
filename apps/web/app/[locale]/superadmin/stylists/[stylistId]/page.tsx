@@ -19,6 +19,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { apiFetch, apiFetchFormData, ApiError } from '../../../../../lib/api-client';
 import { PhotoUploadWidget } from '../../_components/PhotoUploadWidget';
+import { LinkButton } from '../../../../_components/admin/LinkButton';
 
 // ── Types ─────────────────────────────────────────────────────────────────
 interface StylistDetail {
@@ -404,15 +405,16 @@ export default function SuperadminStylistDetailPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  if (state.kind === 'loading') return <main className="p-8"><Skeleton className="h-12 w-64 mb-6" /><Skeleton className="h-96 w-full" /></main>;
-  if (state.kind === 'not-found') return <main className="p-8"><PermissionDeniedState /></main>;
-  if (state.kind === 'error') return <main className="p-8"><ErrorState title="Stilist yüklənmədi" description={state.message} /></main>;
+  if (state.kind === 'loading') return <main className="dashboard-page"><Skeleton className="h-12 w-64 mb-6" /><Skeleton className="h-96 w-full" /></main>;
+  if (state.kind === 'not-found') return <main className="dashboard-page"><PermissionDeniedState /></main>;
+  if (state.kind === 'error') return <main className="dashboard-page"><ErrorState title="Stilist yüklənmədi" description={state.message} /></main>;
 
   const { stylist } = state;
 
   return (
-    <main className="flex flex-col gap-6 p-6 lg:p-8">
-      <div>
+    <main className="dashboard-page">
+      <div className="page-header">
+        <div className="min-w-0">
         <Breadcrumbs items={[
           { label: 'Stilistlər', href: '/superadmin/stylists' },
           { label: stylist.salon.name, href: `/superadmin/salons/${stylist.salon.id}` },
@@ -427,14 +429,19 @@ export default function SuperadminStylistDetailPage() {
               </span>
             )
           }
-          <div>
-            <h1 className="text-2xl font-bold text-text-primary">{stylist.fullName}</h1>
-            <p className="text-sm text-text-secondary">
+          <div className="min-w-0">
+            <h1 className="page-header-title">{stylist.fullName}</h1>
+            <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-text-secondary">
               <Link href={`/superadmin/salons/${stylist.salon.id}`}>{stylist.salon.name}</Link>
-              {' · '}
               <Badge tone={stylist.isActive ? 'success' : 'neutral'}>{stylist.isActive ? 'Aktiv' : 'Deaktiv'}</Badge>
             </p>
           </div>
+        </div>
+        </div>
+        <div className="page-header-actions">
+          <LinkButton href={`/superadmin/stylists/${stylistId}/edit`} variant="secondary">
+            Redaktə et
+          </LinkButton>
         </div>
       </div>
 

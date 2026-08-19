@@ -77,7 +77,7 @@ export default function NewServicePage() {
   }
 
   return (
-    <main style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '1.5rem 2rem' }}>
+    <main className="dashboard-page">
       <Breadcrumbs items={[{ label: 'Xidmətlər', href: '/superadmin/services' }, { label: 'Yeni xidmət' }]} />
       <Card style={{ maxWidth: 560 }}>
         <h1 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1.5rem' }}>Yeni xidmət yarat</h1>

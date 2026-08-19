@@ -1,11 +1,14 @@
 'use client';
 
-import { Badge, Button, Card, EmptyState, Skeleton } from '@salonomia/ui';
+import { Badge, Button, EmptyState, Skeleton } from '@salonomia/ui';
 import NextLink from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { apiFetch, ApiError } from '../../../../lib/api-client';
+import { PageHeader } from '../../../_components/admin/PageHeader';
+import { SectionCard } from '../../../_components/admin/SectionCard';
+import { StatCard } from '../../../_components/admin/StatCard';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -74,27 +77,40 @@ const STATUS_LABEL_KEYS: Record<string, string> = {
   NO_SHOW: 'reservations.statusNoShow',
 };
 
-// ─── Stat card ────────────────────────────────────────────────────────────────
+// ─── Icons ────────────────────────────────────────────────────────────────────
 
-function StatCard({
-  label,
-  value,
-  accentColor,
-}: {
-  label: string;
-  value: number;
-  accentColor?: string;
-}) {
+const I = { width: 18, height: 18, viewBox: '0 0 20 20', fill: 'none', 'aria-hidden': true as const };
+
+function CalendarIcon() {
   return (
-    <Card>
-      <p className="text-xs text-text-secondary">{label}</p>
-      <p
-        className="mt-1 text-3xl font-bold text-text-primary"
-        style={accentColor ? { color: accentColor } : undefined}
-      >
-        {value}
-      </p>
-    </Card>
+    <svg {...I}>
+      <rect x="2" y="4" width="16" height="14" rx="2" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M6 2v3M14 2v3M2 8h16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+function CheckIcon() {
+  return (
+    <svg {...I}>
+      <circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M6.5 10.2l2.4 2.4L13.5 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function FlagIcon() {
+  return (
+    <svg {...I}>
+      <path d="M5 2.5V18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M5 3.5h9l-2 3 2 3H5z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function ClockIcon() {
+  return (
+    <svg {...I}>
+      <circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M10 6v4.3l2.8 1.7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }
 
@@ -137,7 +153,11 @@ export default function SalonDashboardPage() {
 
   const hour = new Date().getHours();
   const greeting =
-    hour < 12 ? t('dashboard.greetingMorning') : hour < 17 ? t('dashboard.greetingAfternoon') : t('dashboard.greetingEvening');
+    hour < 12
+      ? t('dashboard.greetingMorning')
+      : hour < 17
+        ? t('dashboard.greetingAfternoon')
+        : t('dashboard.greetingEvening');
 
   const dateLabel = new Date().toLocaleDateString(undefined, {
     weekday: 'long',
@@ -146,172 +166,124 @@ export default function SalonDashboardPage() {
   });
 
   return (
-    <div className="flex flex-col gap-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-text-primary">{greeting}</h1>
-        <p className="mt-1 text-sm text-text-secondary">{dateLabel}</p>
-      </div>
+    <main className="dashboard-page">
+      <PageHeader
+        title={greeting}
+        description={dateLabel}
+        actions={
+          <Button onClick={() => router.push(`/salon/${salonId}/reservations/new`)}>
+            {t('dashboard.newReservation')}
+          </Button>
+        }
+      />
 
       {/* ── Today's stats ── */}
-      <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-text-secondary">
-          {t('dashboard.todayAtAGlance')}
-        </h2>
-        {loadingStats ? (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            {[0, 1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-24 rounded-[var(--radius-lg)]" />
-            ))}
-          </div>
-        ) : statsError ? (
-          <p className="text-sm text-destructive">{statsError}</p>
-        ) : stats ? (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <StatCard label={t('dashboard.totalReservations')} value={stats.total} />
-            <StatCard
-              label={t('dashboard.confirmed')}
-              value={(stats.byStatus['CONFIRMED'] ?? 0) + (stats.byStatus['CHECKED_IN'] ?? 0)}
-              accentColor="var(--color-success, #16a34a)"
-            />
-            <StatCard
-              label={t('dashboard.completedToday')}
-              value={stats.byStatus['COMPLETED'] ?? 0}
-            />
-            <StatCard
-              label={t('dashboard.pendingApproval')}
-              value={stats.byStatus['PENDING'] ?? 0}
-              accentColor="var(--color-warning, #d97706)"
-            />
-          </div>
-        ) : null}
-      </section>
+      {loadingStats ? (
+        <div className="stat-grid">
+          {[0, 1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-[5.5rem] rounded-[var(--radius-lg)]" />
+          ))}
+        </div>
+      ) : statsError ? (
+        <div className="admin-card admin-card-body text-sm text-danger" role="alert">
+          {statsError}
+        </div>
+      ) : stats ? (
+        <section aria-label={t('dashboard.todayAtAGlance')} className="stat-grid">
+          <StatCard label={t('dashboard.totalReservations')} value={stats.total} icon={<CalendarIcon />} />
+          <StatCard
+            label={t('dashboard.confirmed')}
+            value={(stats.byStatus['CONFIRMED'] ?? 0) + (stats.byStatus['CHECKED_IN'] ?? 0)}
+            tone="success"
+            icon={<CheckIcon />}
+          />
+          <StatCard label={t('dashboard.completedToday')} value={stats.byStatus['COMPLETED'] ?? 0} tone="info" icon={<FlagIcon />} />
+          <StatCard
+            label={t('dashboard.pendingApproval')}
+            value={stats.byStatus['PENDING'] ?? 0}
+            tone="warning"
+            icon={<ClockIcon />}
+            sub={(stats.byStatus['PENDING'] ?? 0) > 0 ? t('dashboard.viewAll') : undefined}
+          />
+        </section>
+      ) : null}
 
       {/* ── Upcoming reservations ── */}
-      <section>
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-text-secondary">
-            {t('dashboard.todayAppointments')}
-          </h2>
+      <SectionCard
+        title={t('dashboard.todayAppointments')}
+        headerAction={
           <NextLink
             href={`/salon/${salonId}/reservations`}
-            style={{
-              fontSize: '0.8125rem',
-              color: 'var(--color-accent)',
-              textDecoration: 'none',
-              fontWeight: 500,
-            }}
+            style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-accent)', textDecoration: 'none' }}
           >
             {t('dashboard.viewAll')} →
           </NextLink>
-        </div>
-
+        }
+        padded={false}
+      >
         {loadingUpcoming ? (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 p-5">
             {[0, 1, 2].map((i) => (
-              <Skeleton key={i} className="h-[4.5rem] rounded-[var(--radius-lg)]" />
+              <Skeleton key={i} className="h-14 rounded-[var(--radius-sm)]" />
             ))}
           </div>
         ) : upcoming.length === 0 ? (
-          <EmptyState
-            title={t('dashboard.noAppointmentsToday')}
-            description={t('dashboard.noAppointmentsTodayDesc')}
-          />
-        ) : (
-          <div className="flex flex-col gap-2">
-            {upcoming.map((r) => (
-              <NextLink
-                key={r.id}
-                href={`/salon/${salonId}/reservations/${r.id}`}
-                style={{ textDecoration: 'none' }}
-              >
-                <Card
-                  style={{ cursor: 'pointer', transition: 'box-shadow 0.15s ease' }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLElement).style.boxShadow = 'var(--shadow-md)';
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLElement).style.boxShadow = 'var(--shadow-sm)';
-                  }}
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-4 min-w-0">
-                      {/* Time block */}
-                      <div
-                        style={{
-                          fontSize: '1rem',
-                          fontWeight: 700,
-                          fontVariantNumeric: 'tabular-nums',
-                          color: 'var(--color-text-primary)',
-                          flexShrink: 0,
-                          minWidth: '3.5rem',
-                        }}
-                      >
-                        {formatTime(r.startAt)}
-                      </div>
-                      {/* Details */}
-                      <div style={{ minWidth: 0 }}>
-                        <p
-                          style={{
-                            fontSize: '0.875rem',
-                            fontWeight: 600,
-                            color: 'var(--color-text-primary)',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {r.customer?.email ?? r.guestName ?? 'Guest'}
-                        </p>
-                        <p
-                          style={{
-                            fontSize: '0.75rem',
-                            color: 'var(--color-text-secondary)',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {r.service.name} · {r.employee.fullName}
-                        </p>
-                      </div>
-                    </div>
-                    <div style={{ flexShrink: 0 }}>
-                      <Badge tone={STATUS_TONE[r.status] ?? 'neutral'}>
-                        {STATUS_LABEL_KEYS[r.status] ? t(STATUS_LABEL_KEYS[r.status]!) : r.status}
-                      </Badge>
-                    </div>
-                  </div>
-                </Card>
-              </NextLink>
-            ))}
+          <div className="p-5">
+            <EmptyState
+              title={t('dashboard.noAppointmentsToday')}
+              description={t('dashboard.noAppointmentsTodayDesc')}
+            />
           </div>
+        ) : (
+          <ul className="m-0 list-none p-0">
+            {upcoming.map((r, i) => (
+              <li key={r.id} style={{ borderTop: i === 0 ? undefined : '1px solid var(--color-border)' }}>
+                <NextLink
+                  href={`/salon/${salonId}/reservations/${r.id}`}
+                  className="flex items-center justify-between gap-3 px-5 py-3.5 no-underline transition-colors hover:bg-surface"
+                >
+                  <span className="flex min-w-0 items-center gap-4">
+                    <span
+                      className="shrink-0 rounded-[var(--radius-sm)] px-2.5 py-1.5 text-sm font-bold tabular-nums"
+                      style={{ background: 'var(--color-accent-muted)', color: 'var(--color-accent)' }}
+                    >
+                      {formatTime(r.startAt)}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-semibold text-text-primary">
+                        {r.customer?.email ?? r.guestName ?? 'Guest'}
+                      </span>
+                      <span className="block truncate text-xs text-text-secondary">
+                        {r.service.name} · {r.employee.fullName}
+                      </span>
+                    </span>
+                  </span>
+                  <span className="shrink-0">
+                    <Badge tone={STATUS_TONE[r.status] ?? 'neutral'}>
+                      {STATUS_LABEL_KEYS[r.status] ? t(STATUS_LABEL_KEYS[r.status]!) : r.status}
+                    </Badge>
+                  </span>
+                </NextLink>
+              </li>
+            ))}
+          </ul>
         )}
-      </section>
+      </SectionCard>
 
       {/* ── Quick actions ── */}
-      <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-text-secondary">
-          {t('dashboard.quickActions')}
-        </h2>
+      <SectionCard title={t('dashboard.quickActions')}>
         <div className="flex flex-wrap gap-3">
           <Button onClick={() => router.push(`/salon/${salonId}/reservations/new`)}>
             {t('dashboard.newReservation')}
           </Button>
-          <Button
-            variant="secondary"
-            onClick={() => router.push(`/salon/${salonId}/employees/new`)}
-          >
+          <Button variant="secondary" onClick={() => router.push(`/salon/${salonId}/employees/new`)}>
             {t('dashboard.addEmployee')}
           </Button>
-          <Button
-            variant="secondary"
-            onClick={() => router.push(`/salon/${salonId}/services/new`)}
-          >
+          <Button variant="secondary" onClick={() => router.push(`/salon/${salonId}/services/new`)}>
             {t('dashboard.addService')}
           </Button>
         </div>
-      </section>
-    </div>
+      </SectionCard>
+    </main>
   );
 }

@@ -35,7 +35,7 @@ export default function NewEmployeePage() {
   }
 
   return (
-    <main className="flex flex-col gap-6 p-8">
+    <main className="dashboard-page">
       <Breadcrumbs
         items={[{ label: 'Employees', href: `/salon/${salonId}/employees` }, { label: 'New' }]}
       />

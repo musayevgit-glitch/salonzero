@@ -7,6 +7,9 @@ import {
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { apiFetch, ApiError } from '../../../../lib/api-client';
+import { FilterBar } from '../../../_components/admin/FilterBar';
+import { LinkButton } from '../../../_components/admin/LinkButton';
+import { PageHeader } from '../../../_components/admin/PageHeader';
 
 interface Salon { id: string; name: string; }
 interface StylistListItem {
@@ -67,39 +70,40 @@ export default function SuperadminStylistsPage() {
   }
 
   if (state.kind === 'loading') return (
-    <main className="flex flex-col gap-4 p-8">
+    <main className="dashboard-page">
       <Skeleton className="h-10 w-full max-w-md" />
       <Skeleton className="h-64 w-full" />
     </main>
   );
-  if (state.kind === 'permission-denied') return <main className="p-8"><PermissionDeniedState /></main>;
-  if (state.kind === 'error') return <main className="p-8"><ErrorState title="Stilistlər yüklənmədi" description={state.message} /></main>;
+  if (state.kind === 'permission-denied') return <main className="dashboard-page"><PermissionDeniedState /></main>;
+  if (state.kind === 'error') return <main className="dashboard-page"><ErrorState title="Stilistlər yüklənmədi" description={state.message} /></main>;
 
   const { items, total, pageSize } = state.data;
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
 
   return (
-    <main className="flex flex-col gap-6 p-6 lg:p-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary">Stilistlər</h1>
-          <p className="text-sm text-text-secondary mt-0.5">Cəmi {total} stilist</p>
-        </div>
-        <Link href="/superadmin/stylists/new">+ Yeni stilist</Link>
-      </div>
+    <main className="dashboard-page">
+      <PageHeader
+        title="Stilistlər"
+        description={`Cəmi ${total} stilist`}
+        actions={<LinkButton href="/superadmin/stylists/new">+ Yeni stilist</LinkButton>}
+      />
 
-      <div className="flex flex-wrap gap-3">
-        <Input placeholder="Ad ilə axtar" value={search} onChange={(e) => { setPage(1); setSearch(e.target.value); }} className="max-w-xs" />
-        <Select value={salonFilter} onChange={(e) => { setPage(1); setSalonFilter(e.target.value); }} className="max-w-48">
+      <FilterBar
+        search={
+          <Input placeholder="Ad ilə axtar" value={search} onChange={(e) => { setPage(1); setSearch(e.target.value); }} aria-label="Stilist axtar" />
+        }
+      >
+        <Select value={salonFilter} onChange={(e) => { setPage(1); setSalonFilter(e.target.value); }} aria-label="Salon filtri" className="sm:max-w-52">
           <option value="">Bütün salonlar</option>
           {salons.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
         </Select>
-        <Select value={status} onChange={(e) => { setPage(1); setStatus(e.target.value as '' | 'ACTIVE' | 'INACTIVE'); }} className="max-w-40">
+        <Select value={status} onChange={(e) => { setPage(1); setStatus(e.target.value as '' | 'ACTIVE' | 'INACTIVE'); }} aria-label="Status filtri" className="sm:max-w-44">
           <option value="">Bütün statuslar</option>
           <option value="ACTIVE">Aktiv</option>
           <option value="INACTIVE">Deaktiv</option>
         </Select>
-      </div>
+      </FilterBar>
 
       {items.length === 0 ? (
         <EmptyState title="Stilist tapılmadı" description="Fərqli axtarış parametrləri yoxlayın." />

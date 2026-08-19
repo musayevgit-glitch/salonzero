@@ -70,7 +70,7 @@ export default function NewServicePage() {
   }
 
   return (
-    <main className="flex flex-col gap-6 p-8">
+    <main className="dashboard-page">
       <Breadcrumbs
         items={[{ label: 'Services', href: `/salon/${salonId}/services` }, { label: 'New' }]}
       />

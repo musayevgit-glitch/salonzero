@@ -17,6 +17,9 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { apiFetch, ApiError } from '../../../../../lib/api-client';
+import { FilterBar } from '../../../../_components/admin/FilterBar';
+import { LinkButton } from '../../../../_components/admin/LinkButton';
+import { PageHeader } from '../../../../_components/admin/PageHeader';
 
 interface EmployeeListItem {
   id: string;
@@ -84,7 +87,7 @@ export default function SalonEmployeesPage() {
 
   if (state.kind === 'loading') {
     return (
-      <main className="flex flex-col gap-4 p-8">
+      <main className="dashboard-page">
         <Skeleton className="h-10 w-full max-w-md" />
         <Skeleton className="h-64 w-full" />
       </main>
@@ -93,7 +96,7 @@ export default function SalonEmployeesPage() {
 
   if (state.kind === 'permission-denied') {
     return (
-      <main className="p-8">
+      <main className="dashboard-page">
         <PermissionDeniedState />
       </main>
     );
@@ -101,7 +104,7 @@ export default function SalonEmployeesPage() {
 
   if (state.kind === 'error') {
     return (
-      <main className="p-8">
+      <main className="dashboard-page">
         <ErrorState title={t('employees.errorLoad')} description={state.message} />
       </main>
     );
@@ -111,35 +114,42 @@ export default function SalonEmployeesPage() {
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
 
   return (
-    <main className="flex flex-col gap-6 p-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-text-primary">{t('employees.title')}</h1>
-        <Link href={`/salon/${salonId}/employees/new`}>+ {t('employees.new')}</Link>
-      </div>
+    <main className="dashboard-page">
+      <PageHeader
+        title={t('employees.title')}
+        description={`${total} ${t('employees.title').toLocaleLowerCase()}`}
+        actions={
+          <LinkButton href={`/salon/${salonId}/employees/new`}>+ {t('employees.new')}</LinkButton>
+        }
+      />
 
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <Input
-          placeholder={t('employees.searchPlaceholder')}
-          value={search}
-          onChange={(e) => {
-            setPage(1);
-            setSearch(e.target.value);
-          }}
-          className="sm:max-w-xs"
-        />
+      <FilterBar
+        search={
+          <Input
+            placeholder={t('employees.searchPlaceholder')}
+            value={search}
+            onChange={(e) => {
+              setPage(1);
+              setSearch(e.target.value);
+            }}
+            aria-label={t('employees.searchPlaceholder')}
+          />
+        }
+      >
         <Select
           value={activeFilter}
           onChange={(e) => {
             setPage(1);
             setActiveFilter(e.target.value as typeof activeFilter);
           }}
-          className="sm:max-w-40"
+          aria-label={t('employees.allStatuses')}
+          className="sm:max-w-44"
         >
           <option value="">{t('employees.allStatuses')}</option>
           <option value="true">{t('employees.active')}</option>
           <option value="false">{t('employees.inactive')}</option>
         </Select>
-      </div>
+      </FilterBar>
 
       {items.length === 0 ? (
         <EmptyState

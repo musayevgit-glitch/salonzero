@@ -91,7 +91,7 @@ export default function EmployeeDetailPage() {
 
   if (state.kind === 'loading') {
     return (
-      <main className="p-8">
+      <main className="dashboard-page">
         <Skeleton className="h-48 w-full max-w-lg" />
       </main>
     );
@@ -99,7 +99,7 @@ export default function EmployeeDetailPage() {
 
   if (state.kind === 'permission-denied') {
     return (
-      <main className="p-8">
+      <main className="dashboard-page">
         <PermissionDeniedState />
       </main>
     );
@@ -107,7 +107,7 @@ export default function EmployeeDetailPage() {
 
   if (state.kind === 'error') {
     return (
-      <main className="p-8">
+      <main className="dashboard-page">
         <ErrorState title={t('employees.errorLoadOne')} description={state.message} />
       </main>
     );
@@ -116,7 +116,7 @@ export default function EmployeeDetailPage() {
   const { employee } = state;
 
   return (
-    <main className="flex flex-col gap-6 p-8">
+    <main className="dashboard-page">
       <Breadcrumbs
         items={[
           { label: t('employees.title'), href: `/salon/${salonId}/employees` },

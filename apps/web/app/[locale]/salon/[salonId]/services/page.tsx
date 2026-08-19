@@ -17,6 +17,9 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { apiFetch, ApiError } from '../../../../../lib/api-client';
+import { FilterBar } from '../../../../_components/admin/FilterBar';
+import { LinkButton } from '../../../../_components/admin/LinkButton';
+import { PageHeader } from '../../../../_components/admin/PageHeader';
 
 interface ServiceListItem {
   id: string;
@@ -106,7 +109,7 @@ export default function ServicesPage() {
 
   if (state.kind === 'loading') {
     return (
-      <main className="flex flex-col gap-4 p-8">
+      <main className="dashboard-page">
         <Skeleton className="h-10 w-full max-w-md" />
         <Skeleton className="h-64 w-full" />
       </main>
@@ -115,7 +118,7 @@ export default function ServicesPage() {
 
   if (state.kind === 'permission-denied') {
     return (
-      <main className="p-8">
+      <main className="dashboard-page">
         <PermissionDeniedState />
       </main>
     );
@@ -123,7 +126,7 @@ export default function ServicesPage() {
 
   if (state.kind === 'error') {
     return (
-      <main className="p-8">
+      <main className="dashboard-page">
         <ErrorState title={t('services.errorLoad')} description={state.message} />
       </main>
     );
@@ -135,22 +138,26 @@ export default function ServicesPage() {
     categories.find((c) => c.id === id)?.name ?? (id ? '—' : t('services.uncategorized'));
 
   return (
-    <main className="flex flex-col gap-6 p-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-text-primary">{t('services.title')}</h1>
-        <Link href={`/salon/${salonId}/services/new`}>+ {t('services.new')}</Link>
-      </div>
+    <main className="dashboard-page">
+      <PageHeader
+        title={t('services.title')}
+        description={`${total} ${t('services.title').toLocaleLowerCase()}`}
+        actions={<LinkButton href={`/salon/${salonId}/services/new`}>+ {t('services.new')}</LinkButton>}
+      />
 
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <Input
-          placeholder={t('services.searchPlaceholder')}
-          value={search}
-          onChange={(e) => {
-            setPage(1);
-            setSearch(e.target.value);
-          }}
-          className="sm:max-w-xs"
-        />
+      <FilterBar
+        search={
+          <Input
+            placeholder={t('services.searchPlaceholder')}
+            value={search}
+            onChange={(e) => {
+              setPage(1);
+              setSearch(e.target.value);
+            }}
+            aria-label={t('services.searchPlaceholder')}
+          />
+        }
+      >
         <Select
           value={activeFilter}
           onChange={(e) => {
@@ -178,7 +185,7 @@ export default function ServicesPage() {
             </option>
           ))}
         </Select>
-      </div>
+      </FilterBar>
 
       {items.length === 0 ? (
         <EmptyState title={t('services.noServicesFound')} description={t('services.noServicesFoundDesc')} />

@@ -18,6 +18,8 @@ import {
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { apiFetch, ApiError } from '../../../../lib/api-client';
+import { FilterBar } from '../../../_components/admin/FilterBar';
+import { PageHeader } from '../../../_components/admin/PageHeader';
 
 interface UserListItem {
   id: string;
@@ -126,16 +128,16 @@ export default function SuperadminUsersPage() {
 
   if (state.kind === 'loading') {
     return (
-      <main className="flex flex-col gap-4 p-8">
+      <main className="dashboard-page">
         <Skeleton className="h-10 w-full max-w-md" />
-        <Skeleton className="h-64 w-full" />
+        <Skeleton className="h-64 w-full rounded-[var(--radius-lg)]" />
       </main>
     );
   }
 
   if (state.kind === 'permission-denied') {
     return (
-      <main className="p-8">
+      <main className="dashboard-page">
         <PermissionDeniedState />
       </main>
     );
@@ -143,7 +145,7 @@ export default function SuperadminUsersPage() {
 
   if (state.kind === 'error') {
     return (
-      <main className="p-8">
+      <main className="dashboard-page">
         <ErrorState title="İstifadəçiləri yükləmək mümkün olmadı" description={state.message} />
       </main>
     );
@@ -153,28 +155,30 @@ export default function SuperadminUsersPage() {
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
 
   return (
-    <main className="flex flex-col gap-6 p-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-text-primary">İstifadəçilər</h1>
-      </div>
+    <main className="dashboard-page">
+      <PageHeader title="İstifadəçilər" description={`Cəmi ${total} istifadəçi`} />
 
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <Input
-          placeholder="Ad, e-poçt və ya telefon axtar"
-          value={search}
-          onChange={(e) => {
-            setPage(1);
-            setSearch(e.target.value);
-          }}
-          className="sm:max-w-xs"
-        />
+      <FilterBar
+        search={
+          <Input
+            placeholder="Ad, e-poçt və ya telefon axtar"
+            value={search}
+            onChange={(e) => {
+              setPage(1);
+              setSearch(e.target.value);
+            }}
+            aria-label="İstifadəçi axtar"
+          />
+        }
+      >
         <Select
           value={role}
           onChange={(e) => {
             setPage(1);
             setRole(e.target.value as typeof role);
           }}
-          className="sm:max-w-44"
+          aria-label="Rol filtri"
+          className="sm:max-w-48"
         >
           <option value="">Bütün rollar</option>
           <option value="SUPERADMIN">Superadmin</option>
@@ -187,13 +191,14 @@ export default function SuperadminUsersPage() {
             setPage(1);
             setStatus(e.target.value as typeof status);
           }}
-          className="sm:max-w-40"
+          aria-label="Status filtri"
+          className="sm:max-w-44"
         >
           <option value="">Bütün statuslar</option>
           <option value="ACTIVE">Aktiv</option>
           <option value="SUSPENDED">Bloklanmış</option>
         </Select>
-      </div>
+      </FilterBar>
 
       {items.length === 0 ? (
         <EmptyState

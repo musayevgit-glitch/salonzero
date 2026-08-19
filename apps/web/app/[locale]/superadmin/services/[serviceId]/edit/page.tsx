@@ -74,14 +74,14 @@ export default function EditServicePage() {
     }
   }
 
-  if (state.kind === 'loading') return <main style={{ padding: '2rem' }}><Skeleton className="h-64 w-full max-w-lg" /></main>;
-  if (state.kind === 'not-found') return <main style={{ padding: '2rem' }}><PermissionDeniedState /></main>;
-  if (state.kind === 'error') return <main style={{ padding: '2rem' }}><ErrorState title="Xidmət yüklənmədi" description={state.message} /></main>;
+  if (state.kind === 'loading') return <main className="dashboard-page"><Skeleton className="h-64 w-full max-w-lg" /></main>;
+  if (state.kind === 'not-found') return <main className="dashboard-page"><PermissionDeniedState /></main>;
+  if (state.kind === 'error') return <main className="dashboard-page"><ErrorState title="Xidmət yüklənmədi" description={state.message} /></main>;
 
   const { service } = state;
 
   return (
-    <main style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '1.5rem 2rem' }}>
+    <main className="dashboard-page">
       <Breadcrumbs items={[{ label: 'Xidmətlər', href: '/superadmin/services' }, { label: service.name, href: `/superadmin/services/${serviceId}` }, { label: 'Redaktə' }]} />
       <Card style={{ maxWidth: 560 }}>
         <h1 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1.5rem' }}>Xidməti redaktə et</h1>

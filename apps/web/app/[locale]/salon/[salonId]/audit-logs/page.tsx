@@ -15,6 +15,8 @@ import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { apiFetch, ApiError } from '../../../../../lib/api-client';
+import { FilterBar } from '../../../../_components/admin/FilterBar';
+import { PageHeader } from '../../../../_components/admin/PageHeader';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -84,28 +86,29 @@ export default function SalonAuditLogsPage() {
   const pageCount = data ? Math.ceil(data.total / data.pageSize) : 0;
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-xl font-semibold text-text-primary">{t('auditLog.title')}</h1>
-        {data ? (
-          <p className="mt-1 text-sm text-text-secondary">
-            {data.total} {t('auditLog.events')}
-          </p>
-        ) : null}
-      </div>
+    <main className="dashboard-page">
+      <PageHeader
+        title={t('auditLog.title')}
+        description={data ? `${data.total} ${t('auditLog.events')}` : undefined}
+      />
 
-      {/* Filter */}
-      <form onSubmit={handleSearch} className="flex gap-2 max-w-md">
-        <Input
-          type="search"
-          value={pendingFilter}
-          onChange={(e) => setPendingFilter(e.target.value)}
-          placeholder={t('auditLog.filterPlaceholder')}
-          aria-label={t('auditLog.filterPlaceholder')}
+      <form onSubmit={handleSearch}>
+        <FilterBar
+          search={
+            <Input
+              type="search"
+              value={pendingFilter}
+              onChange={(e) => setPendingFilter(e.target.value)}
+              placeholder={t('auditLog.filterPlaceholder')}
+              aria-label={t('auditLog.filterPlaceholder')}
+            />
+          }
+          trailing={
+            <Button type="submit" variant="secondary" loading={loading}>
+              {t('common.search')}
+            </Button>
+          }
         />
-        <Button type="submit" variant="secondary" loading={loading}>
-          {t('common.search')}
-        </Button>
       </form>
 
       {error ? <ErrorState title={t('auditLog.errorLoad')} description={error} /> : null}
@@ -225,6 +228,6 @@ export default function SalonAuditLogsPage() {
           ) : null}
         </>
       ) : null}
-    </div>
+    </main>
   );
 }

@@ -41,7 +41,7 @@ export default function ReportsServicesPage() {
   const pageCount = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
 
   return (
-    <main style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '1.5rem 2rem' }}>
+    <main className="dashboard-page">
       <div>
         <h1 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>Xidmət Hesabatları</h1>
         <p style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', marginTop: 2 }}>Hər xidmət üzrə performans</p>

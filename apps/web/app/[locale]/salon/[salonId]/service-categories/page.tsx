@@ -15,6 +15,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { apiFetch, ApiError } from '../../../../../lib/api-client';
+import { LinkButton } from '../../../../_components/admin/LinkButton';
+import { PageHeader } from '../../../../_components/admin/PageHeader';
 
 interface ServiceCategory {
   id: string;
@@ -99,7 +101,7 @@ export default function ServiceCategoriesPage() {
 
   if (state.kind === 'loading') {
     return (
-      <main className="flex flex-col gap-4 p-8">
+      <main className="dashboard-page">
         <Skeleton className="h-10 w-full max-w-md" />
         <Skeleton className="h-64 w-full" />
       </main>
@@ -108,7 +110,7 @@ export default function ServiceCategoriesPage() {
 
   if (state.kind === 'permission-denied') {
     return (
-      <main className="p-8">
+      <main className="dashboard-page">
         <PermissionDeniedState />
       </main>
     );
@@ -116,7 +118,7 @@ export default function ServiceCategoriesPage() {
 
   if (state.kind === 'error') {
     return (
-      <main className="p-8">
+      <main className="dashboard-page">
         <ErrorState title={t('categories.errorLoad')} description={state.message} />
       </main>
     );
@@ -125,11 +127,15 @@ export default function ServiceCategoriesPage() {
   const { items } = state;
 
   return (
-    <main className="flex flex-col gap-6 p-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-text-primary">{t('categories.title')}</h1>
-        <Link href={`/salon/${salonId}/service-categories/new`}>+ {t('categories.new')}</Link>
-      </div>
+    <main className="dashboard-page">
+      <PageHeader
+        title={t('categories.title')}
+        actions={
+          <LinkButton href={`/salon/${salonId}/service-categories/new`}>
+            + {t('categories.new')}
+          </LinkButton>
+        }
+      />
 
       {items.length === 0 ? (
         <EmptyState

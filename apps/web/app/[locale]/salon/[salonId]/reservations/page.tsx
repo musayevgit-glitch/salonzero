@@ -18,6 +18,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { apiFetch, ApiError } from '../../../../../lib/api-client';
+import { LinkButton } from '../../../../_components/admin/LinkButton';
+import { PageHeader } from '../../../../_components/admin/PageHeader';
 
 interface ReservationListItem {
   id: string;
@@ -196,7 +198,7 @@ export default function SalonReservationsPage() {
 
   if (state.kind === 'permission-denied') {
     return (
-      <main className="p-8">
+      <main className="dashboard-page">
         <PermissionDeniedState />
       </main>
     );
@@ -204,7 +206,7 @@ export default function SalonReservationsPage() {
 
   if (state.kind === 'error') {
     return (
-      <main className="p-8">
+      <main className="dashboard-page">
         <ErrorState title={t('reservations.errorLoad')} description={state.message} />
       </main>
     );
@@ -216,13 +218,15 @@ export default function SalonReservationsPage() {
     state.kind === 'ready' ? Math.max(1, Math.ceil(total / state.data.pageSize)) : 1;
 
   return (
-    <main className="flex flex-col gap-6 p-8">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-xl font-semibold text-text-primary">{t('reservations.title')}</h1>
-        <Link href={`/salon/${salonId}/reservations/new`}>
-          <Button>{t('reservations.new')}</Button>
-        </Link>
-      </div>
+    <main className="dashboard-page">
+      <PageHeader
+        title={t('reservations.title')}
+        actions={
+          <LinkButton href={`/salon/${salonId}/reservations/new`}>
+            {t('reservations.new')}
+          </LinkButton>
+        }
+      />
 
       {banner ? (
         <div className="rounded-[var(--radius-md)] border border-warning/30 bg-warning/10 p-3 text-sm text-warning">
@@ -230,7 +234,7 @@ export default function SalonReservationsPage() {
         </div>
       ) : null}
 
-      <div className="flex flex-wrap gap-2" role="group" aria-label={t('reservations.title')}>
+      <div className="filter-bar" role="group" aria-label={t('reservations.title')}>
         {(['today', 'day', 'week'] as ViewMode[]).map((mode) => (
           <Button
             key={mode}

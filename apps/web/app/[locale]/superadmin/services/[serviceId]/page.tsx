@@ -58,14 +58,14 @@ export default function ServiceDetailPage() {
     }
   }
 
-  if (state.kind === 'loading') return <main style={{ padding: '2rem' }}><Skeleton className="h-64 w-full max-w-lg" /></main>;
-  if (state.kind === 'not-found') return <main style={{ padding: '2rem' }}><PermissionDeniedState /></main>;
-  if (state.kind === 'error') return <main style={{ padding: '2rem' }}><ErrorState title="Xidmət yüklənmədi" description={state.message} /></main>;
+  if (state.kind === 'loading') return <main className="dashboard-page"><Skeleton className="h-64 w-full max-w-lg" /></main>;
+  if (state.kind === 'not-found') return <main className="dashboard-page"><PermissionDeniedState /></main>;
+  if (state.kind === 'error') return <main className="dashboard-page"><ErrorState title="Xidmət yüklənmədi" description={state.message} /></main>;
 
   const { service } = state;
 
   return (
-    <main style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '1.5rem 2rem' }}>
+    <main className="dashboard-page">
       <Breadcrumbs items={[{ label: 'Xidmətlər', href: '/superadmin/services' }, { label: service.name }]} />
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
@@ -140,7 +140,7 @@ export default function ServiceDetailPage() {
                   href={`/superadmin/stylists/${s.id}`}
                   style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', textDecoration: 'none' }}
                 >
-                  <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#f3e8ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#7c3aed', fontSize: '0.8rem', overflow: 'hidden', flexShrink: 0 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--color-accent-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: 'var(--color-accent)', fontSize: '0.8rem', overflow: 'hidden', flexShrink: 0 }}>
                     {s.photoUrl ? <img src={s.photoUrl} alt={s.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : s.fullName.slice(0, 1)}
                   </div>
                   <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-primary)' }}>{s.fullName}</span>

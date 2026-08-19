@@ -1,8 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { apiFetch, ApiError } from '../../../lib/api-client';
 import Link from 'next/link';
+import { apiFetch, ApiError } from '../../../lib/api-client';
+import { LinkButton } from '../../_components/admin/LinkButton';
+import { PageHeader } from '../../_components/admin/PageHeader';
+import { SectionCard } from '../../_components/admin/SectionCard';
+import { StatCard } from '../../_components/admin/StatCard';
 
 interface Stats {
   salons: { total: number; active: number; suspended: number };
@@ -11,20 +15,157 @@ interface Stats {
   reservations: { total: number; today: number; week: number; month: number };
   customers: { total: number };
   recentSalons: { id: string; name: string; status: string; city: string | null; createdAt: string }[];
-  recentStylists: { id: string; fullName: string; isActive: boolean; createdAt: string; salonId: string; salonName: string }[];
+  recentStylists: {
+    id: string;
+    fullName: string;
+    isActive: boolean;
+    createdAt: string;
+    salonId: string;
+    salonName: string;
+  }[];
 }
 
-function StatCard({ label, value, sub, accent, href }: { label: string; value: number | string; sub?: string; accent?: string; href?: string; }) {
-  const content = (
-    <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-      <span style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', fontWeight: 500 }}>{label}</span>
-      <span style={{ fontSize: '2rem', fontWeight: 700, color: accent ?? 'var(--color-text-primary)', lineHeight: 1.1 }}>{value}</span>
-      {sub && <span style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>{sub}</span>}
+// ─── Icons ───────────────────────────────────────────────────────────────────
+
+const I = {
+  width: 18,
+  height: 18,
+  viewBox: '0 0 20 20',
+  fill: 'none',
+  'aria-hidden': true as const,
+};
+
+function SalonIcon() {
+  return (
+    <svg {...I}>
+      <path d="M2 8l8-6 8 6v9a1 1 0 01-1 1H3a1 1 0 01-1-1V8z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M7 18v-6h6v6" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function StylistIcon() {
+  return (
+    <svg {...I}>
+      <circle cx="10" cy="6" r="3.5" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M2 18c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+function ServiceIcon() {
+  return (
+    <svg {...I}>
+      <path d="M10 2.5l1.9 5.6 5.6 1.9-5.6 1.9L10 17.5l-1.9-5.6L2.5 10l5.6-1.9z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function CalendarIcon() {
+  return (
+    <svg {...I}>
+      <rect x="2" y="4" width="16" height="14" rx="2" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M6 2v3M14 2v3M2 8h16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+function CustomerIcon() {
+  return (
+    <svg {...I}>
+      <circle cx="7" cy="6" r="2.5" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M1 17c0-3 2.7-5 6-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="14" cy="6" r="2.5" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M11.5 12.5c1-.4 2-.5 2.5-.5 3.3 0 6 2 6 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+// ─── Small building blocks ───────────────────────────────────────────────────
+
+function ViewAllLink({ href }: { href: string }) {
+  return (
+    <Link
+      href={href}
+      style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-accent)', textDecoration: 'none' }}
+    >
+      Hamısı →
+    </Link>
+  );
+}
+
+/** Horizontal split bar showing active vs inactive share for a resource. */
+function SplitBar({ active, total }: { active: number; total: number }) {
+  const pct = total > 0 ? Math.round((active / total) * 100) : 0;
+  return (
+    <div>
+      <div
+        style={{
+          height: 8,
+          borderRadius: 9999,
+          background: 'var(--color-surface-muted)',
+          overflow: 'hidden',
+        }}
+        role="img"
+        aria-label={`Aktiv nisbəti: ${pct}%`}
+      >
+        <div style={{ width: `${pct}%`, height: '100%', background: 'var(--color-accent)', borderRadius: 9999 }} />
+      </div>
+      <p style={{ margin: '0.5rem 0 0', fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
+        {active} / {total} aktiv ({pct}%)
+      </p>
     </div>
   );
-  if (href) return <Link href={href} style={{ textDecoration: 'none' }}>{content}</Link>;
-  return content;
 }
+
+function StatusChip({ active, label }: { active: boolean; label: string }) {
+  return <span className={`admin-chip ${active ? 'admin-chip-success' : 'admin-chip-neutral'}`}>{label}</span>;
+}
+
+function RecentRow({
+  href,
+  primary,
+  secondary,
+  trailing,
+  first,
+}: {
+  href: string;
+  primary: string;
+  secondary: string;
+  trailing: React.ReactNode;
+  first: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '0.75rem',
+        padding: '0.75rem 1.25rem',
+        textDecoration: 'none',
+        borderTop: first ? undefined : '1px solid var(--color-border)',
+      }}
+    >
+      <span style={{ minWidth: 0 }}>
+        <span
+          style={{
+            display: 'block',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            color: 'var(--color-text-primary)',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {primary}
+        </span>
+        <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>{secondary}</span>
+      </span>
+      {trailing}
+    </Link>
+  );
+}
+
+// ─── Page ────────────────────────────────────────────────────────────────────
 
 export default function SuperadminDashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null);
@@ -34,137 +175,149 @@ export default function SuperadminDashboardPage() {
   useEffect(() => {
     setLoading(true);
     apiFetch<Stats>('/superadmin/stats')
-      .then((s) => { setStats(s); setLoading(false); })
-      .catch((err) => { setError(err instanceof ApiError ? err.message : 'Yüklənmədi'); setLoading(false); });
+      .then((s) => {
+        setStats(s);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err instanceof ApiError ? err.message : 'Yüklənmədi');
+        setLoading(false);
+      });
   }, []);
 
   if (loading) {
     return (
-      <main style={{ padding: '2rem' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '1rem' }}>
-          {Array.from({ length: 9 }).map((_, i) => (
-            <div key={i} style={{ height: 100, background: 'var(--color-surface)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }} />
+      <main className="dashboard-page">
+        <div className="stat-grid">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="stat-card" style={{ height: 96 }} aria-hidden="true" />
           ))}
+        </div>
+        <div className="admin-card" style={{ height: 220 }} aria-hidden="true" />
+        <p className="sr-only" role="status">
+          Yüklənir…
+        </p>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="dashboard-page">
+        <div className="admin-card admin-card-body" role="alert" style={{ color: 'var(--color-danger)' }}>
+          {error}
         </div>
       </main>
     );
   }
 
-  if (error) return <main style={{ padding: '2rem', color: 'var(--color-danger)' }}>{error}</main>;
   if (!stats) return null;
 
   return (
-    <main style={{ display: 'flex', flexDirection: 'column', gap: '2rem', padding: '1.5rem 2rem' }}>
-      <div>
-        <h1 style={{ fontSize: '1.35rem', fontWeight: 700, color: 'var(--color-text-primary)', margin: 0 }}>Platform Dashboard</h1>
-        <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginTop: 4 }}>Platformanın ümumi vəziyyəti</p>
+    <main className="dashboard-page">
+      <PageHeader
+        title="Platform Dashboard"
+        description="Platformanın ümumi vəziyyəti"
+        actions={
+          <>
+            <LinkButton href="/superadmin/salons/new" variant="secondary">+ Yeni salon</LinkButton>
+            <LinkButton href="/superadmin/reports">Hesabatlar</LinkButton>
+          </>
+        }
+      />
+
+      {/* ── KPI row ── */}
+      <div className="stat-grid">
+        <StatCard label="Salonlar" value={stats.salons.total} sub={`${stats.salons.active} aktiv`} icon={<SalonIcon />} href="/superadmin/salons" />
+        <StatCard label="Stilistlər" value={stats.stylists.total} sub={`${stats.stylists.active} aktiv`} icon={<StylistIcon />} tone="info" href="/superadmin/stylists" />
+        <StatCard label="Xidmətlər" value={stats.services.total} sub={`${stats.services.active} aktiv`} icon={<ServiceIcon />} tone="warning" href="/superadmin/services" />
+        <StatCard label="Rezervasiyalar (bugün)" value={stats.reservations.today} sub={`${stats.reservations.month} bu ay`} icon={<CalendarIcon />} tone="success" href="/superadmin/reservations" />
+        <StatCard label="Müştərilər" value={stats.customers.total} sub="Qeydiyyatdan keçmiş" icon={<CustomerIcon />} tone="neutral" href="/superadmin/users" />
       </div>
 
-      {/* Salons */}
-      <section>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-          <h2 style={{ fontSize: '0.9rem', fontWeight: 600 }}>Salonlar</h2>
-          <Link href="/superadmin/salons" style={{ fontSize: '0.8rem', color: 'var(--color-accent)', textDecoration: 'none' }}>Hamısı →</Link>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(155px, 1fr))', gap: '0.75rem' }}>
-          <StatCard label="Cəmi Salonlar" value={stats.salons.total} href="/superadmin/salons" />
-          <StatCard label="Aktiv" value={stats.salons.active} accent="var(--color-success)" href="/superadmin/salons?status=ACTIVE" />
-          <StatCard label="Deaktiv" value={stats.salons.suspended} accent="var(--color-danger)" href="/superadmin/salons?status=SUSPENDED" />
-        </div>
-      </section>
-
-      {/* Stylists */}
-      <section>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-          <h2 style={{ fontSize: '0.9rem', fontWeight: 600 }}>Stilistlər</h2>
-          <Link href="/superadmin/stylists" style={{ fontSize: '0.8rem', color: 'var(--color-accent)', textDecoration: 'none' }}>Hamısı →</Link>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(155px, 1fr))', gap: '0.75rem' }}>
-          <StatCard label="Cəmi Stilistlər" value={stats.stylists.total} href="/superadmin/stylists" />
-          <StatCard label="Aktiv" value={stats.stylists.active} accent="var(--color-success)" href="/superadmin/stylists?status=ACTIVE" />
-          <StatCard label="Deaktiv" value={stats.stylists.inactive} href="/superadmin/stylists?status=INACTIVE" />
-        </div>
-      </section>
-
-      {/* Services */}
-      <section>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-          <h2 style={{ fontSize: '0.9rem', fontWeight: 600 }}>Xidmətlər</h2>
-          <Link href="/superadmin/services" style={{ fontSize: '0.8rem', color: 'var(--color-accent)', textDecoration: 'none' }}>Hamısı →</Link>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(155px, 1fr))', gap: '0.75rem' }}>
-          <StatCard label="Cəmi Xidmətlər" value={stats.services.total} href="/superadmin/services" />
-          <StatCard label="Aktiv" value={stats.services.active} accent="var(--color-success)" href="/superadmin/services?status=ACTIVE" />
-          <StatCard label="Deaktiv" value={stats.services.inactive} href="/superadmin/services?status=INACTIVE" />
-        </div>
-      </section>
-
-      {/* Reservations */}
-      <section>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-          <h2 style={{ fontSize: '0.9rem', fontWeight: 600 }}>Rezervasiyalar</h2>
-          <Link href="/superadmin/reservations" style={{ fontSize: '0.8rem', color: 'var(--color-accent)', textDecoration: 'none' }}>Hamısı →</Link>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(155px, 1fr))', gap: '0.75rem' }}>
-          <StatCard label="Bugün" value={stats.reservations.today} href="/superadmin/reservations" />
-          <StatCard label="Bu Həftə" value={stats.reservations.week} href="/superadmin/reservations" />
-          <StatCard label="Bu Ay" value={stats.reservations.month} href="/superadmin/reservations" />
-          <StatCard label="Cəmi" value={stats.reservations.total} href="/superadmin/reservations" />
-          <StatCard label="Müştərilər" value={stats.customers.total} href="/superadmin/users" />
-        </div>
-      </section>
-
-      {/* Recent activity */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
-        <section>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-            <h2 style={{ fontSize: '0.9rem', fontWeight: 600 }}>Son salonlar</h2>
-            <Link href="/superadmin/salons" style={{ fontSize: '0.8rem', color: 'var(--color-accent)', textDecoration: 'none' }}>Hamısı →</Link>
+      {/* ── Breakdown + reservation volume ── */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        <SectionCard title="Resurs vəziyyəti" className="lg:col-span-2">
+          <div className="grid gap-5 sm:grid-cols-3">
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-secondary">Salonlar</p>
+              <SplitBar active={stats.salons.active} total={stats.salons.total} />
+              <p className="mt-1 text-xs text-text-secondary">{stats.salons.suspended} deaktiv</p>
+            </div>
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-secondary">Stilistlər</p>
+              <SplitBar active={stats.stylists.active} total={stats.stylists.total} />
+              <p className="mt-1 text-xs text-text-secondary">{stats.stylists.inactive} deaktiv</p>
+            </div>
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-secondary">Xidmətlər</p>
+              <SplitBar active={stats.services.active} total={stats.services.total} />
+              <p className="mt-1 text-xs text-text-secondary">{stats.services.inactive} deaktiv</p>
+            </div>
           </div>
-          <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
-            {stats.recentSalons.length === 0 ? (
-              <p style={{ padding: '1.25rem', fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>Heç bir salon yoxdur.</p>
-            ) : (
-              stats.recentSalons.map((s, i) => (
-                <Link key={s.id} href={`/superadmin/salons/${s.id}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1.25rem', textDecoration: 'none', borderTop: i > 0 ? '1px solid var(--color-border)' : undefined }}>
-                  <div>
-                    <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-primary)', margin: 0 }}>{s.name}</p>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', margin: 0 }}>{s.city ?? '—'}</p>
-                  </div>
-                  <span style={{ fontSize: '0.7rem', fontWeight: 600, padding: '0.2rem 0.5rem', borderRadius: '9999px', background: s.status === 'ACTIVE' ? '#dcfce7' : '#f3f4f6', color: s.status === 'ACTIVE' ? '#16a34a' : '#6b7280' }}>{s.status === 'ACTIVE' ? 'Aktiv' : 'Deaktiv'}</span>
-                </Link>
-              ))
-            )}
-          </div>
-        </section>
+        </SectionCard>
 
-        <section>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-            <h2 style={{ fontSize: '0.9rem', fontWeight: 600 }}>Son stilistlər</h2>
-            <Link href="/superadmin/stylists" style={{ fontSize: '0.8rem', color: 'var(--color-accent)', textDecoration: 'none' }}>Hamısı →</Link>
-          </div>
-          <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
-            {stats.recentStylists.length === 0 ? (
-              <p style={{ padding: '1.25rem', fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>Heç bir stilist yoxdur.</p>
-            ) : (
-              stats.recentStylists.map((s, i) => (
-                <Link key={s.id} href={`/superadmin/stylists/${s.id}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1.25rem', textDecoration: 'none', borderTop: i > 0 ? '1px solid var(--color-border)' : undefined }}>
-                  <div>
-                    <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-primary)', margin: 0 }}>{s.fullName}</p>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', margin: 0 }}>{s.salonName}</p>
-                  </div>
-                  <span style={{ fontSize: '0.7rem', fontWeight: 600, padding: '0.2rem 0.5rem', borderRadius: '9999px', background: s.isActive ? '#dcfce7' : '#f3f4f6', color: s.isActive ? '#16a34a' : '#6b7280' }}>{s.isActive ? 'Aktiv' : 'Deaktiv'}</span>
-                </Link>
-              ))
-            )}
-          </div>
-        </section>
+        <SectionCard title="Rezervasiya həcmi" headerAction={<ViewAllLink href="/superadmin/reservations" />}>
+          <dl className="flex flex-col gap-3">
+            {[
+              { label: 'Bugün', value: stats.reservations.today },
+              { label: 'Bu həftə', value: stats.reservations.week },
+              { label: 'Bu ay', value: stats.reservations.month },
+              { label: 'Cəmi', value: stats.reservations.total },
+            ].map((row) => (
+              <div key={row.label} className="flex items-center justify-between">
+                <dt className="text-sm text-text-secondary">{row.label}</dt>
+                <dd className="text-base font-bold text-text-primary">{row.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </SectionCard>
       </div>
 
-      {/* Quick links */}
-      <section>
-        <h2 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.75rem' }}>Sürətli keçidlər</h2>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
+      {/* ── Recent activity ── */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <SectionCard title="Son salonlar" headerAction={<ViewAllLink href="/superadmin/salons" />} padded={false}>
+          {stats.recentSalons.length === 0 ? (
+            <p style={{ padding: '1.25rem', fontSize: '0.85rem', color: 'var(--color-text-secondary)', margin: 0 }}>
+              Heç bir salon yoxdur.
+            </p>
+          ) : (
+            stats.recentSalons.map((s, i) => (
+              <RecentRow
+                key={s.id}
+                href={`/superadmin/salons/${s.id}`}
+                primary={s.name}
+                secondary={s.city ?? '—'}
+                first={i === 0}
+                trailing={<StatusChip active={s.status === 'ACTIVE'} label={s.status === 'ACTIVE' ? 'Aktiv' : 'Deaktiv'} />}
+              />
+            ))
+          )}
+        </SectionCard>
+
+        <SectionCard title="Son stilistlər" headerAction={<ViewAllLink href="/superadmin/stylists" />} padded={false}>
+          {stats.recentStylists.length === 0 ? (
+            <p style={{ padding: '1.25rem', fontSize: '0.85rem', color: 'var(--color-text-secondary)', margin: 0 }}>
+              Heç bir stilist yoxdur.
+            </p>
+          ) : (
+            stats.recentStylists.map((s, i) => (
+              <RecentRow
+                key={s.id}
+                href={`/superadmin/stylists/${s.id}`}
+                primary={s.fullName}
+                secondary={s.salonName}
+                first={i === 0}
+                trailing={<StatusChip active={s.isActive} label={s.isActive ? 'Aktiv' : 'Deaktiv'} />}
+              />
+            ))
+          )}
+        </SectionCard>
+      </div>
+
+      {/* ── Quick links ── */}
+      <SectionCard title="Sürətli keçidlər">
+        <div className="flex flex-wrap gap-2.5">
           {[
             { label: '+ Yeni Salon', href: '/superadmin/salons/new' },
             { label: '+ Yeni Stilist', href: '/superadmin/stylists/new' },
@@ -173,12 +326,12 @@ export default function SuperadminDashboardPage() {
             { label: 'Rezervasiyalar →', href: '/superadmin/reservations' },
             { label: 'Audit Jurnal →', href: '/superadmin/audit-logs' },
           ].map((item) => (
-            <Link key={item.href} href={item.href} style={{ padding: '0.5rem 1rem', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', fontSize: '0.85rem', fontWeight: 500, color: 'var(--color-text-primary)', textDecoration: 'none' }}>
+            <LinkButton key={item.href} href={item.href} variant="secondary" size="sm">
               {item.label}
-            </Link>
+            </LinkButton>
           ))}
         </div>
-      </section>
+      </SectionCard>
     </main>
   );
 }

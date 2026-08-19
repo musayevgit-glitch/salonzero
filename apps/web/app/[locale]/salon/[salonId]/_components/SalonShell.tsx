@@ -2,17 +2,29 @@
 
 import { Drawer } from '@salonomia/ui';
 import NextLink from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useParams, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { useParams } from 'next/navigation';
 import { apiFetch } from '../../../../../lib/api-client';
 
 // ─── SVG Icons ────────────────────────────────────────────────────────────────
 
+const ICON_PROPS = {
+  width: 16,
+  height: 16,
+  viewBox: '0 0 24 24',
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 1.75,
+  strokeLinecap: 'round' as const,
+  strokeLinejoin: 'round' as const,
+  'aria-hidden': true as const,
+  style: { flexShrink: 0 },
+};
+
 function HomeIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg {...ICON_PROPS}>
       <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z" />
       <path d="M9 21V12h6v9" />
     </svg>
@@ -21,7 +33,7 @@ function HomeIcon() {
 
 function CalendarCheckIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg {...ICON_PROPS}>
       <rect x="3" y="4" width="18" height="18" rx="2" />
       <path d="M16 2v4M8 2v4M3 10h18" />
       <path d="m9 16 2 2 4-4" />
@@ -31,7 +43,7 @@ function CalendarCheckIcon() {
 
 function UsersIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg {...ICON_PROPS}>
       <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
       <circle cx="9" cy="7" r="4" />
       <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
@@ -41,7 +53,7 @@ function UsersIcon() {
 
 function SparklesIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg {...ICON_PROPS}>
       <path d="M12 2l2.4 7.4L22 12l-7.6 2.6L12 22l-2.4-7.4L2 12l7.6-2.6z" />
     </svg>
   );
@@ -49,7 +61,7 @@ function SparklesIcon() {
 
 function PersonIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg {...ICON_PROPS}>
       <circle cx="12" cy="8" r="4" />
       <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
     </svg>
@@ -58,7 +70,7 @@ function PersonIcon() {
 
 function TagIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg {...ICON_PROPS}>
       <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
       <line x1="7" y1="7" x2="7.01" y2="7" />
     </svg>
@@ -67,7 +79,7 @@ function TagIcon() {
 
 function ChartIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg {...ICON_PROPS}>
       <path d="M18 20V10M12 20V4M6 20v-6" />
     </svg>
   );
@@ -75,7 +87,7 @@ function ChartIcon() {
 
 function GearIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg {...ICON_PROPS}>
       <circle cx="12" cy="12" r="3" />
       <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
     </svg>
@@ -84,7 +96,7 @@ function GearIcon() {
 
 function ListIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg {...ICON_PROPS}>
       <line x1="8" y1="6" x2="21" y2="6" />
       <line x1="8" y1="12" x2="21" y2="12" />
       <line x1="8" y1="18" x2="21" y2="18" />
@@ -98,7 +110,7 @@ function ListIcon() {
 function HamburgerIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-      <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
     </svg>
   );
 }
@@ -151,81 +163,6 @@ function isNavActive(href: string, basePath: string, pathname: string): boolean 
   return pathname.startsWith(href);
 }
 
-// ─── Individual nav link ──────────────────────────────────────────────────────
-
-function SidebarNavLink({
-  href,
-  active,
-  icon,
-  label,
-  badge,
-  onNavigate,
-  dark,
-}: {
-  href: string;
-  active: boolean;
-  icon: React.ReactNode;
-  label: string;
-  badge?: number;
-  onNavigate?: () => void;
-  dark?: boolean;
-}) {
-  const [hovered, setHovered] = useState(false);
-
-  const baseColor = dark ? 'rgba(255,255,255,0.6)' : 'var(--color-text-secondary)';
-  const activeColor = dark ? '#fff' : 'var(--color-text-primary)';
-  const activeBg = 'rgba(124,58,237,0.25)';
-  const hoverBg = dark ? 'rgba(255,255,255,0.08)' : 'var(--color-surface)';
-  const hoverColor = dark ? 'rgba(255,255,255,0.9)' : 'var(--color-text-primary)';
-
-  return (
-    <NextLink
-      href={href}
-      onClick={onNavigate}
-      aria-current={active ? 'page' : undefined}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.625rem',
-        padding: '0.4375rem 0.75rem',
-        borderRadius: '0.5rem',
-        fontSize: '0.875rem',
-        fontWeight: active ? 600 : 400,
-        color: active ? activeColor : hovered ? hoverColor : baseColor,
-        background: active ? activeBg : hovered ? hoverBg : 'transparent',
-        textDecoration: 'none',
-        transition: 'background 0.12s ease, color 0.12s ease',
-        borderLeft: active && dark ? '2px solid #7c3aed' : '2px solid transparent',
-        marginBottom: '1px',
-      }}
-    >
-      <span style={{ opacity: active ? 1 : 0.7, flexShrink: 0 }}>{icon}</span>
-      <span style={{ flex: 1 }}>{label}</span>
-      {badge !== undefined && badge > 0 ? (
-        <span
-          style={{
-            background: '#7c3aed',
-            color: '#fff',
-            fontSize: '0.625rem',
-            fontWeight: 700,
-            borderRadius: '9999px',
-            padding: '0 0.375rem',
-            minWidth: '1.25rem',
-            height: '1.25rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          {badge > 99 ? '99+' : badge}
-        </span>
-      ) : null}
-    </NextLink>
-  );
-}
-
 // ─── Sidebar nav content ──────────────────────────────────────────────────────
 
 function SidebarNav({
@@ -234,7 +171,6 @@ function SidebarNav({
   pathname,
   pendingCount,
   onNavigate,
-  dark,
   t,
 }: {
   items: NavItemDef[];
@@ -242,50 +178,55 @@ function SidebarNav({
   pathname: string;
   pendingCount: number;
   onNavigate?: () => void;
-  dark?: boolean;
   t: (key: string) => string;
 }) {
   // Group by section (preserve order)
   const sections: { sectionKey: string; items: NavItemDef[] }[] = [];
   for (const item of items) {
     const existing = sections.find((s) => s.sectionKey === item.sectionKey);
-    if (existing) {
-      existing.items.push(item);
-    } else {
-      sections.push({ sectionKey: item.sectionKey, items: [item] });
-    }
+    if (existing) existing.items.push(item);
+    else sections.push({ sectionKey: item.sectionKey, items: [item] });
   }
 
   return (
-    <nav aria-label="Salon navigation" style={{ display: 'flex', flexDirection: 'column', padding: '0.25rem 0.5rem' }}>
+    <nav aria-label="Salon navigation" style={{ display: 'flex', flexDirection: 'column', padding: '0.5rem 0.75rem' }}>
       {sections.map((group) => (
-        <div key={group.sectionKey} style={{ marginBottom: '0.75rem' }}>
-          <p
-            style={{
-              fontSize: '0.625rem',
-              fontWeight: 700,
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-              color: dark ? 'rgba(255,255,255,0.28)' : 'var(--color-text-secondary)',
-              padding: '0.5rem 0.75rem 0.125rem',
-            }}
-          >
-            {t(group.sectionKey)}
-          </p>
+        <div key={group.sectionKey} style={{ marginBottom: '0.5rem' }}>
+          <p className="dash-nav-section">{t(group.sectionKey)}</p>
           {group.items.map((item) => {
             const href = item.segment ? `${basePath}/${item.segment}` : basePath;
             const active = isNavActive(href, basePath, pathname);
+            const badge = item.showBadge ? pendingCount : undefined;
             return (
-              <SidebarNavLink
+              <NextLink
                 key={item.segment}
                 href={href}
-                active={active}
-                icon={item.icon}
-                label={t(item.labelKey)}
-                badge={item.showBadge ? pendingCount : undefined}
-                onNavigate={onNavigate}
-                dark={dark}
-              />
+                onClick={onNavigate}
+                aria-current={active ? 'page' : undefined}
+                className={`dash-nav-link${active ? ' active' : ''}`}
+              >
+                {item.icon}
+                <span style={{ flex: 1 }}>{t(item.labelKey)}</span>
+                {badge !== undefined && badge > 0 ? (
+                  <span
+                    style={{
+                      background: 'var(--color-accent)',
+                      color: '#fff',
+                      fontSize: '0.625rem',
+                      fontWeight: 700,
+                      borderRadius: '9999px',
+                      padding: '0 0.375rem',
+                      minWidth: '1.25rem',
+                      height: '1.25rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    {badge > 99 ? '99+' : badge}
+                  </span>
+                ) : null}
+              </NextLink>
             );
           })}
         </div>
@@ -296,7 +237,7 @@ function SidebarNav({
 
 // ─── Language switcher ────────────────────────────────────────────────────────
 
-function SidebarLanguageSwitcher({ dark, label }: { dark?: boolean; label: string }) {
+function SidebarLanguageSwitcher({ label }: { label: string }) {
   const params = useParams();
   const currentLocale = (params?.locale as string | undefined) ?? 'az';
 
@@ -305,13 +246,9 @@ function SidebarLanguageSwitcher({ dark, label }: { dark?: boolean; label: strin
     window.location.reload();
   }
 
-  const borderColor = dark ? 'rgba(255,255,255,0.12)' : 'var(--color-border)';
-  const bg = dark ? 'rgba(255,255,255,0.07)' : 'var(--color-surface)';
-  const color = dark ? 'rgba(255,255,255,0.6)' : 'var(--color-text-secondary)';
-
   return (
-    <div style={{ padding: '0.75rem 1rem', borderTop: `1px solid ${borderColor}`, flexShrink: 0 }}>
-      <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: dark ? 'rgba(255,255,255,0.28)' : 'var(--color-text-secondary)', marginBottom: '0.5rem' }}>
+    <div style={{ padding: '0.75rem 1rem', borderTop: '1px solid var(--color-border)', flexShrink: 0 }}>
+      <p className="dash-nav-section" style={{ padding: '0 0 0.375rem' }}>
         {label}
       </p>
       <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', width: '100%' }}>
@@ -321,25 +258,27 @@ function SidebarLanguageSwitcher({ dark, label }: { dark?: boolean; label: strin
           aria-label="Select language"
           style={{
             appearance: 'none',
-            background: bg,
-            border: `1px solid ${borderColor}`,
-            borderRadius: 8,
-            padding: '0.3rem 2rem 0.3rem 0.625rem',
-            fontSize: '0.78rem',
+            background: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius-sm)',
+            padding: '0.5rem 2rem 0.5rem 0.75rem',
+            fontSize: '0.8125rem',
             fontWeight: 600,
-            color,
+            color: 'var(--color-text-secondary)',
             cursor: 'pointer',
             fontFamily: 'inherit',
             width: '100%',
           }}
         >
           {Object.entries(LOCALE_LABELS).map(([loc, { flag, code }]) => (
-            <option key={loc} value={loc} style={{ background: '#1a1625', color: '#fff' }}>
+            <option key={loc} value={loc}>
               {flag} {code}
             </option>
           ))}
         </select>
-        <span style={{ position: 'absolute', right: '0.5rem', pointerEvents: 'none', fontSize: '0.6rem', color }}>▾</span>
+        <span style={{ position: 'absolute', right: '0.625rem', pointerEvents: 'none', fontSize: '0.6rem', color: 'var(--color-text-secondary)' }}>
+          ▾
+        </span>
       </div>
     </div>
   );
@@ -347,48 +286,41 @@ function SidebarLanguageSwitcher({ dark, label }: { dark?: boolean; label: strin
 
 // ─── Brand block at top of sidebar ───────────────────────────────────────────
 
-function SalonBrand({ name }: { name: string }) {
+/** Purple accent strip carrying the salon name — the salon panel's identity marker. */
+function SalonBrand({ name, roleLabel }: { name: string; roleLabel: string }) {
   return (
     <div
       style={{
-        padding: '1.125rem 1rem 1rem',
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
+        background: 'linear-gradient(135deg, #6a5acd 0%, #5b4bb5 100%)',
+        padding: '1rem 1.25rem',
         flexShrink: 0,
+        minHeight: 'var(--admin-header-height)',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-        <div
-          style={{
-            width: '1.375rem',
-            height: '1.375rem',
-            borderRadius: '0.3125rem',
-            background: 'rgba(124,58,237,0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}
-        >
-          <svg width="11" height="11" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-            <circle cx="11" cy="11" r="10" stroke="rgba(255,255,255,0.9)" strokeWidth="1.5" />
-            <path d="M7 11c0-2.21 1.79-4 4-4s4 1.79 4 4" stroke="rgba(255,255,255,0.9)" strokeWidth="1.5" strokeLinecap="round" />
-            <circle cx="11" cy="14" r="1.5" fill="rgba(255,255,255,0.9)" />
-          </svg>
-        </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', marginBottom: '0.25rem' }}>
+        <svg width="12" height="12" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+          <circle cx="11" cy="11" r="9.5" stroke="rgba(255,255,255,0.85)" strokeWidth="1.6" />
+          <path d="M7 11c0-2.21 1.79-4 4-4s4 1.79 4 4" stroke="rgba(255,255,255,0.85)" strokeWidth="1.6" strokeLinecap="round" />
+          <circle cx="11" cy="14" r="1.4" fill="rgba(255,255,255,0.85)" />
+        </svg>
         <span
           style={{
-            fontSize: '0.625rem',
-            fontWeight: 600,
-            color: 'rgba(255,255,255,0.3)',
+            fontSize: '0.5625rem',
+            fontWeight: 700,
+            color: 'rgba(255,255,255,0.72)',
             textTransform: 'uppercase',
-            letterSpacing: '0.1em',
+            letterSpacing: '0.12em',
           }}
         >
-          Salonomia
+          Salonomia · {roleLabel}
         </span>
       </div>
       <p
         style={{
+          margin: 0,
           fontSize: '0.9375rem',
           fontWeight: 700,
           color: '#fff',
@@ -406,8 +338,6 @@ function SalonBrand({ name }: { name: string }) {
 }
 
 // ─── Shell ────────────────────────────────────────────────────────────────────
-
-const SIDEBAR_BG = '#1a1625';
 
 export function SalonShell({
   salonId,
@@ -439,9 +369,7 @@ export function SalonShell({
           .then((s) => setSalonName(s.name))
           .catch(() => {});
       } else {
-        const membership = (memberships as SalonMembership[]).find(
-          (m) => m.salonId === salonId,
-        );
+        const membership = (memberships as SalonMembership[]).find((m) => m.salonId === salonId);
         if (membership) {
           setSalonName(membership.salonName);
           setRole(membership.role);
@@ -457,6 +385,7 @@ export function SalonShell({
       .catch(() => {});
   }, [salonId]);
 
+  // Nav visibility mirrors the server-side permission matrix; every route re-authorizes anyway.
   const visibleItems = NAV_ITEMS.filter((item) => {
     if (!role) return false;
     if (role === 'SALON_MANAGER') {
@@ -465,48 +394,51 @@ export function SalonShell({
     return true;
   });
 
+  const roleLabel = role === 'SALON_MANAGER' ? 'Manager' : 'Admin';
+
   return (
     <div style={{ display: 'flex', minHeight: '100dvh', background: 'var(--color-surface)' }}>
-
       {/* ── Desktop sidebar ── */}
       <aside
         className="hidden md:flex"
         style={{
-          width: '240px',
+          width: 'var(--admin-sidebar-width)',
           flexShrink: 0,
           flexDirection: 'column',
-          background: SIDEBAR_BG,
+          background: 'var(--color-surface-raised)',
+          borderRight: '1px solid var(--color-border)',
           position: 'sticky',
           top: 0,
           height: '100dvh',
         }}
       >
-        <SalonBrand name={salonName} />
+        <SalonBrand name={salonName} roleLabel={roleLabel} />
         <div style={{ flex: 1, overflowY: 'auto', paddingTop: '0.5rem' }}>
           <SidebarNav
             items={visibleItems}
             basePath={basePath}
             pathname={pathname}
             pendingCount={pendingCount}
-            dark
             t={t}
           />
         </div>
-        <SidebarLanguageSwitcher dark label={t('nav.selectLanguage')} />
+        <SidebarLanguageSwitcher label={t('nav.selectLanguage')} />
       </aside>
 
       {/* ── Main content column ── */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-
         {/* Mobile top bar */}
         <header
           className="flex items-center gap-3 md:hidden"
           style={{
-            height: '3.5rem',
+            height: 'var(--admin-header-height)',
             paddingLeft: '1rem',
             paddingRight: '1rem',
-            borderBottom: '1px solid rgba(255,255,255,0.07)',
-            background: SIDEBAR_BG,
+            borderBottom: '1px solid var(--color-border)',
+            background: 'var(--color-surface-raised)',
+            position: 'sticky',
+            top: 0,
+            zIndex: 30,
             flexShrink: 0,
           }}
         >
@@ -515,22 +447,24 @@ export function SalonShell({
             aria-label="Open navigation menu"
             onClick={() => setDrawerOpen(true)}
             style={{
-              color: 'rgba(255,255,255,0.75)',
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '0.375rem',
-              borderRadius: '0.375rem',
-              display: 'flex',
+              display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
+              width: 38,
+              height: 38,
+              borderRadius: 'var(--radius-sm)',
+              border: '1px solid var(--color-border)',
+              background: 'var(--color-surface)',
+              color: 'var(--color-text-secondary)',
+              cursor: 'pointer',
+              flexShrink: 0,
             }}
           >
             <HamburgerIcon />
           </button>
           <span
             style={{
-              color: '#fff',
+              color: 'var(--color-text-primary)',
               fontSize: '0.9375rem',
               fontWeight: 700,
               flex: 1,
@@ -541,12 +475,15 @@ export function SalonShell({
           >
             {salonName}
           </span>
+          {pendingCount > 0 ? (
+            <NextLink href={`${basePath}/reservations`} className="admin-chip admin-chip-accent" style={{ textDecoration: 'none' }}>
+              {pendingCount > 99 ? '99+' : pendingCount}
+            </NextLink>
+          ) : null}
         </header>
 
-        {/* Page content */}
-        <main style={{ flex: 1, padding: '1.25rem' }} className="md:p-8">
-          {children}
-        </main>
+        {/* Page content — pages own their <main> landmark. */}
+        <div style={{ flex: 1, minWidth: 0 }}>{children}</div>
       </div>
 
       {/* ── Mobile drawer ── */}

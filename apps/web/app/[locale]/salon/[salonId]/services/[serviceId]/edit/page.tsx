@@ -126,7 +126,7 @@ export default function EditServicePage() {
 
   if (state.kind === 'loading') {
     return (
-      <main className="p-8">
+      <main className="dashboard-page">
         <Skeleton className="h-64 w-full max-w-lg" />
       </main>
     );
@@ -134,7 +134,7 @@ export default function EditServicePage() {
 
   if (state.kind === 'permission-denied') {
     return (
-      <main className="p-8">
+      <main className="dashboard-page">
         <PermissionDeniedState />
       </main>
     );
@@ -142,14 +142,14 @@ export default function EditServicePage() {
 
   if (state.kind === 'error') {
     return (
-      <main className="p-8">
+      <main className="dashboard-page">
         <ErrorState title="Couldn't load this service" description={state.message} />
       </main>
     );
   }
 
   return (
-    <main className="flex flex-col gap-6 p-8">
+    <main className="dashboard-page">
       <Breadcrumbs
         items={[
           { label: 'Services', href: `/salon/${salonId}/services` },

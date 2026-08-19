@@ -7,6 +7,9 @@ import {
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { apiFetch, ApiError } from '../../../../lib/api-client';
+import { FilterBar } from '../../../_components/admin/FilterBar';
+import { LinkButton } from '../../../_components/admin/LinkButton';
+import { PageHeader } from '../../../_components/admin/PageHeader';
 
 interface Salon { id: string; name: string; }
 interface ServiceItem {
@@ -84,35 +87,36 @@ export default function SuperadminServicesPage() {
     }
   }
 
-  if (state.kind === 'loading') return <main style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}><Skeleton className="h-10 w-full max-w-md" /><Skeleton className="h-64 w-full" /></main>;
-  if (state.kind === 'permission-denied') return <main style={{ padding: '2rem' }}><PermissionDeniedState /></main>;
-  if (state.kind === 'error') return <main style={{ padding: '2rem' }}><ErrorState title="Xidmətlər yüklənmədi" description={state.message} /></main>;
+  if (state.kind === 'loading') return <main className="dashboard-page"><Skeleton className="h-10 w-full max-w-md" /><Skeleton className="h-64 w-full rounded-[var(--radius-lg)]" /></main>;
+  if (state.kind === 'permission-denied') return <main className="dashboard-page"><PermissionDeniedState /></main>;
+  if (state.kind === 'error') return <main className="dashboard-page"><ErrorState title="Xidmətlər yüklənmədi" description={state.message} /></main>;
 
   const { items, total, pageSize } = state.data;
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
 
   return (
-    <main style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '1.5rem 2rem' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
-        <div>
-          <h1 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>Xidmətlər</h1>
-          <p style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', marginTop: 2 }}>{total} xidmət tapıldı</p>
-        </div>
-        <Link href="/superadmin/services/new">+ Yeni xidmət</Link>
-      </div>
+    <main className="dashboard-page">
+      <PageHeader
+        title="Xidmətlər"
+        description={`${total} xidmət tapıldı`}
+        actions={<LinkButton href="/superadmin/services/new">+ Yeni xidmət</LinkButton>}
+      />
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
-        <Input placeholder="Xidmət adı axtar..." value={search} onChange={(e) => { setPage(1); setSearch(e.target.value); }} style={{ maxWidth: 240 }} />
-        <Select value={salonFilter} onChange={(e) => { setPage(1); setSalonFilter(e.target.value); }} style={{ maxWidth: 200 }}>
+      <FilterBar
+        search={
+          <Input placeholder="Xidmət adı axtar..." value={search} onChange={(e) => { setPage(1); setSearch(e.target.value); }} aria-label="Xidmət axtar" />
+        }
+      >
+        <Select value={salonFilter} onChange={(e) => { setPage(1); setSalonFilter(e.target.value); }} aria-label="Salon filtri" className="sm:max-w-52">
           <option value="">Bütün salonlar</option>
           {salons.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
         </Select>
-        <Select value={statusFilter} onChange={(e) => { setPage(1); setStatusFilter(e.target.value); }} style={{ maxWidth: 160 }}>
+        <Select value={statusFilter} onChange={(e) => { setPage(1); setStatusFilter(e.target.value); }} aria-label="Status filtri" className="sm:max-w-44">
           <option value="">Bütün statuslar</option>
           <option value="ACTIVE">Aktiv</option>
           <option value="INACTIVE">Deaktiv</option>
         </Select>
-      </div>
+      </FilterBar>
 
       {items.length === 0 ? (
         <EmptyState title="Xidmət tapılmadı" description="Fərqli axtarış parametrləri yoxlayın." />

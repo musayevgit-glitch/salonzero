@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { apiFetch, ApiError } from '../../../../../lib/api-client';
+import { PageHeader } from '../../../../_components/admin/PageHeader';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -107,8 +108,8 @@ export default function SalonReportsPage() {
     : [];
 
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-semibold text-text-primary">{t('reports.title')}</h1>
+    <main className="dashboard-page">
+      <PageHeader title={t('reports.title')} />
 
       {/* Controls */}
       <Card>
@@ -178,7 +179,7 @@ export default function SalonReportsPage() {
         </div>
       </Card>
 
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      {error ? <p className="text-sm text-danger">{error}</p> : null}
 
       {/* Skeleton */}
       {loading && !report ? (
@@ -300,6 +301,6 @@ export default function SalonReportsPage() {
           ) : null}
         </div>
       ) : null}
-    </div>
+    </main>
   );
 }
