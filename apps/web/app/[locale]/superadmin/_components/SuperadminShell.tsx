@@ -3,7 +3,9 @@
 import { DashboardShell } from '@salonomia/ui';
 import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
+import { useTranslations } from 'next-intl';
+import { apiFetch } from '../../../../lib/api-client';
 
 // ─── Icons ───────────────────────────────────────────────────────────────────
 
@@ -102,6 +104,64 @@ const ICON_MAP: Record<string, () => ReactNode> = {
   '/superadmin/audit-logs': IconAudit,
 };
 
+function IconLogout() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 20 20" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
+      <path d="M8 17H4a1 1 0 01-1-1V4a1 1 0 011-1h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M13 14l4-4-4-4M17 10H8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/**
+ * Ends the platform-admin session.
+ *
+ * POST /auth/logout clears the httpOnly `token` cookie server-side, so the credential is gone
+ * rather than merely hidden. We then leave via `window.location.replace`, which drops the
+ * superadmin URL from the history entry — pressing Back cannot restore the dashboard, and any
+ * attempt to re-enter /superadmin is stopped by the middleware + server layout, forcing re-auth.
+ */
+function SuperadminLogoutButton() {
+  const t = useTranslations('superadmin');
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  async function handleLogout() {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      await apiFetch('/auth/logout', { method: 'POST' });
+    } catch {
+      // Even if the call fails we still leave the panel; the server cookie is the source of truth.
+    } finally {
+      window.location.replace('/login');
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => void handleLogout()}
+      disabled={loggingOut}
+      className="dash-nav-link"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.5rem',
+        width: '100%',
+        background: 'none',
+        border: 'none',
+        font: 'inherit',
+        textAlign: 'left',
+        cursor: loggingOut ? 'not-allowed' : 'pointer',
+        opacity: loggingOut ? 0.6 : 1,
+      }}
+    >
+      <IconLogout />
+      <span>{loggingOut ? t('loggingOut') : t('logout')}</span>
+    </button>
+  );
+}
+
 // ─── Shell ───────────────────────────────────────────────────────────────────
 
 export function SuperadminShell({ children }: { children: React.ReactNode }) {
@@ -118,6 +178,7 @@ export function SuperadminShell({ children }: { children: React.ReactNode }) {
       navItems={NAV_ITEMS}
       activeHref={activeHref}
       contextLabel="Platform Admin"
+      sidebarFooter={<SuperadminLogoutButton />}
       renderLink={(item, isActive) => {
         const Icon = ICON_MAP[item.href];
         return (

@@ -12,7 +12,11 @@
     "viewAll": "Посмотреть все",
     "noResults": "Результаты не найдены",
     "copyright": "© {year} Salonomia. Все права защищены.",
-    "allRightsReserved": "Все права защищены."
+    "allRightsReserved": "Все права защищены.",
+    "searching": "Поиск...",
+    "showPassword": "Показать пароль",
+    "hidePassword": "Скрыть пароль",
+    "logout": "Выйти"
   },
   "nav": {
     "salons": "Салоны",
@@ -21,12 +25,13 @@
     "account": "Аккаунт",
     "login": "Войти",
     "logout": "Выйти",
-    "profile": "Профиль"
+    "profile": "Профиль",
+    "language": "Язык"
   },
   "home": {
     "heroTitle": "Ваша красота стала проще",
     "heroSubtitle": "Выберите любимый салон и стилиста, запишитесь в несколько кликов.",
-    "heroSearchPlaceholder": "Поиск услуги или стилиста",
+    "heroSearchPlaceholder": "Поиск салона по названию или городу",
     "heroLocation": "Баку, Азербайджан",
     "featEasyBooking": "Простая запись",
     "featEasyBookingDesc": "Выберите время и запишитесь в несколько кликов.",
@@ -40,7 +45,16 @@
     "ctaTitle": "Посвятите время своей красоте",
     "ctaSubtitle": "Откройте для себя лучшие салоны с Salonomia и записывайтесь без труда.",
     "ctaButton": "Начать",
-    "bookNow": "Смотреть"
+    "bookNow": "Записаться",
+    "searchLoading": "Поиск...",
+    "searchEmpty": "Подходящий салон не найден",
+    "searchError": "Не удалось выполнить поиск. Попробуйте снова.",
+    "searchViewAll": "Показать все результаты",
+    "searchHint": "Поиск только по салонам",
+    "statsLabel": "На платформе",
+    "statsSalons": "{count} активных салонов",
+    "statsCta": "Смотреть салоны",
+    "viewSalon": "Смотреть"
   },
   "salons": {
     "title": "Салоны",
@@ -85,7 +99,7 @@
   "stylists": {
     "title": "Стилисты",
     "subtitle": "Познакомьтесь с нашими профессиональными стилистами",
-    "searchPlaceholder": "Поиск по имени стилиста...",
+    "searchPlaceholder": "Имя стилиста или салона...",
     "allSalons": "Все салоны",
     "viewPortfolio": "Посмотреть портфолио",
     "bookNow": "Записаться",
@@ -93,7 +107,24 @@
     "noStylists": "Стилисты не найдены",
     "loading": "Загрузка стилистов...",
     "portfolioTitle": "Портфолио",
-    "close": "Закрыть"
+    "close": "Закрыть",
+    "pageSubtitle": "Найдите профессиональных стилистов, посмотрите портфолио и запишитесь.",
+    "searchLabel": "Поиск",
+    "cityLabel": "Город",
+    "allCities": "Все города",
+    "cityPlaceholder": "Баку...",
+    "sortLabel": "Сортировка",
+    "sortNameAsc": "Имя А-Я",
+    "sortNameDesc": "Имя Я-А",
+    "applyFilters": "Применить фильтры",
+    "resetFilters": "Сбросить",
+    "foundCount": "Найдено стилистов: {count}",
+    "notFoundTitle": "Стилист не найден",
+    "notFoundDesc": "Ни один стилист не соответствует критериям поиска.",
+    "portfolioCount": "Фото в портфолио: {count}",
+    "portfolioEmpty": "Этот стилист ещё не загрузил фото портфолио.",
+    "goToSalon": "Перейти в салон · Записаться",
+    "bookStylist": "Записаться"
   },
   "booking": {
     "selectService": "Выберите услугу",
@@ -238,7 +269,10 @@
     "selectDayFirst": "Выберите день для просмотра свободных слотов.",
     "saveBtn": "Сохранить",
     "cancelling": "Отменяется...",
-    "confirmCancelBtn": "Да, отменить"
+    "confirmCancelBtn": "Да, отменить",
+    "statusFilterLabel": "Статус",
+    "statusRejected": "Отклонена",
+    "backToList": "К моим записям"
   },
   "terms": {
     "pageTitle": "Условия использования — Salonomia",
@@ -559,5 +593,9 @@
       "deactivate": "Деактивировать",
       "status": "Статус"
     }
+  },
+  "superadmin": {
+    "logout": "Выйти",
+    "loggingOut": "Выход..."
   }
 }

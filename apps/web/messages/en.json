@@ -12,7 +12,11 @@
     "viewAll": "View all",
     "noResults": "No results found",
     "copyright": "© {year} Salonomia. All rights reserved.",
-    "allRightsReserved": "All rights reserved."
+    "allRightsReserved": "All rights reserved.",
+    "searching": "Searching...",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "logout": "Sign out"
   },
   "nav": {
     "salons": "Salons",
@@ -21,12 +25,13 @@
     "account": "Account",
     "login": "Sign In",
     "logout": "Sign Out",
-    "profile": "Profile"
+    "profile": "Profile",
+    "language": "Language"
   },
   "home": {
     "heroTitle": "Your beauty, made easier",
     "heroSubtitle": "Choose your favorite salon and stylist, book in just a few clicks.",
-    "heroSearchPlaceholder": "Search service or stylist",
+    "heroSearchPlaceholder": "Search salons by name or city",
     "heroLocation": "Baku, Azerbaijan",
     "featEasyBooking": "Easy booking",
     "featEasyBookingDesc": "Select your time and book in just a few clicks.",
@@ -40,7 +45,16 @@
     "ctaTitle": "Dedicate time to your beauty",
     "ctaSubtitle": "Discover the best salons with Salonomia and book with ease.",
     "ctaButton": "Get started",
-    "bookNow": "View"
+    "bookNow": "Book",
+    "searchLoading": "Searching...",
+    "searchEmpty": "No matching salon found",
+    "searchError": "Search failed. Please try again.",
+    "searchViewAll": "See all results",
+    "searchHint": "Salon search only",
+    "statsLabel": "On the platform",
+    "statsSalons": "{count} active salons",
+    "statsCta": "Browse salons",
+    "viewSalon": "View"
   },
   "salons": {
     "title": "Salons",
@@ -85,7 +99,7 @@
   "stylists": {
     "title": "Stylists",
     "subtitle": "Meet our professional stylists",
-    "searchPlaceholder": "Search by stylist name...",
+    "searchPlaceholder": "Stylist or salon name...",
     "allSalons": "All Salons",
     "viewPortfolio": "View portfolio",
     "bookNow": "Book now",
@@ -93,7 +107,24 @@
     "noStylists": "No stylists found",
     "loading": "Loading stylists...",
     "portfolioTitle": "Portfolio",
-    "close": "Close"
+    "close": "Close",
+    "pageSubtitle": "Find professional stylists, view their portfolios and book.",
+    "searchLabel": "Search",
+    "cityLabel": "City",
+    "allCities": "All cities",
+    "cityPlaceholder": "Baku...",
+    "sortLabel": "Sort by",
+    "sortNameAsc": "Name A-Z",
+    "sortNameDesc": "Name Z-A",
+    "applyFilters": "Apply filters",
+    "resetFilters": "Reset",
+    "foundCount": "{count} stylists found",
+    "notFoundTitle": "No stylist found",
+    "notFoundDesc": "No stylist matches your search criteria.",
+    "portfolioCount": "{count} portfolio photos",
+    "portfolioEmpty": "This stylist has not uploaded portfolio photos yet.",
+    "goToSalon": "Go to salon · Book",
+    "bookStylist": "Book"
   },
   "booking": {
     "selectService": "Select service",
@@ -238,7 +269,10 @@
     "selectDayFirst": "Select a day to see available slots.",
     "saveBtn": "Save",
     "cancelling": "Cancelling...",
-    "confirmCancelBtn": "Yes, cancel"
+    "confirmCancelBtn": "Yes, cancel",
+    "statusFilterLabel": "Status",
+    "statusRejected": "Rejected",
+    "backToList": "Back to bookings"
   },
   "terms": {
     "pageTitle": "Terms of Service — Salonomia",
@@ -559,5 +593,9 @@
       "deactivate": "Deactivate",
       "status": "Status"
     }
+  },
+  "superadmin": {
+    "logout": "Sign out",
+    "loggingOut": "Signing out..."
   }
 }

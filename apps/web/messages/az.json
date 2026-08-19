@@ -12,7 +12,11 @@
     "viewAll": "Hamısına bax",
     "noResults": "Heç bir nəticə tapılmadı",
     "copyright": "© {year} Salonomia. Bütün hüquqlar qorunur.",
-    "allRightsReserved": "Bütün hüquqlar qorunur."
+    "allRightsReserved": "Bütün hüquqlar qorunur.",
+    "searching": "Axtarılır...",
+    "showPassword": "Şifrəni göstər",
+    "hidePassword": "Şifrəni gizlət",
+    "logout": "Çıxış et"
   },
   "nav": {
     "salons": "Salonlar",
@@ -21,12 +25,13 @@
     "account": "Hesab",
     "login": "Giriş",
     "logout": "Çıxış et",
-    "profile": "Profil"
+    "profile": "Profil",
+    "language": "Dil"
   },
   "home": {
     "heroTitle": "Gözəlliyiniz bizimlə daha asandır",
     "heroSubtitle": "Sevdiyiniz salonu və stilisti seçin, rezervasiyanızı bir neçə klikdə edin.",
-    "heroSearchPlaceholder": "Xidmət və ya stilist axtarın",
+    "heroSearchPlaceholder": "Salon adı və ya şəhər axtarın",
     "heroLocation": "Bakı, Azərbaycan",
     "featEasyBooking": "Asan rezervasiya",
     "featEasyBookingDesc": "Bir neçə klikdə vaxtınızı seçin və rezervasiya edin.",
@@ -40,7 +45,16 @@
     "ctaTitle": "Zamanınızı gözəlliyinizə həsr edin",
     "ctaSubtitle": "Salonomia ilə ən yaxşı salonları kəşf edin və rahatlıqla rezervasiya edin.",
     "ctaButton": "İndi başlayın",
-    "bookNow": "Baxmaq"
+    "bookNow": "Rezerv et",
+    "searchLoading": "Axtarılır...",
+    "searchEmpty": "Uyğun salon tapılmadı",
+    "searchError": "Axtarış alınmadı. Yenidən cəhd edin.",
+    "searchViewAll": "Bütün nəticələrə bax",
+    "searchHint": "Yalnız salonlar üzrə axtarış",
+    "statsLabel": "Platformada",
+    "statsSalons": "{count} aktiv salon",
+    "statsCta": "Salonlara bax",
+    "viewSalon": "Baxmaq"
   },
   "salons": {
     "title": "Salonlar",
@@ -85,7 +99,7 @@
   "stylists": {
     "title": "Stilistlər",
     "subtitle": "Peşəkar stilistlərimizlə tanış olun",
-    "searchPlaceholder": "Stilist adı ilə axtarın...",
+    "searchPlaceholder": "Stilist və ya salon adı...",
     "allSalons": "Bütün Salonlar",
     "viewPortfolio": "Portfolioma bax",
     "bookNow": "Rezervasiya et",
@@ -93,7 +107,24 @@
     "noStylists": "Heç bir stilist tapılmadı",
     "loading": "Stilistlər yüklənir...",
     "portfolioTitle": "Portfolio",
-    "close": "Bağla"
+    "close": "Bağla",
+    "pageSubtitle": "Peşəkar stilistləri tapın, portfoliolarına baxın və rezervasiya edin.",
+    "searchLabel": "Axtarış",
+    "cityLabel": "Şəhər",
+    "allCities": "Bütün şəhərlər",
+    "cityPlaceholder": "Bakı...",
+    "sortLabel": "Sıralama",
+    "sortNameAsc": "Ad A-Z",
+    "sortNameDesc": "Ad Z-A",
+    "applyFilters": "Filtrləri tətbiq et",
+    "resetFilters": "Sıfırla",
+    "foundCount": "{count} stilist tapıldı",
+    "notFoundTitle": "Stilist tapılmadı",
+    "notFoundDesc": "Axtarış meyarlarına uyğun heç bir stilist tapılmadı.",
+    "portfolioCount": "{count} portfolio şəkli",
+    "portfolioEmpty": "Bu stilist hələ portfolio şəkli yükləməyib.",
+    "goToSalon": "Salona keç · Rezervasiya et",
+    "bookStylist": "Rezerv et"
   },
   "booking": {
     "selectService": "Xidmət seçin",
@@ -238,7 +269,10 @@
     "selectDayFirst": "Uyğun saatları görmək üçün gün seçin.",
     "saveBtn": "Saxla",
     "cancelling": "Ləğv edilir...",
-    "confirmCancelBtn": "Bəli, ləğv et"
+    "confirmCancelBtn": "Bəli, ləğv et",
+    "statusFilterLabel": "Status",
+    "statusRejected": "Rədd edildi",
+    "backToList": "Rezervasiyalara qayıt"
   },
   "terms": {
     "pageTitle": "İstifadə Şərtləri — Salonomia",
@@ -559,5 +593,9 @@
       "deactivate": "Deaktiv et",
       "status": "Status"
     }
+  },
+  "superadmin": {
+    "logout": "Çıxış et",
+    "loggingOut": "Çıxış edilir..."
   }
 }

@@ -12,7 +12,11 @@
     "viewAll": "Tümünü gör",
     "noResults": "Sonuç bulunamadı",
     "copyright": "© {year} Salonomia. Tüm hakları saklıdır.",
-    "allRightsReserved": "Tüm hakları saklıdır."
+    "allRightsReserved": "Tüm hakları saklıdır.",
+    "searching": "Aranıyor...",
+    "showPassword": "Şifreyi göster",
+    "hidePassword": "Şifreyi gizle",
+    "logout": "Çıkış yap"
   },
   "nav": {
     "salons": "Salonlar",
@@ -21,12 +25,13 @@
     "account": "Hesap",
     "login": "Giriş",
     "logout": "Çıkış",
-    "profile": "Profil"
+    "profile": "Profil",
+    "language": "Dil"
   },
   "home": {
     "heroTitle": "Güzelliğiniz bizimle daha kolay",
     "heroSubtitle": "Sevdiğiniz salonu ve stilisti seçin, rezervasyonunuzu birkaç tıkla yapın.",
-    "heroSearchPlaceholder": "Hizmet veya stilist ara",
+    "heroSearchPlaceholder": "Salon adı veya şehir ara",
     "heroLocation": "Bakü, Azerbaycan",
     "featEasyBooking": "Kolay rezervasyon",
     "featEasyBookingDesc": "Zamanınızı seçin ve birkaç tıkla rezervasyon yapın.",
@@ -40,7 +45,16 @@
     "ctaTitle": "Zamanınızı güzelliğinize ayırın",
     "ctaSubtitle": "Salonomia ile en iyi salonları keşfedin ve kolayca rezervasyon yapın.",
     "ctaButton": "Hemen başlayın",
-    "bookNow": "Görüntüle"
+    "bookNow": "Rezervasyon yap",
+    "searchLoading": "Aranıyor...",
+    "searchEmpty": "Eşleşen salon bulunamadı",
+    "searchError": "Arama başarısız. Tekrar deneyin.",
+    "searchViewAll": "Tüm sonuçları gör",
+    "searchHint": "Yalnızca salon araması",
+    "statsLabel": "Platformda",
+    "statsSalons": "{count} aktif salon",
+    "statsCta": "Salonlara göz at",
+    "viewSalon": "Görüntüle"
   },
   "salons": {
     "title": "Salonlar",
@@ -85,7 +99,7 @@
   "stylists": {
     "title": "Stilistler",
     "subtitle": "Profesyonel stilistlerimizle tanışın",
-    "searchPlaceholder": "Stilist adına göre ara...",
+    "searchPlaceholder": "Stilist veya salon adı...",
     "allSalons": "Tüm Salonlar",
     "viewPortfolio": "Portfolyoyu gör",
     "bookNow": "Rezervasyon yap",
@@ -93,7 +107,24 @@
     "noStylists": "Stilist bulunamadı",
     "loading": "Stilistler yükleniyor...",
     "portfolioTitle": "Portfolyo",
-    "close": "Kapat"
+    "close": "Kapat",
+    "pageSubtitle": "Profesyonel stilistleri bulun, portfolyolarına bakın ve rezervasyon yapın.",
+    "searchLabel": "Arama",
+    "cityLabel": "Şehir",
+    "allCities": "Tüm şehirler",
+    "cityPlaceholder": "Bakü...",
+    "sortLabel": "Sıralama",
+    "sortNameAsc": "Ad A-Z",
+    "sortNameDesc": "Ad Z-A",
+    "applyFilters": "Filtreleri uygula",
+    "resetFilters": "Sıfırla",
+    "foundCount": "{count} stilist bulundu",
+    "notFoundTitle": "Stilist bulunamadı",
+    "notFoundDesc": "Arama kriterlerinize uyan stilist yok.",
+    "portfolioCount": "{count} portfolyo fotoğrafı",
+    "portfolioEmpty": "Bu stilist henüz portfolyo fotoğrafı yüklemedi.",
+    "goToSalon": "Salona git · Rezervasyon yap",
+    "bookStylist": "Rezervasyon yap"
   },
   "booking": {
     "selectService": "Hizmet seçin",
@@ -238,7 +269,10 @@
     "selectDayFirst": "Uygun saatleri görmek için gün seçin.",
     "saveBtn": "Kaydet",
     "cancelling": "İptal ediliyor...",
-    "confirmCancelBtn": "Evet, iptal et"
+    "confirmCancelBtn": "Evet, iptal et",
+    "statusFilterLabel": "Durum",
+    "statusRejected": "Reddedildi",
+    "backToList": "Rezervasyonlara dön"
   },
   "terms": {
     "pageTitle": "Kullanım Koşulları — Salonomia",
@@ -559,5 +593,9 @@
       "deactivate": "Pasifleştir",
       "status": "Durum"
     }
+  },
+  "superadmin": {
+    "logout": "Çıkış yap",
+    "loggingOut": "Çıkış yapılıyor..."
   }
 }

@@ -25,10 +25,16 @@ interface SalonListItem {
 export default async function HomePage() {
   const [isAuthenticated, salonsResult] = await Promise.all([
     getIsAuthenticated(),
-    fetchPublicApi<{ items: SalonListItem[] }>('/public/salons?pageSize=6&sort=name_asc').catch(() => null),
+    fetchPublicApi<{ items: SalonListItem[]; total: number }>(
+      '/public/salons?pageSize=6&sort=name_asc',
+    ).catch(() => null),
   ]);
 
   const salons = salonsResult?.items ?? [];
+  // `total` is the count of ACTIVE salons the public API actually returns — no mock figures.
+  const salonCount = salonsResult?.total ?? 0;
 
-  return <LandingPage isAuthenticated={isAuthenticated} salons={salons} />;
+  return (
+    <LandingPage isAuthenticated={isAuthenticated} salons={salons} salonCount={salonCount} />
+  );
 }

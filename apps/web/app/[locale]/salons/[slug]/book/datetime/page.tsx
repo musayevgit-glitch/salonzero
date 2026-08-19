@@ -6,6 +6,8 @@ import { useTranslations, useLocale } from 'next-intl';
 import { useBookingContext } from '../_components/BookingContext';
 import { BookingCTAButton, BookingPageShell } from '../_components/BookingPageShell';
 import { formatMoney } from '../../../../../../lib/format-money';
+import { formatLongDate, formatMonthYear } from '../../../../../../lib/format-date';
+import { getInitials } from '../../../../../../lib/initials';
 
 interface Slot {
   startAt: string;
@@ -65,9 +67,7 @@ function buildCalendarGrid(year: number, month: number): (Date | null)[][] {
 }
 
 function formatDateLocale(date: Date, locale: string): string {
-  return new Intl.DateTimeFormat(locale, {
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-  }).format(date);
+  return formatLongDate(date, locale);
 }
 
 function ChevronIcon({ dir }: { dir: 'left' | 'right' }) {
@@ -104,6 +104,7 @@ export default function DatetimeStep() {
   const { salon, draft, draftLoaded, setStartAt, setHoldId } = useBookingContext();
   const router = useRouter();
   const t = useTranslations('booking');
+  const tc = useTranslations('common');
   const locale = useLocale();
 
   const today = new Date();
@@ -198,7 +199,7 @@ export default function DatetimeStep() {
 
   /* Calendar grid */
   const grid = buildCalendarGrid(calYear, calMonth);
-  const monthLabel = new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(new Date(calYear, calMonth, 1));
+  const monthLabel = formatMonthYear(new Date(calYear, calMonth, 1), locale);
   const weekdayHeaders = Array.from({ length: 7 }, (_, i) =>
     new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(new Date(2024, 0, i + 1))
   );
@@ -217,12 +218,22 @@ export default function DatetimeStep() {
   const selectedDateObj = selectedDate ? new Date(selectedDate + 'T12:00:00') : null;
 
   async function handleContinue() {
-    if (!draft.startAt || !draft.serviceId || !draft.employeeId) return;
+    if (!draft.startAt || !draft.serviceId) return;
     setHoldState('loading');
     setHoldError('');
     try {
       if (draft.holdId) {
         await fetch(`/api/reservations/slot-holds/${draft.holdId}`, { method: 'DELETE' });
+      }
+
+      // "Any stylist" bookings have no employee to hold against. The reservation endpoint
+      // re-verifies availability inside its transaction, so skipping the hold is safe —
+      // it only means the slot is not reserved during checkout.
+      if (!draft.employeeId) {
+        setHoldId(undefined);
+        setHoldState('idle');
+        router.push(`/salons/${salon.slug}/book/summary`);
+        return;
       }
 
       const slot = slots.find((s) => s.startAt === draft.startAt);
@@ -291,16 +302,17 @@ export default function DatetimeStep() {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             flexShrink: 0, fontWeight: 700, color: '#7c3aed', fontSize: '1rem',
           }}>
-            {(selectedEmployee?.fullName ?? 'A').slice(0, 1).toUpperCase()}
+            {selectedEmployee ? getInitials(selectedEmployee.fullName) : '✦'}
           </div>
           <div style={{ minWidth: 0 }}>
             <p style={{ fontWeight: 700, fontSize: '0.875rem', color: '#1e1b2e', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {selectedEmployee?.fullName ?? t('anyStylist')}
             </p>
-            <p style={{ fontSize: '0.72rem', color: '#7c6fa0', marginTop: '0.1rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {selectedService?.name ?? t('serviceName')} · {selectedService
-                ? formatMoney(selectedService.priceAmount)
-                : ''}
+            <p style={{ fontSize: '0.72rem', color: '#6b5d8a', marginTop: '0.1rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {selectedService?.name ?? t('serviceName')}
+              {selectedService ? ` · ${formatMoney(selectedService.priceAmount)}` : ''}
+              {/* Duration comes from the selected service — slots are generated for exactly this length. */}
+              {selectedService ? ` · ${selectedService.durationMinutes} ${t('min')}` : ''}
             </p>
           </div>
         </div>
@@ -455,7 +467,7 @@ export default function DatetimeStep() {
         <div style={{ background: '#fff5f5', border: '1px solid #fecaca', borderRadius: 12, padding: '0.875rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <p style={{ fontSize: '0.82rem', color: '#6b5d8a' }}>{errorMsg}</p>
           <button type="button" onClick={() => void fetchSlots(selectedDate)} style={{ fontSize: '0.78rem', fontWeight: 600, color: '#7c3aed', background: 'none', border: 'none', cursor: 'pointer' }}>
-            Yenidən cəhd et
+            {tc('retry')}
           </button>
         </div>
       )}

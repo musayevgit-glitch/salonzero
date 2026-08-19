@@ -28,6 +28,7 @@ export default function ConfirmStep() {
   // but we also DELETE it from the server so it frees the slot immediately.
   const router = useRouter();
   const t = useTranslations('booking');
+  const tc = useTranslations('common');
 
   const [profile, setProfile] = useState<CustomerProfile | null>(null);
   const [note, setNote] = useState('');
@@ -62,6 +63,8 @@ export default function ConfirmStep() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!termsAccepted) return;
+    // Guard against a double submit racing the disabled state.
+    if (submitting) return;
     if (!draft.serviceId || !draft.startAt || !draft.idempotencyKey) return;
     setSubmitting(true);
     setError(null);
@@ -83,13 +86,14 @@ export default function ConfirmStep() {
         void fetch(`/api/reservations/slot-holds/${holdId}`, { method: 'DELETE' });
       }
       clearDraft();
-      router.push('/account/reservations');
+      // `replace` so Back does not return to the confirm screen with a spent draft.
+      router.replace('/account/reservations');
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
         setStartAt(undefined);
         router.replace(`/salons/${salon.slug}/book/datetime`);
       } else {
-        setError(err instanceof Error ? err.message : 'Bir xəta baş verdi. Yenidən cəhd edin.');
+        setError(err instanceof Error ? err.message : tc('error'));
         setSubmitting(false);
       }
     }
@@ -157,11 +161,11 @@ export default function ConfirmStep() {
           <BookingCTAButton
             label={submitting ? t('submitting') : t('createReservation')}
             type="submit"
-            disabled={!termsAccepted || !profile}
+            disabled={!termsAccepted || !profile || submitting}
             loading={submitting}
           />
-          <p style={{ textAlign: 'center', fontSize: '0.68rem', color: '#a994c9' }}>
-            Rezervasiya yaratmaqla qaydaları qəbul etmiş olursunuz.
+          <p style={{ textAlign: 'center', fontSize: '0.68rem', color: '#8a7aa8' }}>
+            {t('paymentNote')}
           </p>
         </form>
       }

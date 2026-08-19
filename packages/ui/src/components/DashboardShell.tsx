@@ -16,6 +16,8 @@ export interface DashboardShellProps {
   renderLink: (item: DashboardNavItem, isActive: boolean) => ReactNode;
   /** Display name shown in header (e.g. salon name or "Platform Admin") */
   contextLabel?: string;
+  /** Rendered at the bottom of the sidebar and the mobile drawer (e.g. a sign-out action). */
+  sidebarFooter?: ReactNode;
 }
 
 function HamburgerIcon() {
@@ -115,6 +117,7 @@ export function DashboardShell({
   children,
   renderLink,
   contextLabel,
+  sidebarFooter,
 }: DashboardShellProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -143,6 +146,10 @@ export function DashboardShell({
         <div className="flex-1 overflow-y-auto py-2">
           <NavContent navItems={navItems} renderLink={renderLink} activeHref={activeHref} />
         </div>
+
+        {sidebarFooter ? (
+          <div className="border-t border-border px-3 py-3">{sidebarFooter}</div>
+        ) : null}
       </aside>
 
       {/* Main content column */}
@@ -175,6 +182,7 @@ export function DashboardShell({
           </p>
         ) : null}
         <NavContent navItems={navItems} renderLink={renderLink} activeHref={activeHref} />
+        {sidebarFooter ? <div className="mt-3 border-t border-border px-3 pt-3">{sidebarFooter}</div> : null}
       </Drawer>
     </div>
   );

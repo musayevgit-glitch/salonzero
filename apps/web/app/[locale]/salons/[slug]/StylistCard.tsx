@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { getInitials } from '../../../../lib/initials';
 
 interface PortfolioItem {
   id: string;
@@ -20,8 +22,18 @@ interface Props {
 }
 
 export function StylistCard({ employee, salonName, salonSlug }: Props) {
+  const t = useTranslations('stylists');
   const [modalOpen, setModalOpen] = useState(false);
   const [modalIndex, setModalIndex] = useState(0);
+
+  useEffect(() => {
+    if (!modalOpen) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setModalOpen(false);
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [modalOpen]);
 
   const profileImg = employee.portfolio[0]?.imageUrl ?? null;
   const sampleImgs = employee.portfolio.slice(0, 3);
@@ -63,8 +75,8 @@ export function StylistCard({ employee, salonName, salonSlug }: Props) {
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
             ) : (
-              <span style={{ fontSize: '1.4rem', fontWeight: 700, color: '#7c3aed' }}>
-                {employee.fullName.charAt(0)}
+              <span style={{ fontSize: '1.15rem', fontWeight: 700, color: '#5b21b6', letterSpacing: '0.02em' }}>
+                {getInitials(employee.fullName)}
               </span>
             )}
           </div>
@@ -87,7 +99,7 @@ export function StylistCard({ employee, salonName, salonSlug }: Props) {
               <button
                 key={item.id}
                 type="button"
-                aria-label={item.caption ?? `Portfolio ${i + 1}`}
+                aria-label={item.caption ?? `${t('portfolioTitle')} ${i + 1}`}
                 onClick={() => { setModalIndex(i); setModalOpen(true); }}
                 style={{
                   padding: 0,
@@ -141,7 +153,7 @@ export function StylistCard({ employee, salonName, salonSlug }: Props) {
                 <rect x="1" y="8" width="5" height="5" rx="1.5" stroke="#7c3aed" strokeWidth="1.3" />
                 <rect x="8" y="8" width="5" height="5" rx="1.5" stroke="#7c3aed" strokeWidth="1.3" />
               </svg>
-              Portfolio
+              {t('portfolioTitle')}
             </button>
           )}
           <a
@@ -165,7 +177,7 @@ export function StylistCard({ employee, salonName, salonSlug }: Props) {
               <rect x="1" y="3" width="11" height="9" rx="1.5" stroke="white" strokeWidth="1.2" />
               <path d="M4 3V2a2 2 0 0 1 4 0v1" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
             </svg>
-            Rezerv et
+            {t('bookStylist')}
           </a>
         </div>
       </div>
@@ -175,7 +187,7 @@ export function StylistCard({ employee, salonName, salonSlug }: Props) {
         <div
           role="dialog"
           aria-modal="true"
-          aria-label={`${employee.fullName} — Portfolio`}
+          aria-label={`${employee.fullName} — ${t('portfolioTitle')}`}
           onClick={() => setModalOpen(false)}
           style={{
             position: 'fixed',
@@ -207,17 +219,17 @@ export function StylistCard({ employee, salonName, salonSlug }: Props) {
                 <div style={{ width: 36, height: 36, borderRadius: '50%', overflow: 'hidden', background: '#f3e8ff', border: '1.5px solid #e4d4f4', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {profileImg
                     ? <img src={profileImg} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    : <span style={{ fontWeight: 700, color: '#7c3aed' }}>{employee.fullName.charAt(0)}</span>
+                    : <span style={{ fontWeight: 700, fontSize: '0.8rem', color: '#5b21b6' }}>{getInitials(employee.fullName)}</span>
                   }
                 </div>
                 <div>
                   <p style={{ margin: 0, fontWeight: 700, fontSize: '0.9rem', color: '#1e1b2e' }}>{employee.fullName}</p>
-                  <p style={{ margin: 0, fontSize: '0.72rem', color: '#7c6fa0' }}>Portfolio</p>
+                  <p style={{ margin: 0, fontSize: '0.72rem', color: '#6b5d8a' }}>{t('portfolioTitle')}</p>
                 </div>
               </div>
               <button
                 type="button"
-                aria-label="Bağla"
+                aria-label={t('close')}
                 onClick={() => setModalOpen(false)}
                 style={{ background: '#f3e8ff', border: 'none', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
@@ -251,7 +263,7 @@ export function StylistCard({ employee, salonName, salonSlug }: Props) {
                     key={item.id}
                     type="button"
                     onClick={() => setModalIndex(i)}
-                    aria-label={item.caption ?? `Şəkil ${i + 1}`}
+                    aria-label={item.caption ?? `${t('portfolioTitle')} ${i + 1}`}
                     aria-pressed={modalIndex === i}
                     style={{
                       flexShrink: 0,

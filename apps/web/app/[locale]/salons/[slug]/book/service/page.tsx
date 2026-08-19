@@ -6,23 +6,7 @@ import { useTranslations } from 'next-intl';
 import { useBookingContext } from '../_components/BookingContext';
 import { BookingCTAButton, BookingPageShell } from '../_components/BookingPageShell';
 import { formatMoney } from '../../../../../../lib/format-money';
-
-function LocationPinIcon() {
-  return (
-    <svg width="11" height="13" viewBox="0 0 12 14" fill="none" aria-hidden="true">
-      <path d="M6 1a4.5 4.5 0 0 1 4.5 4.5C10.5 9.5 6 13 6 13S1.5 9.5 1.5 5.5A4.5 4.5 0 0 1 6 1z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
-      <circle cx="6" cy="5.5" r="1.5" fill="currentColor" />
-    </svg>
-  );
-}
-
-function StarIcon() {
-  return (
-    <svg width="11" height="11" viewBox="0 0 12 12" fill="#f59e0b" aria-hidden="true">
-      <path d="M6 1l1.4 2.8 3.1.45-2.25 2.2.53 3.1L6 8.1l-2.78 1.45.53-3.1L1.5 4.25l3.1-.45L6 1z" />
-    </svg>
-  );
-}
+import { getInitials } from '../../../../../../lib/initials';
 
 function InfoIcon() {
   return (
@@ -40,8 +24,14 @@ export default function ServiceStep() {
   const t = useTranslations('booking');
   const [activeCategoryId, setActiveCategoryId] = React.useState<string | null>(null);
 
-  // Pre-selected employee from stylist card "Rezerv et" link
-  const preselectedEmployeeId = searchParams ? searchParams.get('employee') : null;
+  // Stylist pre-selected from a stylist card ("?employee=<id>") on the stylist listing or the
+  // salon detail page. It is only honoured when it matches a real employee of THIS salon, so a
+  // tampered URL cannot smuggle another salon's employee id into the draft.
+  const employeeParam = searchParams ? searchParams.get('employee') : null;
+  const preselectedEmployee = employeeParam
+    ? (salon.employees.find((e) => e.id === employeeParam) ?? null)
+    : null;
+  const preselectedEmployeeId = preselectedEmployee ? preselectedEmployee.id : null;
 
   const allServices = [
     ...salon.serviceCategories.flatMap((c) => c.services),
@@ -76,7 +66,7 @@ export default function ServiceStep() {
     <BookingPageShell
       title={t('selectService')}
       backHref={`/salons/${salon.slug}`}
-      backLabel={`${salon.name} səhifəsinə qayıt`}
+      backLabel={t('backToSalon')}
       footer={
         <BookingCTAButton
           label={t('continueBtn')}
@@ -111,13 +101,6 @@ export default function ServiceStep() {
           <p style={{ fontWeight: 700, fontSize: '1rem', color: '#1e1b2e', marginBottom: '0.25rem' }}>
             {salon.name}
           </p>
-          <p style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', color: '#7c6fa0', marginBottom: '0.4rem' }}>
-            <span style={{ color: '#7c3aed' }}><LocationPinIcon /></span>
-            Bakı, Azərbaycan
-          </p>
-          <p style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', color: '#1e1b2e', fontWeight: 600 }}>
-            <StarIcon /> 4.9 (128)
-          </p>
           <a
             href={`/salons/${salon.slug}`}
             style={{
@@ -136,6 +119,39 @@ export default function ServiceStep() {
           </a>
         </div>
       </div>
+
+      {/* Pre-selected stylist — carried through the flow, the stylist step is skipped */}
+      {preselectedEmployee ? (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            background: '#faf5ff',
+            border: '1px solid #e4d4f4',
+            borderRadius: 14,
+            padding: '0.75rem 1rem',
+            marginBottom: '1.25rem',
+          }}
+        >
+          <span
+            aria-hidden="true"
+            style={{
+              width: 40, height: 40, borderRadius: '50%', background: '#7c3aed', color: 'white',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontWeight: 700, fontSize: '0.85rem', flexShrink: 0,
+            }}
+          >
+            {getInitials(preselectedEmployee.fullName)}
+          </span>
+          <span style={{ minWidth: 0 }}>
+            <span style={{ display: 'block', fontSize: '0.72rem', color: '#6b5d8a' }}>{t('stylist')}</span>
+            <span style={{ display: 'block', fontSize: '0.9rem', fontWeight: 700, color: '#1e1b2e' }}>
+              {preselectedEmployee.fullName}
+            </span>
+          </span>
+        </div>
+      ) : null}
 
       {!hasServices && (
         <p style={{ color: '#7c6fa0', fontSize: '0.875rem', textAlign: 'center', marginTop: '2rem' }}>

@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { PageHeader, PageFooter } from './PageLayout';
+import { SalonCard } from './SalonCard';
 
 interface SalonListItem {
   id: string;
@@ -14,46 +15,6 @@ interface SalonListItem {
   startingPrice: { amount: number; currency: string } | null;
 }
 
-const SALON_PHOTOS = ['/images/salon-1.png', '/images/salon-2.png', '/images/salon-3.png'];
-
-const SERVICE_TAGS: Record<string, string[]> = {
-  WOMEN: ['Saç', 'Dırnaq', 'Makeup'],
-  MEN: ['Saç', 'Saqqal', 'Üz baxımı'],
-  UNISEX: ['Saç', 'Dırnaq', 'Makeup'],
-};
-
-import { formatMoney } from '../../lib/format-money';
-
-function formatPrice(price: SalonListItem['startingPrice'] | null): string | null {
-  if (!price) return null;
-  return formatMoney(price.amount);
-}
-
-function salonPhoto(index: number): string {
-  return SALON_PHOTOS[index % SALON_PHOTOS.length]!;
-}
-
-function salonInitial(name: string): string {
-  return name.split(' ').slice(0, 1).map((w) => w[0]).join('').toUpperCase();
-}
-
-function StarIcon() {
-  return (
-    <svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true">
-      <path d="M6 1l1.4 2.8 3.1.45-2.25 2.2.53 3.1L6 8.1l-2.78 1.45.53-3.1L1.5 4.25l3.1-.45L6 1z" />
-    </svg>
-  );
-}
-
-function LocationPinIcon() {
-  return (
-    <svg width="11" height="13" viewBox="0 0 12 14" fill="none" aria-hidden="true">
-      <path d="M6 1a4.5 4.5 0 0 1 4.5 4.5C10.5 9.5 6 13 6 13S1.5 9.5 1.5 5.5A4.5 4.5 0 0 1 6 1z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
-      <circle cx="6" cy="5.5" r="1.5" fill="currentColor" />
-    </svg>
-  );
-}
-
 function ArrowRightIcon({ size = 14 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 14 14" fill="none" aria-hidden="true">
@@ -62,12 +23,144 @@ function ArrowRightIcon({ size = 14 }: { size?: number }) {
   );
 }
 
+/* ─── Debounced public salon search ──────────────────────── */
+interface SearchState {
+  status: 'idle' | 'loading' | 'ready' | 'error';
+  results: SalonListItem[];
+}
+
+/**
+ * Auto-searching salon field. The public search API (`GET /api/public/salons`) matches on
+ * salon name and city only — there is no stylist or service text index — so the copy
+ * promises salons only. No submit button: results stream in after a 300 ms debounce.
+ */
+function HeroSearch() {
+  const t = useTranslations('home');
+  const [query, setQuery] = useState('');
+  const [state, setState] = useState<SearchState>({ status: 'idle', results: [] });
+  const abortRef = useRef<AbortController | null>(null);
+
+  const runSearch = useCallback(async (term: string, signal: AbortSignal) => {
+    setState((prev) => ({ status: 'loading', results: prev.results }));
+    try {
+      const res = await fetch(
+        `/api/public/salons?pageSize=5&sort=name_asc&search=${encodeURIComponent(term)}`,
+        { signal },
+      );
+      if (!res.ok) throw new Error('search_failed');
+      const data = (await res.json()) as { items: SalonListItem[] };
+      setState({ status: 'ready', results: data.items ?? [] });
+    } catch (err) {
+      if ((err as { name?: string }).name === 'AbortError') return;
+      setState({ status: 'error', results: [] });
+    }
+  }, []);
+
+  useEffect(() => {
+    const term = query.trim();
+    abortRef.current?.abort();
+    if (term.length < 2) {
+      setState({ status: 'idle', results: [] });
+      return;
+    }
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const timer = setTimeout(() => void runSearch(term, controller.signal), 300);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [query, runSearch]);
+
+  const showPanel = query.trim().length >= 2;
+
+  return (
+    <div className="hform" style={{ marginTop: '2rem', position: 'relative', maxWidth: 480 }}>
+      <div
+        style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(167,139,250,0.35)', borderRadius: 20, padding: '0.55rem 1.1rem', gap: '0.6rem', backdropFilter: 'blur(20px)', boxShadow: '0 4px 32px rgba(0,0,0,0.25)' }}
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ flexShrink: 0, color: '#a78bfa' }}>
+          <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+        <input
+          type="search"
+          name="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={t('heroSearchPlaceholder')}
+          aria-label={t('heroSearchPlaceholder')}
+          aria-describedby="hero-search-hint"
+          autoComplete="off"
+          style={{ flex: 1, minWidth: 0, background: 'none', border: 'none', outline: 'none', color: 'white', fontSize: '0.9rem', height: 34 } as React.CSSProperties}
+        />
+      </div>
+      <p id="hero-search-hint" style={{ marginTop: '0.5rem', fontSize: '0.72rem', color: 'rgba(220,210,255,0.6)' }}>
+        {t('searchHint')}
+      </p>
+
+      {showPanel ? (
+        <div
+          role="status"
+          aria-live="polite"
+          style={{ position: 'absolute', top: '100%', left: 0, right: 0, marginTop: '0.35rem', background: 'white', borderRadius: 16, border: '1px solid #e4d4f4', boxShadow: '0 18px 48px rgba(10,4,30,0.35)', overflow: 'hidden', zIndex: 20 }}
+        >
+          {state.status === 'loading' && state.results.length === 0 ? (
+            <p style={{ padding: '0.9rem 1rem', fontSize: '0.82rem', color: '#7c6fa0' }}>{t('searchLoading')}</p>
+          ) : null}
+
+          {state.status === 'error' ? (
+            <p style={{ padding: '0.9rem 1rem', fontSize: '0.82rem', color: '#b91c1c' }}>{t('searchError')}</p>
+          ) : null}
+
+          {state.status === 'ready' && state.results.length === 0 ? (
+            <p style={{ padding: '0.9rem 1rem', fontSize: '0.82rem', color: '#7c6fa0' }}>{t('searchEmpty')}</p>
+          ) : null}
+
+          {state.results.length > 0 ? (
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+              {state.results.map((salon) => (
+                <li key={salon.id} style={{ borderBottom: '1px solid #f3e8ff' }}>
+                  <a
+                    href={`/salons/${salon.slug}`}
+                    className="hero-search-item"
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', padding: '0.7rem 1rem', textDecoration: 'none' }}
+                  >
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e1b2e' }}>{salon.name}</span>
+                    {salon.city ? (
+                      <span style={{ fontSize: '0.75rem', color: '#7c6fa0', flexShrink: 0 }}>{salon.city}</span>
+                    ) : null}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+
+          {state.status === 'ready' && state.results.length > 0 ? (
+            <a
+              href={`/salons?search=${encodeURIComponent(query.trim())}`}
+              className="hero-search-item"
+              style={{ display: 'block', padding: '0.7rem 1rem', fontSize: '0.8rem', fontWeight: 600, color: '#7c3aed', textDecoration: 'none' }}
+            >
+              {t('searchViewAll')}
+            </a>
+          ) : null}
+
+          <style>{`
+            .hero-search-item:hover { background: #faf5ff; }
+            .hero-search-item:focus-visible { outline: 2px solid #7c3aed; outline-offset: -2px; }
+          `}</style>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 /* ─── Hero ───────────────────────────────────────────────── */
 const HERO_IMAGES = ['/images/salon-1.png', '/images/salon-2.png', '/images/salon-3.png'];
 
-function Hero() {
+function Hero({ salonCount }: { salonCount: number }) {
   const t = useTranslations('home');
-  const [query, setQuery] = useState('');
 
   return (
     <section style={{ position: 'relative', overflow: 'hidden', minHeight: '88vh', display: 'flex', flexDirection: 'column' }}>
@@ -198,35 +291,8 @@ function Hero() {
             {t('heroSubtitle')}
           </p>
 
-          {/* Search */}
-          <form
-            className="hform"
-            method="get"
-            action="/salons"
-            style={{ marginTop: '2rem', display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(167,139,250,0.35)', borderRadius: 20, padding: '0.4rem 0.4rem 0.4rem 1.1rem', gap: '0.5rem', backdropFilter: 'blur(20px)', maxWidth: 480, boxShadow: '0 4px 32px rgba(0,0,0,0.25)' }}
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ flexShrink: 0, color: '#a78bfa' }}>
-              <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5" />
-              <path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
-            <input
-              type="text"
-              name="search"
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-              placeholder={t('heroSearchPlaceholder')}
-              style={{ flex: 1, background: 'none', border: 'none', outline: 'none', color: 'white', fontSize: '0.9rem' } as React.CSSProperties}
-            />
-            <button
-              type="submit"
-              style={{ flexShrink: 0, background: 'linear-gradient(135deg, #7c3aed, #5b21b6)', border: 'none', borderRadius: 14, width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'white', boxShadow: '0 4px 14px rgba(124,58,237,0.55), inset 0 1px 0 rgba(255,255,255,0.18)' }}
-              aria-label="Axtar"
-            >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-          </form>
+          {/* Search — auto-searches, no submit button */}
+          <HeroSearch />
         </div>
 
         {/* ── RIGHT — image collage ── */}
@@ -239,10 +305,6 @@ function Hero() {
           <div className="himg1" style={{ position: 'absolute', top: 0, left: '5%', width: '58%', height: 280, borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(167,139,250,0.25)', boxShadow: '0 24px 64px rgba(0,0,0,0.5)' }}>
             <img src={HERO_IMAGES[0]} alt="" aria-hidden="true" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 50%, rgba(10,4,30,0.4) 100%)' }} />
-            <div style={{ position: 'absolute', bottom: 14, left: 14, background: 'rgba(10,4,30,0.85)', backdropFilter: 'blur(8px)', borderRadius: 999, padding: '0.35rem 0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem', border: '1px solid rgba(167,139,250,0.3)' }}>
-              <span style={{ color: '#a78bfa', fontSize: '0.75rem' }}>★</span>
-              <span style={{ color: 'white', fontSize: '0.72rem', fontWeight: 600 }}>4.9 · Gözəl Xanım Beauty</span>
-            </div>
           </div>
 
           {/* Image 2 — smaller, top-right */}
@@ -256,14 +318,14 @@ function Hero() {
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 30%, rgba(10,4,30,0.35) 100%)' }} />
           </div>
 
-          {/* Floating booking chip */}
+          {/* Live platform stat — real salon count from the public API, no mock data */}
           <div className="hbadge" style={{ position: 'absolute', bottom: 18, left: '2%', background: 'rgba(10,4,30,0.9)', backdropFilter: 'blur(12px)', borderRadius: 16, padding: '0.7rem 1rem', border: '1px solid rgba(167,139,250,0.25)', boxShadow: '0 8px 32px rgba(0,0,0,0.4)', minWidth: 140 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.3rem' }}>
               <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#4ade80', boxShadow: '0 0 6px #4ade80' }} />
-              <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>İndi mövcud</span>
+              <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>{t('statsLabel')}</span>
             </div>
-            <div style={{ fontSize: '0.78rem', color: 'white', fontWeight: 700 }}>Bu gün rezervasiya</div>
-            <div style={{ fontSize: '0.65rem', color: '#a78bfa', marginTop: '0.1rem' }}>5 stilist hazırdır →</div>
+            <div style={{ fontSize: '0.78rem', color: 'white', fontWeight: 700 }}>{t('statsSalons', { count: salonCount })}</div>
+            <a href="/salons" style={{ fontSize: '0.65rem', color: '#a78bfa', marginTop: '0.1rem', display: 'inline-block', textDecoration: 'none' }}>{t('statsCta')} →</a>
           </div>
         </div>
       </div>
@@ -344,17 +406,8 @@ function Features() {
 /* ─── Popular salons ─────────────────────────────────────── */
 function PopularSalons({ salons }: { salons: SalonListItem[] }) {
   const t = useTranslations('home');
+  const ts = useTranslations('salons');
   const tc = useTranslations('common');
-  function rating(name: string): string {
-    const n = name.length % 10;
-    return (4.5 + n * 0.04).toFixed(1);
-  }
-
-  const DISPLAY_SALONS = salons.length > 0 ? salons : [
-    { id: '1', slug: 'demo-1', name: 'Luna Beauty Studio', city: 'Nəsimi r.', description: null, genderFocus: 'WOMEN', startingPrice: null },
-    { id: '2', slug: 'demo-2', name: 'Élle Beauty House', city: 'Yasamal r.', description: null, genderFocus: 'WOMEN', startingPrice: null },
-    { id: '3', slug: 'demo-3', name: 'Glamour Studio', city: 'Binəqədi r.', description: null, genderFocus: 'UNISEX', startingPrice: null },
-  ];
 
   return (
     <section style={{ maxWidth: 1280, margin: '0 auto', padding: '2.5rem 1.25rem' }}>
@@ -367,59 +420,17 @@ function PopularSalons({ salons }: { salons: SalonListItem[] }) {
         </a>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {DISPLAY_SALONS.slice(0, 6).map((salon, i) => {
-          const tags = SERVICE_TAGS[salon.genderFocus ?? 'UNISEX'] ?? ['Saç', 'Dırnaq', 'Makeup'];
-
-          return (
-            <div key={salon.id} role="article" className="salon-card" style={{ cursor: 'pointer' }} onClick={() => { window.location.href = `/salons/${salon.slug}`; }}>
-              <div style={{ position: 'relative', height: 220, overflow: 'hidden' }}>
-                <img src={salonPhoto(i)} alt={salon.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.4s ease' }} />
-                <div className="salon-card-overlay" />
-                <div style={{ position: 'absolute', top: 10, left: 10, background: 'rgba(255,255,255,0.95)', borderRadius: '999px', padding: '0.2rem 0.55rem', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.7rem', fontWeight: 700, color: '#1e1b2e' }}>
-                  <span style={{ color: '#7c3aed' }}><StarIcon /></span>
-                  {rating(salon.name)}
-                </div>
-              </div>
-
-              <div style={{ background: 'white', padding: '0.9rem 1rem', borderRadius: '0 0 16px 16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.4rem' }}>
-                  <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#7c3aed', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700, flexShrink: 0 }}>
-                    {salonInitial(salon.name)}
-                  </div>
-                  <p style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1e1b2e', lineHeight: 1.2 }}>{salon.name}</p>
-                </div>
-
-                {salon.city ? (
-                  <p style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', color: '#7c6fa0', marginBottom: '0.6rem' }}>
-                    <span style={{ color: '#7c3aed' }}><LocationPinIcon /></span>
-                    {salon.city}
-                  </p>
-                ) : null}
-
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.75rem' }}>
-                  {tags.map((t) => (
-                    <span key={t} style={{ padding: '0.18rem 0.6rem', borderRadius: '999px', background: '#f3e8ff', color: '#6b5d8a', fontSize: '0.65rem', fontWeight: 500, border: '1px solid #e4d4f4' }}>
-                      {t}
-                    </span>
-                  ))}
-                  <span style={{ padding: '0.18rem 0.6rem', borderRadius: '999px', background: '#f3e8ff', color: '#6b5d8a', fontSize: '0.65rem', fontWeight: 500, border: '1px solid #e4d4f4' }}>+3</span>
-                </div>
-
-                <a
-                  href={`/salons/${salon.slug}/book/service`}
-                  onClick={(e) => e.stopPropagation()}
-                  style={{ display: 'block', textAlign: 'center', padding: '0.55rem', borderRadius: '12px', border: '1.5px solid #7c3aed', color: '#7c3aed', fontSize: '0.82rem', fontWeight: 600, textDecoration: 'none', transition: 'background 0.15s, color 0.15s' }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = '#7c3aed'; (e.currentTarget as HTMLAnchorElement).style.color = 'white'; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'; (e.currentTarget as HTMLAnchorElement).style.color = '#7c3aed'; }}
-                >
-                  {t('bookNow')}
-                </a>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      {salons.length === 0 ? (
+        <p style={{ textAlign: 'center', padding: '2.5rem 1rem', color: '#7c6fa0', fontSize: '0.95rem' }}>
+          {ts('empty')}
+        </p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {salons.slice(0, 6).map((salon, i) => (
+            <SalonCard key={salon.id} salon={salon} index={i} />
+          ))}
+        </div>
+      )}
     </section>
   );
 }
@@ -459,12 +470,21 @@ function CTASection() {
 }
 
 /* ─── Main export ────────────────────────────────────────── */
-export function LandingPage({ isAuthenticated, salons }: { isAuthenticated: boolean; salons: SalonListItem[] }) {
+export function LandingPage({
+  isAuthenticated,
+  salons,
+  salonCount,
+}: {
+  isAuthenticated: boolean;
+  salons: SalonListItem[];
+  /** Total number of ACTIVE salons, as reported by the public salons API. */
+  salonCount: number;
+}) {
   return (
     <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', background: 'white' }}>
       <PageHeader isAuthenticated={isAuthenticated} />
       <main style={{ flex: 1 }}>
-        <Hero />
+        <Hero salonCount={salonCount} />
         <Features />
         <PopularSalons salons={salons} />
         <CTASection />

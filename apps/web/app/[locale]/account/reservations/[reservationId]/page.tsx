@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { apiFetch, ApiError } from '../../../../../lib/api-client';
 import Link from 'next/link';
 import { PageLayout } from '../../../../_components/PageLayout';
@@ -47,22 +47,15 @@ const BADGE_STYLE: Record<string, React.CSSProperties> = {
 };
 
 import { formatMoney } from '../../../../../lib/format-money';
+import { formatLongDate, formatTime as formatTimeLocale } from '../../../../../lib/format-date';
 
-function formatDateAZ(iso: string, timezone: string) {
-  return new Intl.DateTimeFormat('az-AZ', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-    timeZone: timezone,
-  }).format(new Date(iso));
+/** Locale-aware — ICU may not carry `az`, which rendered dates as e.g. "M08 13, Thu". */
+function formatReservationDate(iso: string, timezone: string, locale: string) {
+  return formatLongDate(iso, locale, timezone);
 }
 
-function formatTimeAZ(iso: string, timezone: string) {
-  return new Intl.DateTimeFormat('az-AZ', {
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZone: timezone,
-  }).format(new Date(iso));
+function formatReservationTime(iso: string, timezone: string, locale: string) {
+  return formatTimeLocale(iso, locale, timezone);
 }
 
 function toLocalDate(date: Date, timezone: string) {
@@ -91,6 +84,7 @@ export default function ReservationDetailPage({
   const t = useTranslations('account');
   const tb = useTranslations('booking');
   const tc = useTranslations('common');
+  const locale = useLocale();
 
   const STATUS_MAP: Record<string, string> = {
     PENDING: t('statusPending'),
@@ -246,10 +240,35 @@ export default function ReservationDetailPage({
 
   return (
     <PageLayout activeNav="reservations" isAuthenticated={true}>
+      <style>{`
+        .sz-back-btn:hover { background: #faf5ff; border-color: #c4b5fd; color: #5b21b6; }
+        .sz-back-btn:focus-visible { outline: 2px solid #7c3aed; outline-offset: 2px; }
+      `}</style>
       <div style={{ maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         <div>
-          <Link href="/account/reservations" style={{ textDecoration: 'none', color: '#7c6fa0', fontSize: '0.9rem', display: 'inline-block', marginBottom: '1rem' }}>
-            {tc('back')}
+          <Link
+            href="/account/reservations"
+            className="sz-back-btn"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              height: 40,
+              padding: '0 1rem',
+              marginBottom: '1rem',
+              borderRadius: 10,
+              border: '1.5px solid #e4d4f4',
+              background: 'white',
+              color: '#4a3f6b',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              textDecoration: 'none',
+            }}
+          >
+            <svg width="15" height="15" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+              <path d="M11.5 14L6 9l5.5-5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            {t('backToList')}
           </Link>
           <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '2rem', color: '#1e1b2e', margin: 0 }}>
             {t('reservationTitle')} #{shortId}
@@ -283,11 +302,11 @@ export default function ReservationDetailPage({
           </div>
           <div style={{ padding: '1rem 0', borderBottom: '1px solid #e4d4f4', display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ color: '#7c6fa0' }}>{tb('date')}</span>
-            <span style={{ color: '#1e1b2e', fontWeight: 500, textAlign: 'right' }}>{formatDateAZ(reservation.startAt, reservation.salon.timezone)}</span>
+            <span style={{ color: '#1e1b2e', fontWeight: 500, textAlign: 'right' }}>{formatReservationDate(reservation.startAt, reservation.salon.timezone, locale)}</span>
           </div>
           <div style={{ padding: '1rem 0', borderBottom: '1px solid #e4d4f4', display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ color: '#7c6fa0' }}>{tb('time')}</span>
-            <span style={{ color: '#1e1b2e', fontWeight: 500 }}>{formatTimeAZ(reservation.startAt, reservation.salon.timezone)}</span>
+            <span style={{ color: '#1e1b2e', fontWeight: 500 }}>{formatReservationTime(reservation.startAt, reservation.salon.timezone, locale)}</span>
           </div>
           <div style={{ padding: '1rem 0', borderBottom: '1px solid #e4d4f4', display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ color: '#7c6fa0' }}>{tb('duration')}</span>
@@ -344,10 +363,10 @@ export default function ReservationDetailPage({
                         }}
                       >
                         <span style={{ fontWeight: 600, fontSize: '1rem' }}>
-                          {new Intl.DateTimeFormat('az-AZ', { day: 'numeric', timeZone: reservation.salon.timezone }).format(d)}
+                          {new Intl.DateTimeFormat(locale, { day: 'numeric', timeZone: reservation.salon.timezone }).format(d)}
                         </span>
                         <span style={{ fontSize: '0.75rem', marginTop: '0.2rem' }}>
-                          {new Intl.DateTimeFormat('az-AZ', { weekday: 'short', timeZone: reservation.salon.timezone }).format(d)}
+                          {new Intl.DateTimeFormat(locale, { weekday: 'short', timeZone: reservation.salon.timezone }).format(d)}
                         </span>
                       </button>
                     );
@@ -394,7 +413,7 @@ export default function ReservationDetailPage({
                           opacity: rescheduling ? 0.6 : 1,
                         }}
                       >
-                        {formatTimeAZ(slot.startAt, reservation.salon.timezone)}
+                        {formatReservationTime(slot.startAt, reservation.salon.timezone, locale)}
                       </button>
                     ))}
                   </div>

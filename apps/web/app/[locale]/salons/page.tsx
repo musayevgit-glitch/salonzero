@@ -5,6 +5,7 @@ import { PageLayout } from '../../_components/PageLayout';
 import { getIsAuthenticated } from '../../../lib/fetch-api-server';
 import { fetchPublicApi } from '../../../lib/public-api';
 import { SalonCard } from '../../_components/SalonCard';
+import { SalonFilters } from './SalonFilters';
 
 export const metadata: Metadata = {
   title: 'Salonlar — Salonomia',
@@ -74,52 +75,14 @@ export default async function SalonsPage({
         </h1>
       </div>
 
-      <div
-        style={{
-          background: 'white',
-          borderRadius: 16,
-          border: '1px solid #e4d4f4',
-          padding: '1.5rem',
-          marginBottom: '2.5rem',
+      <SalonFilters
+        initial={{
+          search,
+          city,
+          genderFocus,
+          sort,
         }}
-      >
-        <form style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'flex-end' }}>
-          <div style={{ flex: '1 1 200px', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e1b2e' }}>{t('searchPlaceholder')}</label>
-            <input type="text" name="search" defaultValue={search} placeholder={t('searchPlaceholder')} style={{ height: 44, boxSizing: 'border-box', padding: '0 1rem', borderRadius: 8, border: '1px solid #e4d4f4', outline: 'none', fontSize: '0.9rem' }} />
-          </div>
-          <div style={{ flex: '1 1 150px', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e1b2e' }}>{t('filterCity')}</label>
-            <input type="text" name="city" defaultValue={city} placeholder={t('filterCity')} style={{ height: 44, boxSizing: 'border-box', padding: '0 1rem', borderRadius: 8, border: '1px solid #e4d4f4', outline: 'none', fontSize: '0.9rem' }} />
-          </div>
-          <div style={{ flex: '1 1 150px', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e1b2e' }}>{t('filterGender')}</label>
-            <select name="genderFocus" defaultValue={genderFocus} style={{ height: 44, boxSizing: 'border-box', padding: '0 1rem', borderRadius: 8, border: '1px solid #e4d4f4', outline: 'none', fontSize: '0.9rem', backgroundColor: 'white' }}>
-              <option value="">{t('genderAny')}</option>
-              <option value="Women">{t('genderWomen')}</option>
-              <option value="Men">{t('genderMen')}</option>
-              <option value="Unisex">{t('genderUnisex')}</option>
-            </select>
-          </div>
-          <div style={{ flex: '1 1 150px', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e1b2e' }}>{t('filterSort')}</label>
-            <select name="sort" defaultValue={sort} style={{ height: 44, boxSizing: 'border-box', padding: '0 1rem', borderRadius: 8, border: '1px solid #e4d4f4', outline: 'none', fontSize: '0.9rem', backgroundColor: 'white' }}>
-              <option value="name_asc">{t('sortNameAsc')}</option>
-              <option value="name_desc">{t('sortNameDesc')}</option>
-              <option value="newest">{t('sortNewest')}</option>
-            </select>
-          </div>
-
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flex: '1 1 200px' }}>
-            <button type="submit" style={{ flex: 1, height: 44, boxSizing: 'border-box', background: '#7c3aed', color: 'white', border: 'none', padding: '0 1.5rem', borderRadius: 8, fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}>
-              {t('applyFilters')}
-            </button>
-            <Link href="/salons" style={{ color: '#7c6fa0', textDecoration: 'underline', fontSize: '0.9rem', fontWeight: 500 }}>
-              {t('resetFilters')}
-            </Link>
-          </div>
-        </form>
-      </div>
+      />
 
       {isError ? (
         <div style={{ textAlign: 'center', padding: '4rem 1rem', color: '#7c6fa0' }}>

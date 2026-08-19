@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useBookingContext } from '../_components/BookingContext';
 import { BookingPageShell } from '../_components/BookingPageShell';
+import { getInitials } from '../../../../../../lib/initials';
 
 function StarIcon() {
   return (
@@ -152,7 +153,7 @@ export default function StylistStep() {
                 fontSize: '1rem', fontWeight: 700, color: 'white',
                 overflow: 'hidden',
               }}>
-                {employee.fullName.slice(0, 1).toUpperCase()}
+                {getInitials(employee.fullName)}
               </div>
 
               {/* Info */}
