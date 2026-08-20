@@ -94,19 +94,6 @@ function GearIcon() {
   );
 }
 
-function ListIcon() {
-  return (
-    <svg {...ICON_PROPS}>
-      <line x1="8" y1="6" x2="21" y2="6" />
-      <line x1="8" y1="12" x2="21" y2="12" />
-      <line x1="8" y1="18" x2="21" y2="18" />
-      <line x1="3" y1="6" x2="3.01" y2="6" />
-      <line x1="3" y1="12" x2="3.01" y2="12" />
-      <line x1="3" y1="18" x2="3.01" y2="18" />
-    </svg>
-  );
-}
-
 function HamburgerIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -142,6 +129,7 @@ const NAV_ITEMS: NavItemDef[] = [
   { labelKey: 'nav.customers', segment: 'customers', sectionKey: 'nav.sectionSalon', icon: <PersonIcon /> },
   { labelKey: 'nav.reports', segment: 'reports', sectionKey: 'nav.sectionManagement', icon: <ChartIcon />, adminOnly: true },
   { labelKey: 'nav.settings', segment: 'settings', sectionKey: 'nav.sectionManagement', icon: <GearIcon /> },
+
 ];
 
 interface CurrentUser {

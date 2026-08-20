@@ -12,6 +12,9 @@ interface SalonListItem {
   description: string | null;
   city: string | null;
   genderFocus: string | null;
+  logoUrl: string | null;
+  coverUrl: string | null;
+  categories: string[];
   startingPrice: { amount: number; currency: string } | null;
 }
 
@@ -159,7 +162,7 @@ function HeroSearch() {
 /* ─── Hero ───────────────────────────────────────────────── */
 const HERO_IMAGES = ['/images/salon-1.png', '/images/salon-2.png', '/images/salon-3.png'];
 
-function Hero({ salonCount }: { salonCount: number }) {
+function Hero({ salonCount, serviceTerms }: { salonCount: number; serviceTerms: string[] }) {
   const t = useTranslations('home');
 
   return (
@@ -330,16 +333,19 @@ function Hero({ salonCount }: { salonCount: number }) {
         </div>
       </div>
 
-      {/* Marquee strip */}
-      <div style={{ background: 'rgba(10,4,30,0.55)', borderTop: '1px solid rgba(167,139,250,0.2)', padding: '0.65rem 0', overflow: 'hidden', position: 'relative', backdropFilter: 'blur(4px)' }}>
-        <div style={{ display: 'flex', animation: 'marquee 22s linear infinite', width: 'max-content', gap: 0 }}>
-          {['Saç Kəsimi', 'Manikür', 'Pedikür', 'Saç Boyası', 'Makeup', 'Qaş Laminasiyası', 'Üz Baxımı', 'Keratin', 'Gel-Lak', 'Ombre & Balayage', 'Saç Kəsimi', 'Manikür', 'Pedikür', 'Saç Boyası', 'Makeup', 'Qaş Laminasiyası', 'Üz Baxımı', 'Keratin', 'Gel-Lak', 'Ombre & Balayage'].map((t, i) => (
-            <span key={i} style={{ fontSize: '0.7rem', color: 'rgba(167,139,250,0.82)', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '0 2rem', whiteSpace: 'nowrap' }}>
-              {t} <span style={{ color: 'rgba(167,139,250,0.38)', margin: '0 0.5rem' }}>✦</span>
-            </span>
-          ))}
+      {/* Marquee strip — real service categories only. Rendered only when the API returned some,
+          so the platform never advertises services no salon actually offers. */}
+      {serviceTerms.length > 0 ? (
+        <div style={{ background: 'rgba(10,4,30,0.55)', borderTop: '1px solid rgba(167,139,250,0.2)', padding: '0.65rem 0', overflow: 'hidden', position: 'relative', backdropFilter: 'blur(4px)' }}>
+          <div style={{ display: 'flex', animation: 'marquee 22s linear infinite', width: 'max-content', gap: 0 }} aria-hidden="true">
+            {[...serviceTerms, ...serviceTerms].map((term, i) => (
+              <span key={`${term}-${i}`} style={{ fontSize: '0.7rem', color: 'rgba(167,139,250,0.82)', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '0 2rem', whiteSpace: 'nowrap' }}>
+                {term} <span style={{ color: 'rgba(167,139,250,0.38)', margin: '0 0.5rem' }}>✦</span>
+              </span>
+            ))}
+          </div>
         </div>
-      </div>
+      ) : null}
     </section>
   );
 }
@@ -426,8 +432,8 @@ function PopularSalons({ salons }: { salons: SalonListItem[] }) {
         </p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {salons.slice(0, 6).map((salon, i) => (
-            <SalonCard key={salon.id} salon={salon} index={i} />
+          {salons.slice(0, 6).map((salon) => (
+            <SalonCard key={salon.id} salon={salon} />
           ))}
         </div>
       )}
@@ -480,11 +486,17 @@ export function LandingPage({
   /** Total number of ACTIVE salons, as reported by the public salons API. */
   salonCount: number;
 }) {
+  // Distinct, real service-category names across the salons the API returned.
+  const serviceTerms = [...new Set(salons.flatMap((s) => s.categories ?? []))]
+    .map((name) => name.trim())
+    .filter((name) => name.length > 0)
+    .slice(0, 12);
+
   return (
     <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', background: 'white' }}>
       <PageHeader isAuthenticated={isAuthenticated} />
       <main style={{ flex: 1 }}>
-        <Hero salonCount={salonCount} />
+        <Hero salonCount={salonCount} serviceTerms={serviceTerms} />
         <Features />
         <PopularSalons salons={salons} />
         <CTASection />

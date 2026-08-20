@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { formatMoney } from '../../lib/format-money';
 import { getInitials } from '../../lib/initials';
+import { resolveSalonCoverUrl, resolveSalonLogoUrl } from '../../lib/salon-images';
 
 export interface SalonCardData {
   id: string;
@@ -11,10 +12,15 @@ export interface SalonCardData {
   name: string;
   city: string | null;
   genderFocus: string | null;
+  logoUrl?: string | null;
+  coverUrl?: string | null;
+  /** Real, active service-category names from the API. Never a hardcoded list. */
+  categories?: string[];
   startingPrice: { amount: number; currency: string } | null;
 }
 
-const IMAGES = ['/images/salon-1.png', '/images/salon-2.png', '/images/salon-3.png'];
+/** How many category chips fit before the card collapses the rest into "+N". */
+const MAX_VISIBLE_TAGS = 3;
 
 function LocationPinIcon() {
   return (
@@ -32,20 +38,23 @@ function LocationPinIcon() {
  */
 export function SalonCard({
   salon,
-  index,
-  tags,
   showBookAction = true,
 }: {
   salon: SalonCardData;
-  index: number;
-  /** Service chips rendered under the salon name. */
-  tags?: string[];
   /** Renders the dedicated "Book" action alongside "View". */
   showBookAction?: boolean;
 }) {
   const t = useTranslations('salons');
   const th = useTranslations('home');
-  const imageUrl = IMAGES[index % IMAGES.length];
+
+  // Cover resolution is identical here and on the salon detail page.
+  const imageUrl = resolveSalonCoverUrl(salon.coverUrl);
+  const logoUrl = resolveSalonLogoUrl(salon.logoUrl);
+
+  // Chips render only from real categories; an empty list renders nothing at all.
+  const allTags = (salon.categories ?? []).filter((c) => c && c.trim().length > 0);
+  const visibleTags = allTags.slice(0, MAX_VISIBLE_TAGS);
+  const overflowCount = allTags.length - visibleTags.length;
 
   const genderKey = (salon.genderFocus ?? '').toUpperCase();
   const genderLabel =
@@ -80,25 +89,42 @@ export function SalonCard({
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0) 100%)' }} />
 
         <div style={{ position: 'absolute', bottom: 12, left: 12, right: 12, display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-          <div
-            style={{
-              width: 34,
-              height: 34,
-              borderRadius: '50%',
-              background: '#1e1b2e',
-              color: 'white',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 700,
-              fontSize: '0.8rem',
-              border: '2px solid white',
-              flexShrink: 0,
-            }}
-            aria-hidden="true"
-          >
-            {getInitials(salon.name)}
-          </div>
+          {logoUrl ? (
+            <img
+              src={logoUrl}
+              alt=""
+              aria-hidden="true"
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: '50%',
+                objectFit: 'cover',
+                background: 'white',
+                border: '2px solid white',
+                flexShrink: 0,
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: '50%',
+                background: '#1e1b2e',
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 700,
+                fontSize: '0.8rem',
+                border: '2px solid white',
+                flexShrink: 0,
+              }}
+              aria-hidden="true"
+            >
+              {getInitials(salon.name)}
+            </div>
+          )}
           <h3
             style={{
               margin: 0,
@@ -141,9 +167,9 @@ export function SalonCard({
           </span>
         </div>
 
-        {tags && tags.length > 0 ? (
+        {visibleTags.length > 0 ? (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
-            {tags.map((tag) => (
+            {visibleTags.map((tag) => (
               <span
                 key={tag}
                 style={{
@@ -159,6 +185,21 @@ export function SalonCard({
                 {tag}
               </span>
             ))}
+            {overflowCount > 0 ? (
+              <span
+                style={{
+                  padding: '0.18rem 0.6rem',
+                  borderRadius: 999,
+                  background: '#faf5ff',
+                  color: '#6b5d8a',
+                  fontSize: '0.68rem',
+                  fontWeight: 500,
+                  border: '1px solid #e4d4f4',
+                }}
+              >
+                +{overflowCount}
+              </span>
+            ) : null}
           </div>
         ) : null}
 

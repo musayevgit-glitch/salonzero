@@ -18,6 +18,9 @@ interface SalonListItem {
   description: string | null;
   city: string | null;
   genderFocus: string | null;
+  logoUrl: string | null;
+  coverUrl: string | null;
+  categories: string[];
   startingPrice: { amount: number; currency: string } | null;
 }
 
@@ -101,8 +104,8 @@ export default async function SalonsPage({
               gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
             }}
           >
-            {salons.map((salon, index) => (
-              <SalonCard key={salon.id} salon={salon} index={index} />
+            {salons.map((salon) => (
+              <SalonCard key={salon.id} salon={salon} />
             ))}
           </div>
 

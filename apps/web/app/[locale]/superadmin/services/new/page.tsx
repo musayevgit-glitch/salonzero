@@ -1,21 +1,26 @@
 'use client';
 
 import { Alert, Breadcrumbs, Button, Card, FormField, Input, Select, Textarea, useToast } from '@salonomia/ui';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
 import { apiFetch, ApiError } from '../../../../../lib/api-client';
+import { fetchAllSalons, type SalonOption } from '../../../../../lib/fetch-all-salons';
 
-interface Salon { id: string; name: string; }
 interface Category { id: string; name: string; }
 
-export default function NewServicePage() {
+function NewServiceForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { showToast } = useToast();
 
-  const [salons, setSalons] = useState<Salon[]>([]);
+  // When arriving from a salon page (?salonId=…) the salon is fixed and the field is locked.
+  const lockedSalonId = searchParams.get('salonId');
+
+  const [salons, setSalons] = useState<SalonOption[]>([]);
+  const [salonsLoading, setSalonsLoading] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
 
-  const [salonId, setSalonId] = useState('');
+  const [salonId, setSalonId] = useState(lockedSalonId ?? '');
   const [categoryId, setCategoryId] = useState('');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -29,16 +34,40 @@ export default function NewServicePage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    apiFetch<{ items: Salon[] }>('/salons?pageSize=200')
-      .then((r) => setSalons(r.items))
-      .catch(() => {});
+    let cancelled = false;
+    fetchAllSalons()
+      .then((items) => {
+        if (cancelled) return;
+        setSalons(items);
+        // Pre-select when there is exactly one option and nothing was chosen yet.
+        setSalonId((current) => current || (items.length === 1 ? items[0]!.id : ''));
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        setError(err instanceof ApiError ? err.message : 'Salon siyahısı yüklənmədi.');
+      })
+      .finally(() => {
+        if (!cancelled) setSalonsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
     if (!salonId) { setCategories([]); setCategoryId(''); return; }
-    apiFetch<{ items: Category[] }>(`/salons/${salonId}/service-categories`)
-      .then((r) => setCategories(r.items))
-      .catch(() => setCategories([]));
+    let cancelled = false;
+    // This endpoint returns a bare array, not a paginated envelope.
+    apiFetch<Category[]>(`/salons/${salonId}/service-categories`)
+      .then((items) => {
+        if (!cancelled) setCategories(Array.isArray(items) ? items : []);
+      })
+      .catch(() => {
+        if (!cancelled) setCategories([]);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [salonId]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -84,14 +113,30 @@ export default function NewServicePage() {
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }} noValidate>
           {error && <Alert tone="danger" title={error} />}
 
-          <FormField label="Salon">
+          <FormField
+            label="Salon"
+            description={lockedSalonId ? 'Salon əvvəlcədən seçilib və dəyişdirilə bilməz.' : undefined}
+          >
             {(p) => (
-              <Select {...p} required value={salonId} onChange={(e) => setSalonId(e.target.value)}>
-                <option value="">Salon seçin...</option>
-                {salons.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+              <Select
+                {...p}
+                required
+                value={salonId}
+                disabled={salonsLoading || !!lockedSalonId}
+                onChange={(e) => setSalonId(e.target.value)}
+              >
+                <option value="">{salonsLoading ? 'Yüklənir…' : 'Salon seçin...'}</option>
+                {salons.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                    {s.city ? ` — ${s.city}` : ''}
+                  </option>
+                ))}
               </Select>
             )}
           </FormField>
+          {/* A disabled <select> is not submitted, so the locked value travels in a hidden field. */}
+          {lockedSalonId && <input type="hidden" name="salonId" value={salonId} />}
 
           <FormField label="Kateqoriya" optional>
             {(p) => (
@@ -147,5 +192,14 @@ export default function NewServicePage() {
         </form>
       </Card>
     </main>
+  );
+}
+
+// useSearchParams requires a Suspense boundary during static rendering.
+export default function NewServicePage() {
+  return (
+    <Suspense fallback={<main className="dashboard-page" />}>
+      <NewServiceForm />
+    </Suspense>
   );
 }

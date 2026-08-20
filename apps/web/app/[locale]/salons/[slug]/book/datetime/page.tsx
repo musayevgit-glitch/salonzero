@@ -39,14 +39,21 @@ function formatTime(iso: string, timezone: string): string {
   }).format(new Date(iso));
 }
 
-function buildDates(timezone: string, maxAdvanceDays = 60): Date[] {
-  const todayStr = toLocalDateString(new Date(), timezone);
-  const today = new Date(todayStr);
-  return Array.from({ length: maxAdvanceDays }, (_, i) => {
-    const d = new Date(today);
-    d.setDate(d.getDate() + i);
-    return d;
-  });
+/**
+ * Formats a calendar cell as YYYY-MM-DD from its own Y/M/D fields.
+ *
+ * Grid cells are built with `new Date(year, month, day)` — i.e. local midnight — so they are
+ * already the exact calendar date the user sees. Running them back through a timezone conversion
+ * (as the code previously did) re-interprets that instant in the salon's zone and slides the
+ * result a day when the browser and the salon are on opposite sides of midnight. That made the
+ * cell labelled "20" look up availability for the 19th. Reading the fields directly keeps the
+ * label, the availability key, and the value sent to the API identical.
+ */
+function calendarCellDateString(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 /* Build a calendar month grid (6 rows × 7 cols) */
@@ -144,10 +151,23 @@ export default function DatetimeStep() {
     });
     if (draft.employeeId) params.set('employeeId', draft.employeeId);
 
+    let cancelled = false;
     fetch(`${API_URL}/public/salons/${salon.slug}/availability-bulk?${params}`)
-      .then((res) => res.json())
-      .then((data) => setBulkAvailability(data))
-      .catch((err) => console.error('Failed to load bulk availability:', err));
+      .then(async (res) => {
+        // A 400/404 body is not an availability map — treating it as one previously marked
+        // every day unavailable. Fall back to "unknown" so no day is falsely greyed out.
+        if (!res.ok) throw new Error(`availability-bulk ${res.status}`);
+        return (await res.json()) as Record<string, boolean>;
+      })
+      .then((data) => {
+        if (!cancelled) setBulkAvailability(data ?? {});
+      })
+      .catch(() => {
+        if (!cancelled) setBulkAvailability({});
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [draftLoaded, draft.serviceId, draft.employeeId, salon.slug, todayStr, maxDateStr]);
 
   const fetchSlots = useCallback(async (date: string) => {
@@ -176,8 +196,9 @@ export default function DatetimeStep() {
   }, [draft.serviceId, draft.employeeId, salon.slug]);
 
   function handleDateSelect(date: Date) {
-    const dateStr = toLocalDateString(date, timezone);
+    const dateStr = calendarCellDateString(date);
     if (dateStr < todayStr || dateStr > maxDateStr) return;
+    if (bulkAvailability[dateStr] === false) return;
     setSelectedDate(dateStr);
     void fetchSlots(dateStr);
   }
@@ -393,16 +414,21 @@ export default function DatetimeStep() {
           <div key={ri} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px', marginBottom: '2px' }}>
             {row.map((day, ci) => {
               if (!day) return <div key={ci} />;
-              const dateStr = toLocalDateString(day, timezone);
+              const dateStr = calendarCellDateString(day);
               const isToday = dateStr === todayStr;
-              const isPast = dateStr < todayStr;
-              const isBeyond = dateStr > maxDateStr;
-              const isDisabled = isPast || isBeyond;
+              // Outside the bookable window entirely — these days are never fetched.
+              const isOutOfRange = dateStr < todayStr || dateStr > maxDateStr;
+
+              // A day counts as unavailable only when the availability API actually reported
+              // zero slots for it. `undefined` means "not loaded yet" and must stay neutral —
+              // it is not evidence of a full day.
+              const availability = bulkAvailability[dateStr];
+              const isSoldOut = !isOutOfRange && availability === false;
+              const isDisabled = isOutOfRange || isSoldOut;
               const isSelected = dateStr === selectedDate;
 
-              const hasSlots = bulkAvailability[dateStr];
-              const showDot = !isDisabled && bulkAvailability[dateStr] !== undefined;
-              const dotColor = hasSlots ? '#4caf50' : '#f44336';
+              const showDot = !isOutOfRange && availability !== undefined;
+              const dotColor = availability ? '#4caf50' : '#f44336';
 
               return (
                 <button

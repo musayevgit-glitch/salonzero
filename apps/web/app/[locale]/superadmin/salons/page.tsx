@@ -17,6 +17,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { apiFetch, ApiError } from '../../../../lib/api-client';
+import { useDebouncedValue } from '../../../../lib/use-debounced-value';
 import { FilterBar } from '../../../_components/admin/FilterBar';
 import { LinkButton } from '../../../_components/admin/LinkButton';
 import { PageHeader } from '../../../_components/admin/PageHeader';
@@ -48,16 +49,19 @@ type LoadState =
 export default function SuperadminSalonsPage() {
   const router = useRouter();
   const [search, setSearch] = useState('');
+  // Typing must not fire a request per keystroke, and the request must not remount the input.
+  const debouncedSearch = useDebouncedValue(search, 350);
   const [status, setStatus] = useState<'' | 'ACTIVE' | 'SUSPENDED'>('');
   const [page, setPage] = useState(1);
   const [state, setState] = useState<LoadState>({ kind: 'loading' });
 
   useEffect(() => {
     let cancelled = false;
-    setState({ kind: 'loading' });
+    // Keep the previously loaded page on screen while refetching so the filter bar stays mounted.
+    setState((prev) => (prev.kind === 'ready' ? prev : { kind: 'loading' }));
 
     const query = new URLSearchParams({ page: String(page), pageSize: '20' });
-    if (search) query.set('search', search);
+    if (debouncedSearch) query.set('search', debouncedSearch);
     if (status) query.set('status', status);
 
     apiFetch<SalonListResponse>(`/salons?${query.toString()}`)
@@ -70,26 +74,21 @@ export default function SuperadminSalonsPage() {
       });
 
     return () => { cancelled = true; };
-  }, [search, status, page, router]);
-
-  if (state.kind === 'loading') return (
-    <main className="dashboard-page">
-      <Skeleton className="h-10 w-full max-w-md" />
-      <Skeleton className="h-64 w-full rounded-[var(--radius-lg)]" />
-    </main>
-  );
+  }, [debouncedSearch, status, page, router]);
 
   if (state.kind === 'permission-denied') return <main className="dashboard-page"><PermissionDeniedState /></main>;
-  if (state.kind === 'error') return <main className="dashboard-page"><ErrorState title="Salonlar yüklənmədi" description={state.message} /></main>;
 
-  const { items, total, pageSize } = state.data;
+  const data = state.kind === 'ready' ? state.data : null;
+  const items = data?.items ?? [];
+  const total = data?.total ?? 0;
+  const pageSize = data?.pageSize ?? 20;
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
 
   return (
     <main className="dashboard-page">
       <PageHeader
         title="Salonlar"
-        description={`Cəmi ${total} salon`}
+        description={data ? `Cəmi ${total} salon` : 'Yüklənir…'}
         actions={
           <LinkButton href="/superadmin/salons/new">+ Yeni salon</LinkButton>
         }
@@ -117,7 +116,11 @@ export default function SuperadminSalonsPage() {
         </Select>
       </FilterBar>
 
-      {items.length === 0 ? (
+      {state.kind === 'loading' ? (
+        <Skeleton className="h-64 w-full rounded-[var(--radius-lg)]" />
+      ) : state.kind === 'error' ? (
+        <ErrorState title="Salonlar yüklənmədi" description={state.message} />
+      ) : items.length === 0 ? (
         <EmptyState title="Salon tapılmadı" description="Axtarış parametrlərini dəyişin." />
       ) : (
         <>

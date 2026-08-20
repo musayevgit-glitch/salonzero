@@ -19,6 +19,9 @@ interface SalonListItem {
   description: string | null;
   city: string | null;
   genderFocus: string | null;
+  logoUrl: string | null;
+  coverUrl: string | null;
+  categories: string[];
   startingPrice: { amount: number; currency: string } | null;
 }
 

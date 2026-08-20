@@ -55,13 +55,32 @@ export async function GET(
 
   const now = new Date();
   const results: Record<string, boolean> = {};
-  const current = new Date(query.startDate);
-  const end = new Date(query.endDate);
 
-  while (current <= end) {
-    const year = current.getFullYear();
-    const month = current.getMonth() + 1;
-    const day = current.getDate();
+  /**
+   * Calendar dates are iterated as pure Y-M-D values anchored to UTC.
+   *
+   * The previous implementation did `new Date('2026-08-20')` — which parses to UTC midnight —
+   * and then read it back with the *local* getters `getFullYear()/getMonth()/getDate()`. On any
+   * deployment whose server clock is behind UTC that yields 2026-08-19, so every key in the
+   * response was shifted by one day and the calendar showed the wrong day's availability.
+   * Using the UTC getters keeps the key identical to the date the caller asked for; the real
+   * timezone conversion happens in `localWallTimeToUtc`, which maps the calendar date onto the
+   * salon's own wall clock.
+   */
+  const current = new Date(`${query.startDate}T00:00:00Z`);
+  const end = new Date(`${query.endDate}T00:00:00Z`);
+  if (Number.isNaN(current.getTime()) || Number.isNaN(end.getTime())) {
+    return NextResponse.json({ message: 'Invalid date range.' }, { status: 400 });
+  }
+  // Bound the loop so a hostile range cannot fan out into unbounded queries.
+  const MAX_DAYS = 120;
+  let iterations = 0;
+
+  while (current <= end && iterations < MAX_DAYS) {
+    iterations += 1;
+    const year = current.getUTCFullYear();
+    const month = current.getUTCMonth() + 1;
+    const day = current.getUTCDate();
     const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const localDate = { year, month, day };
     const rangeStart = localWallTimeToUtc(localDate, 0, salon.timezone);
@@ -99,7 +118,7 @@ export async function GET(
     const input = { salonTimezone: salon.timezone, now, rangeStart, rangeEnd, serviceDurationMinutes: service.durationMinutes, bufferMinutes: service.bufferMinutes, minNoticeMinutes, maxAdvanceDays, employees };
     const slots = query.employeeId ? computeAvailability(input) : computeAnyStylistAvailability(input);
     results[dateStr] = slots.length > 0;
-    current.setDate(current.getDate() + 1);
+    current.setUTCDate(current.getUTCDate() + 1);
   }
 
   return NextResponse.json(results);

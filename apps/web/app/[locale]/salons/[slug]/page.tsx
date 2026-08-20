@@ -4,6 +4,7 @@ import { getTranslations, getLocale } from 'next-intl/server';
 import { getIsAuthenticated } from '../../../../lib/fetch-api-server';
 import { fetchPublicApi, PublicApiError } from '../../../../lib/public-api';
 import { PageLayout } from '../../../_components/PageLayout';
+import { resolveSalonCoverUrl, resolveSalonLogoUrl } from '../../../../lib/salon-images';
 import { StylistCard } from './StylistCard';
 
 interface PublicService {
@@ -25,6 +26,8 @@ interface SalonDetail {
   phone: string | null;
   email: string | null;
   genderFocus: string | null;
+  logoUrl: string | null;
+  coverUrl: string | null;
   bookingPolicySummary: {
     autoConfirm: boolean;
     cancellationWindowHours: number;
@@ -114,12 +117,36 @@ export default async function SalonDetailPage({ params }: { params: Promise<{ sl
           height: 280, 
           overflow: 'hidden',
         }} className="hero-container">
-          <img src="/images/salon-1.png" alt={salon.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          {/* Same resolution as the salon card — own cover, else the one shared placeholder. */}
+          <img
+            src={resolveSalonCoverUrl(salon.coverUrl)}
+            alt=""
+            aria-hidden="true"
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(30,27,46,0.9), rgba(30,27,46,0.2))' }} />
           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '2rem', fontWeight: 700, color: 'white', margin: 0 }}>
-              {salon.name}
-            </h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
+              {resolveSalonLogoUrl(salon.logoUrl) ? (
+                <img
+                  src={resolveSalonLogoUrl(salon.logoUrl)!}
+                  alt=""
+                  aria-hidden="true"
+                  style={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    background: 'white',
+                    border: '2px solid white',
+                    flexShrink: 0,
+                  }}
+                />
+              ) : null}
+              <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '2rem', fontWeight: 700, color: 'white', margin: 0 }}>
+                {salon.name}
+              </h1>
+            </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
               {salon.city && <span style={{ color: '#e4d4f4', fontSize: '0.875rem' }}>{salon.city}</span>}
               {salon.genderFocus && (

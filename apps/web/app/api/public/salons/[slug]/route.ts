@@ -15,7 +15,7 @@ export async function GET(
     where: { slug, status: 'ACTIVE' },
     select: {
       id: true, slug: true, name: true, description: true, addressLine: true, city: true,
-      phone: true, email: true, genderFocus: true,
+      phone: true, email: true, genderFocus: true, logoUrl: true, coverUrl: true,
       bookingPolicy: {
         select: { autoConfirm: true, cancellationWindowHours: true, rescheduleWindowHours: true, minNoticeMinutes: true, maxAdvanceDays: true },
       },
@@ -60,6 +60,7 @@ export async function GET(
     id: salon.id, slug: salon.slug, name: salon.name, description: salon.description,
     addressLine: salon.addressLine, city: salon.city, phone: salon.phone, email: salon.email,
     genderFocus: salon.genderFocus,
+    logoUrl: salon.logoUrl, coverUrl: salon.coverUrl,
     bookingPolicySummary: salon.bookingPolicy,
     approximateOpeningHours: [...openingHoursByWeekday.entries()]
       .map(([weekday, h]) => ({ weekday, ...h }))
