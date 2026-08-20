@@ -48,6 +48,7 @@ export default function StylistStep() {
 
   return (
     <BookingPageShell
+      step={2}
       title={t('selectStylist')}
       backHref={`/salons/${salon.slug}/book/service`}
       backLabel={t('backToService')}

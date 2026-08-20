@@ -139,6 +139,8 @@ export default function DatetimeStep() {
   const [holdError, setHoldError] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const abortRef = useRef<AbortController | null>(null);
+  // Once the customer picks a day themselves, the auto-advance must stop overriding that choice.
+  const userPickedDateRef = useRef(false);
 
   useEffect(() => {
     if (draftLoaded && !draft.serviceId) {
@@ -213,12 +215,46 @@ export default function DatetimeStep() {
     [draft.serviceId, draft.employeeId, salon.slug],
   );
 
+  /*
+   * Today is selected as soon as the draft is ready, so the page opens with real times on screen
+   * instead of an empty "pick a date first" panel. The slot fetch is driven by `selectedDate`
+   * below, so setting the date here is enough to cascade.
+   */
+  useEffect(() => {
+    if (!draftLoaded || !draft.serviceId) return;
+    setSelectedDate((current) => current || calendarCellDateString(new Date()));
+  }, [draftLoaded, draft.serviceId]);
+
+  useEffect(() => {
+    if (!selectedDate || !draftLoaded || !draft.serviceId) return;
+    void fetchSlots(selectedDate);
+  }, [selectedDate, draftLoaded, draft.serviceId, fetchSlots]);
+
+  /*
+   * If the month map says the auto-selected day is fully booked, jump to the first bookable day
+   * instead of leaving the customer on a dead end. Only applies while the customer has not made
+   * a choice of their own.
+   */
+  useEffect(() => {
+    if (userPickedDateRef.current || !selectedDate) return;
+    if (bulkAvailability[selectedDate] !== false) return;
+    const nextFree = Object.keys(bulkAvailability)
+      .filter((d) => bulkAvailability[d] && d >= todayStr && d <= maxDateStr)
+      .sort()[0];
+    if (nextFree) {
+      setSelectedDate(nextFree);
+      const parts = nextFree.split('-');
+      setCalYear(Number(parts[0]));
+      setCalMonth(Number(parts[1]) - 1);
+    }
+  }, [bulkAvailability, selectedDate, todayStr, maxDateStr]);
+
   function handleDateSelect(date: Date) {
     const dateStr = calendarCellDateString(date);
     if (dateStr < todayStr || dateStr > maxDateStr) return;
     if (bulkAvailability[dateStr] === false) return;
+    userPickedDateRef.current = true;
     setSelectedDate(dateStr);
-    void fetchSlots(dateStr);
   }
 
   function handleSlotSelect(startAt: string) {
@@ -314,6 +350,7 @@ export default function DatetimeStep() {
 
   return (
     <BookingPageShell
+      step={3}
       title={t('selectDateTime')}
       backHref={`/salons/${salon.slug}/book/stylist`}
       backLabel={t('backToStylist')}

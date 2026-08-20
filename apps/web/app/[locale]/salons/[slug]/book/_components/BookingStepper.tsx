@@ -2,10 +2,16 @@
 
 import { usePathname } from 'next/navigation';
 
-/* 3-step visual stepper matching the design */
+/**
+ * 4-step visual stepper: Xidmət → Stilist → Tarix → Təsdiq.
+ *
+ * Pages pass an explicit 1-based `step`; the pathname mapping stays as a fallback so a page that
+ * forgets the prop still highlights the right bubble instead of showing none.
+ */
 const VISUAL_STEPS = [
-  { label: 'Xidmət', segments: ['service', 'stylist'] },
-  { label: 'Tarix və saat', segments: ['datetime'] },
+  { label: 'Xidmət', segments: ['service'] },
+  { label: 'Stilist', segments: ['stylist'] },
+  { label: 'Tarix', segments: ['datetime'] },
   { label: 'Təsdiq', segments: ['summary', 'confirm'] },
 ];
 
@@ -23,28 +29,34 @@ function CheckIcon() {
   );
 }
 
-export function BookingStepper() {
+export function BookingStepper({ step }: { step?: number }) {
   const pathname = usePathname();
   const segment = pathname ? (pathname.split('/').pop() ?? '') : '';
 
-  const currentStep = VISUAL_STEPS.findIndex((s) => s.segments.includes(segment));
+  const currentStep =
+    step && step >= 1 && step <= VISUAL_STEPS.length
+      ? step - 1
+      : VISUAL_STEPS.findIndex((s) => s.segments.includes(segment));
 
   return (
-    <nav aria-label="Rezervasiya addımları" style={{ width: '100%', padding: '0.5rem 0 1rem' }}>
+    <nav aria-label="Rezervasiya addımları" style={{ width: '100%', padding: '0.25rem 0 1.25rem' }}>
       <ol
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
+          gridTemplateColumns: `repeat(${VISUAL_STEPS.length}, 1fr)`,
           position: 'relative',
+          listStyle: 'none',
+          margin: 0,
+          padding: 0,
         }}
       >
-        {VISUAL_STEPS.map((step, i) => {
+        {VISUAL_STEPS.map((s, i) => {
           const done = i < currentStep;
           const active = i === currentStep;
 
           return (
             <li
-              key={step.label}
+              key={s.label}
               style={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -62,7 +74,7 @@ export function BookingStepper() {
                     top: '14px',
                     width: '100%',
                     height: '2px',
-                    background: done || active ? '#7c3aed' : '#e5ddd5',
+                    background: done || active ? '#7c3aed' : '#e4d4f4',
                     transition: 'background 0.3s ease',
                   }}
                 />
@@ -74,21 +86,18 @@ export function BookingStepper() {
                 style={{
                   position: 'relative',
                   zIndex: 1,
-                  width: 28,
-                  height: 28,
+                  width: 30,
+                  height: 30,
                   borderRadius: '50%',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '0.75rem',
+                  fontSize: '0.78rem',
                   fontWeight: 700,
-                  background: done ? '#7c3aed' : active ? '#1e1b2e' : 'transparent',
-                  border: done
-                    ? '2px solid #7c3aed'
-                    : active
-                      ? '2px solid #1e1b2e'
-                      : '2px solid #c5bbb2',
+                  background: done || active ? '#7c3aed' : '#ffffff',
+                  border: done || active ? '2px solid #7c3aed' : '2px solid #e4d4f4',
                   color: done || active ? '#fff' : '#7c6fa0',
+                  boxShadow: active ? '0 0 0 4px rgba(124,58,237,0.16)' : 'none',
                   transition: 'all 0.2s ease',
                 }}
               >
@@ -98,16 +107,16 @@ export function BookingStepper() {
               {/* Label */}
               <span
                 style={{
-                  marginTop: '0.35rem',
-                  fontSize: '0.65rem',
-                  fontWeight: active ? 600 : 400,
-                  color: active ? '#1e1b2e' : done ? '#7c3aed' : '#7c6fa0',
+                  marginTop: '0.4rem',
+                  fontSize: '0.7rem',
+                  fontWeight: active ? 700 : 500,
+                  color: active ? '#5b21b6' : done ? '#7c3aed' : '#7c6fa0',
                   textAlign: 'center',
                   transition: 'color 0.2s ease',
                   whiteSpace: 'nowrap',
                 }}
               >
-                {step.label}
+                {s.label}
               </span>
             </li>
           );

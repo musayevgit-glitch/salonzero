@@ -65,6 +65,7 @@ export default function ServiceStep() {
 
   return (
     <BookingPageShell
+      step={1}
       title={t('selectService')}
       backHref={`/salons/${salon.slug}`}
       backLabel={t('backToSalon')}
