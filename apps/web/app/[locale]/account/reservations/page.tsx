@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { getTranslations, getLocale } from 'next-intl/server';
 import { fetchApiServer, ApiServerError } from '../../../../lib/fetch-api-server';
 import { PageLayout } from '../../../_components/PageLayout';
+import { RatingPrompt } from '../../../_components/RatingPrompt';
 import { formatMoney } from '../../../../lib/format-money';
 import { formatLongDateTime } from '../../../../lib/format-date';
 import { ReservationStatusFilter, ALL_STATUSES } from './ReservationStatusFilter';
@@ -174,6 +175,10 @@ export default async function ReservationsListPage({
           </div>
         )}
       </div>
+
+      {/* Asks the server for this customer's own unrated completed visits; renders nothing
+          when there are none or when the prompt was dismissed earlier this session. */}
+      <RatingPrompt />
     </PageLayout>
   );
 }

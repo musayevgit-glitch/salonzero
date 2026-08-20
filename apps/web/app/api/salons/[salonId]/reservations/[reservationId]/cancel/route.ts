@@ -4,6 +4,12 @@ import { getSalonContext, isSalonContextError } from '../../../../../../../lib/s
 import { notFound, badRequest } from '../../../../../../../lib/server/auth';
 import { reservationReasonSchema } from '@salonomia/validation';
 import { recordAudit } from '../../../../../../../lib/server/audit';
+import {
+  NOTIFICATION_TYPE,
+  RESERVATION_NOTIFICATION_SELECT,
+  buildNotificationPayload,
+  clearReservationReminders,
+} from '../../../../../../../lib/server/notifications';
 
 const RESERVATION_SELECT = {
   id: true, salonId: true, serviceId: true, employeeId: true, status: true,
@@ -18,9 +24,10 @@ export async function POST(
   const ctx = await getSalonContext(req, salonId);
   if (isSalonContextError(ctx)) return ctx;
 
+  // Scoped by the authorized salonId, so a reservation at another tenant is simply not found.
   const current = await prisma.reservation.findFirst({
     where: { id: reservationId, salonId },
-    select: { id: true, status: true, salonId: true },
+    select: { ...RESERVATION_NOTIFICATION_SELECT, status: true, salonId: true },
   });
   if (!current) return notFound();
 
@@ -57,6 +64,20 @@ export async function POST(
           toStatus: 'CANCELLED_BY_SALON',
           changedByUserId: ctx.userId,
           reason,
+        },
+      });
+
+      // Stop reminding the customer to attend an appointment the salon just cancelled, and tell
+      // them it happened — the salon-side cancel previously notified nobody.
+      await clearReservationReminders(tx, current.id);
+      await tx.notification.create({
+        data: {
+          userId: current.customerId,
+          type: NOTIFICATION_TYPE.CANCELLED,
+          payload: buildNotificationPayload(current, {
+            title: 'Rezervasiya salon tərəfindən ləğv edildi',
+            message: 'Salon rezervasiyanızı ləğv etdi. Ətraflı məlumat üçün salonla əlaqə saxlayın.',
+          }),
         },
       });
 

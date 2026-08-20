@@ -26,7 +26,8 @@
     "login": "Sign In",
     "logout": "Sign Out",
     "profile": "Profile",
-    "language": "Language"
+    "language": "Language",
+    "notifications": "Notifications"
   },
   "home": {
     "heroTitle": "Your beauty, made easier",
@@ -312,7 +313,8 @@
       "settings": "Settings",
       "auditLog": "Audit Log",
       "logout": "Log out",
-      "loggingOut": "Logging out..."
+      "loggingOut": "Logging out...",
+      "ratings": "Ratings"
     },
     "dashboard": {
       "title": "Overview",
@@ -600,10 +602,70 @@
       "deactivate": "Deactivate",
       "status": "Status",
       "errorGeneric": "Something went wrong"
+    },
+    "ratings": {
+      "title": "Ratings",
+      "subtitle": "Ratings customers gave your salon.",
+      "filterAll": "All",
+      "filterStars": "{count} stars",
+      "colStars": "Rating",
+      "colCustomer": "Customer",
+      "colService": "Service",
+      "colStylist": "Stylist",
+      "colVisitDate": "Visit date",
+      "colRatedAt": "Rated on",
+      "colComment": "Comment",
+      "empty": "No ratings yet",
+      "emptyDesc": "Customer feedback appears here after completed reservations.",
+      "loadError": "Could not load ratings",
+      "noComment": "—",
+      "average": "Average rating",
+      "total": "Total reviews"
     }
   },
   "superadmin": {
     "logout": "Sign out",
     "loggingOut": "Signing out..."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "subtitle": "Reminders and updates about your reservations.",
+    "bellLabel": "Notifications",
+    "unreadBadge": "{count} unread notifications",
+    "markAllRead": "Mark all as read",
+    "markingAll": "Marking…",
+    "unread": "Unread",
+    "empty": "No notifications",
+    "emptyDesc": "New notifications will appear here.",
+    "loadError": "Could not load notifications",
+    "retry": "Try again",
+    "viewReservation": "View reservation",
+    "pageInfo": "{page} of {pages}",
+    "previous": "Previous",
+    "next": "Next",
+    "typeReminder1h": "Your appointment is in 1 hour",
+    "typeReminder15m": "Your appointment is in 15 minutes",
+    "typeCancelled": "Reservation cancelled",
+    "typeConfirmed": "Reservation confirmed",
+    "typePending": "Reservation pending",
+    "typeGeneric": "Notification",
+    "markRead": "Mark as read"
+  },
+  "ratings": {
+    "promptTitle": "Rate your visit",
+    "promptSubtitle": "{service} — {salon}",
+    "starsLabel": "{count} stars",
+    "chooseStars": "Choose a rating",
+    "commentLabel": "Comment (optional)",
+    "commentPlaceholder": "Tell us about your experience…",
+    "submit": "Submit",
+    "submitting": "Submitting…",
+    "dismiss": "Close",
+    "later": "Later",
+    "thanks": "Thanks for your feedback!",
+    "submitError": "Could not submit your rating. Please try again.",
+    "starsRequired": "Please choose a star rating.",
+    "noRating": "No rating yet",
+    "ratingWithCount": "{rating} ({count})"
   }
 }

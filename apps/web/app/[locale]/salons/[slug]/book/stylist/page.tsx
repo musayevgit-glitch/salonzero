@@ -7,14 +7,6 @@ import { useBookingContext } from '../_components/BookingContext';
 import { BookingPageShell } from '../_components/BookingPageShell';
 import { getInitials } from '../../../../../../lib/initials';
 
-function StarIcon() {
-  return (
-    <svg width="11" height="11" viewBox="0 0 12 12" fill="#f59e0b" aria-hidden="true">
-      <path d="M6 1l1.4 2.8 3.1.45-2.25 2.2.53 3.1L6 8.1l-2.78 1.45.53-3.1L1.5 4.25l3.1-.45L6 1z" />
-    </svg>
-  );
-}
-
 function ChevronRightIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -120,8 +112,6 @@ export default function StylistStep() {
         {/* Employee list */}
         {salon.employees.map((employee, i) => {
           const selected = draft.employeeId === employee.id;
-          /* Deterministic rating */
-          const rating = (4.5 + (employee.id.charCodeAt(0) % 8) * 0.05).toFixed(1);
 
           return (
             <button
@@ -166,9 +156,9 @@ export default function StylistStep() {
                     {employee.bio}
                   </p>
                 )}
-                <p style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.72rem', color: '#6b5d8a', marginTop: '0.2rem', fontWeight: 600 }}>
-                  <StarIcon /> {rating}
-                </p>
+                {/* No per-stylist rating is shown: ratings in this system belong to the salon,
+                    not the individual. The star that used to sit here was derived from the
+                    stylist's UUID — a fabricated score, not feedback anyone had given. */}
               </div>
 
               <span style={{ color: '#c5bbb2' }}><ChevronRightIcon /></span>

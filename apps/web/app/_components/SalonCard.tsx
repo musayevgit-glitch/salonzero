@@ -17,10 +17,22 @@ export interface SalonCardData {
   /** Real, active service-category names from the API. Never a hardcoded list. */
   categories?: string[];
   startingPrice: { amount: number; currency: string } | null;
+  /** Mean of real customer ratings, or null when nobody has rated this salon yet. */
+  avgRating?: number | null;
+  /** How many ratings the average is based on. */
+  ratingCount?: number;
 }
 
 /** How many category chips fit before the card collapses the rest into "+N". */
 const MAX_VISIBLE_TAGS = 3;
+
+function StarIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="#f59e0b" aria-hidden="true">
+      <path d="M6 1l1.4 2.8 3.1.45-2.25 2.2.53 3.1L6 8.1l-2.78 1.45.53-3.1L1.5 4.25l3.1-.45L6 1z" />
+    </svg>
+  );
+}
 
 function LocationPinIcon() {
   return (
@@ -46,6 +58,11 @@ export function SalonCard({
 }) {
   const t = useTranslations('salons');
   const th = useTranslations('home');
+  const tr = useTranslations('ratings');
+
+  // A salon with no ratings says so. There is no fallback score — an invented average would be
+  // indistinguishable from a real one to anyone reading the card.
+  const hasRating = typeof salon.avgRating === 'number' && (salon.ratingCount ?? 0) > 0;
 
   // Cover resolution is identical here and on the salon detail page.
   const imageUrl = resolveSalonCoverUrl(salon.coverUrl);
@@ -166,6 +183,20 @@ export function SalonCard({
             {genderLabel}
           </span>
         </div>
+
+        {hasRating ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.8rem', color: '#4a3f6b', fontWeight: 600 }}>
+            <StarIcon />
+            <span>
+              {tr('ratingWithCount', {
+                rating: (salon.avgRating as number).toFixed(1),
+                count: salon.ratingCount ?? 0,
+              })}
+            </span>
+          </div>
+        ) : (
+          <div style={{ fontSize: '0.78rem', color: '#8b7fae' }}>{tr('noRating')}</div>
+        )}
 
         {visibleTags.length > 0 ? (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>

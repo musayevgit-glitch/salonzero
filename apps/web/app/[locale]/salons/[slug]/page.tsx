@@ -28,6 +28,9 @@ interface SalonDetail {
   genderFocus: string | null;
   logoUrl: string | null;
   coverUrl: string | null;
+  /** Real mean of customer ratings; null until this salon has been rated at least once. */
+  avgRating: number | null;
+  ratingCount: number;
   bookingPolicySummary: {
     autoConfirm: boolean;
     cancellationWindowHours: number;
@@ -84,6 +87,7 @@ export default async function SalonDetailPage({ params }: { params: Promise<{ sl
   const { slug } = await params;
 
   const t = await getTranslations('salonDetail');
+  const tr = await getTranslations('ratings');
   const locale = await getLocale();
 
   const [isAuthenticated, salonResult] = await Promise.all([
@@ -153,6 +157,17 @@ export default async function SalonDetailPage({ params }: { params: Promise<{ sl
                 <span style={{ background: '#7c3aed', color: '#1e1b2e', fontSize: '0.75rem', fontWeight: 600, padding: '0.2rem 0.6rem', borderRadius: 999 }}>
                   {salon.genderFocus === 'WOMEN' ? t('genderWomen') : salon.genderFocus === 'MEN' ? t('genderMen') : t('genderUnisex')}
                 </span>
+              )}
+              {/* The same real aggregate the cards show — never a placeholder score. */}
+              {typeof salon.avgRating === 'number' && salon.ratingCount > 0 ? (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', color: '#fde68a', fontSize: '0.875rem', fontWeight: 600 }}>
+                  <svg width="13" height="13" viewBox="0 0 12 12" fill="#f59e0b" aria-hidden="true">
+                    <path d="M6 1l1.4 2.8 3.1.45-2.25 2.2.53 3.1L6 8.1l-2.78 1.45.53-3.1L1.5 4.25l3.1-.45L6 1z" />
+                  </svg>
+                  {tr('ratingWithCount', { rating: salon.avgRating.toFixed(1), count: salon.ratingCount })}
+                </span>
+              ) : (
+                <span style={{ color: '#e4d4f4', fontSize: '0.8rem' }}>{tr('noRating')}</span>
               )}
             </div>
           </div>

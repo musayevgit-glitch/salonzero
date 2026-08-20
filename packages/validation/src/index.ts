@@ -14,3 +14,5 @@ export * from './public-salons';
 export * from './customer-profile';
 export * from './customer-reservations';
 export * from './reports';
+export * from './notifications';
+export * from './ratings';

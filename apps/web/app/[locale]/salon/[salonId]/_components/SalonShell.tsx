@@ -68,6 +68,14 @@ function PersonIcon() {
   );
 }
 
+function StarIcon() {
+  return (
+    <svg {...ICON_PROPS}>
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    </svg>
+  );
+}
+
 function TagIcon() {
   return (
     <svg {...ICON_PROPS}>
@@ -127,6 +135,7 @@ const NAV_ITEMS: NavItemDef[] = [
   { labelKey: 'nav.services', segment: 'services', sectionKey: 'nav.sectionSalon', icon: <SparklesIcon /> },
   { labelKey: 'nav.serviceCategories', segment: 'service-categories', sectionKey: 'nav.sectionSalon', icon: <TagIcon />, adminOnly: true },
   { labelKey: 'nav.customers', segment: 'customers', sectionKey: 'nav.sectionSalon', icon: <PersonIcon /> },
+  { labelKey: 'nav.ratings', segment: 'ratings', sectionKey: 'nav.sectionSalon', icon: <StarIcon /> },
   { labelKey: 'nav.reports', segment: 'reports', sectionKey: 'nav.sectionManagement', icon: <ChartIcon />, adminOnly: true },
   { labelKey: 'nav.settings', segment: 'settings', sectionKey: 'nav.sectionManagement', icon: <GearIcon /> },
 
