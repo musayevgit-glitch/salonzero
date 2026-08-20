@@ -26,7 +26,9 @@
     "login": "Giriş",
     "logout": "Çıxış et",
     "profile": "Profil",
-    "language": "Dil"
+    "language": "Dil",
+    "openMenu": "Menyunu aç",
+    "closeMenu": "Menyunu bağla"
   },
   "home": {
     "heroTitle": "Gözəlliyiniz bizimlə daha asandır",
@@ -191,7 +193,9 @@
     "termsLink": "şərtlər və qaydaları",
     "createReservation": "Rezervasiyanı yarat",
     "prevMonth": "Əvvəlki ay",
-    "nextMonth": "Növbəti ay"
+    "nextMonth": "Növbəti ay",
+    "slotTakenError": "Təəssüf ki, bu vaxt artıq tutulub. Zəhmət olmasa başqa vaxt seçin.",
+    "chooseAnotherTime": "Başqa vaxt seç"
   },
   "auth": {
     "loginTitle": "Daxil olun",
@@ -561,7 +565,10 @@
       "cancellationWindow": "Ləğetmə pəncərəsi (saat)",
       "rescheduleWindow": "Vaxt dəyişmə pəncərəsi (saat)",
       "saveSuccess": "Salon nizalamaları uğurla yadda saxlanıldı",
-      "errorLoad": "Ayarları yükləmək mümkün olmadı"
+      "errorLoad": "Ayarları yükləmək mümkün olmadı",
+      "bookingSlotInterval": "Vaxt aralığı",
+      "bookingSlotIntervalHint": "Müştərilərə göstərilən rezervasiya vaxtları arasındakı fasilə.",
+      "minutesShort": "dəq"
     },
     "auditLog": {
       "title": "Audit Jurnalı",

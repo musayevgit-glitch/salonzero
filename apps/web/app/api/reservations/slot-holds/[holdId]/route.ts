@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyRequest, unauthorized } from '../../../../../lib/server/auth';
 import { prisma } from '../../../../../lib/server/prisma';
 
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ holdId: string }> },
 ) {
+  const auth = verifyRequest(req);
+  if (!auth) return unauthorized();
+
   const { holdId } = await params;
 
   // UUID format check
@@ -12,7 +16,9 @@ export async function DELETE(
     return NextResponse.json({ message: 'Not found.' }, { status: 404 });
   }
 
-  await prisma.slotHold.deleteMany({ where: { id: holdId } });
+  // Scoped by owner in the same statement — never "look up by id, then authorize". Deleting
+  // someone else's hold would hand an attacker a way to free slots they do not own.
+  await prisma.slotHold.deleteMany({ where: { id: holdId, heldByUserId: auth.sub } });
 
   return new NextResponse(null, { status: 204 });
 }

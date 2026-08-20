@@ -26,7 +26,9 @@
     "login": "Sign In",
     "logout": "Sign Out",
     "profile": "Profile",
-    "language": "Language"
+    "language": "Language",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
   },
   "home": {
     "heroTitle": "Your beauty, made easier",
@@ -191,7 +193,9 @@
     "termsLink": "terms and conditions",
     "createReservation": "Create reservation",
     "prevMonth": "Previous month",
-    "nextMonth": "Next month"
+    "nextMonth": "Next month",
+    "slotTakenError": "Sorry, this time has just been taken. Please choose another time.",
+    "chooseAnotherTime": "Choose another time"
   },
   "auth": {
     "loginTitle": "Sign in",
@@ -561,7 +565,10 @@
       "cancellationWindow": "Cancellation window (hours)",
       "rescheduleWindow": "Reschedule window (hours)",
       "saveSuccess": "Settings saved successfully",
-      "errorLoad": "Couldn't load settings"
+      "errorLoad": "Couldn't load settings",
+      "bookingSlotInterval": "Time slot interval",
+      "bookingSlotIntervalHint": "Spacing between the booking times shown to customers.",
+      "minutesShort": "min"
     },
     "auditLog": {
       "title": "Audit Log",

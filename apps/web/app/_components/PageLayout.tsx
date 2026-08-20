@@ -2,6 +2,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useParams } from 'next/navigation';
 
@@ -48,6 +49,33 @@ export function PageHeader({
   activeNav?: NavKey;
 }) {
   const t = useTranslations('nav');
+  // Below 768px the inline nav links are hidden, so without this drawer the Salons and Stylists
+  // destinations were simply unreachable on a phone.
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // Escape closes the drawer, and an open drawer locks background scroll.
+  useEffect(() => {
+    if (!menuOpen) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') setMenuOpen(false);
+    }
+    // At >=768px the drawer is hidden by CSS, so it must also give the scroll lock back —
+    // otherwise widening the window leaves the page unscrollable with no visible menu to close.
+    const desktop = window.matchMedia('(min-width: 768px)');
+    function onDesktopChange() {
+      if (desktop.matches) setMenuOpen(false);
+    }
+    desktop.addEventListener('change', onDesktopChange);
+    document.addEventListener('keydown', onKeyDown);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      desktop.removeEventListener('change', onDesktopChange);
+      document.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [menuOpen]);
+
   return (
     <header
       style={{
@@ -93,8 +121,61 @@ export function PageHeader({
             </svg>
             {isAuthenticated ? t('account') : t('login')}
           </a>
+
+          <button
+            type="button"
+            className="sz-burger"
+            onClick={() => setMenuOpen((open) => !open)}
+            aria-expanded={menuOpen}
+            aria-controls="sz-mobile-nav"
+            aria-label={menuOpen ? t('closeMenu') : t('openMenu')}
+          >
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              {menuOpen ? (
+                <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+              ) : (
+                <path d="M3 6h14M3 10h14M3 14h14" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+              )}
+            </svg>
+          </button>
         </nav>
       </div>
+
+      {menuOpen ? (
+        <>
+          {/* Clicking the scrim dismisses the drawer. It is hidden from the a11y tree because the
+              close button and Escape already provide accessible ways out. */}
+          <div className="sz-scrim" aria-hidden="true" onClick={() => setMenuOpen(false)} />
+          <div id="sz-mobile-nav" className="sz-drawer">
+            <a
+              href="/salons"
+              className="sz-drawer-link"
+              aria-current={activeNav === 'salons' ? 'page' : undefined}
+              onClick={() => setMenuOpen(false)}
+            >
+              {t('salons')}
+            </a>
+            <a
+              href="/stilistler"
+              className="sz-drawer-link"
+              aria-current={activeNav === 'stilistler' ? 'page' : undefined}
+              onClick={() => setMenuOpen(false)}
+            >
+              {t('stylists')}
+            </a>
+            {isAuthenticated ? (
+              <a
+                href="/account/reservations"
+                className="sz-drawer-link"
+                aria-current={activeNav === 'reservations' ? 'page' : undefined}
+                onClick={() => setMenuOpen(false)}
+              >
+                {t('reservations')}
+              </a>
+            ) : null}
+          </div>
+        </>
+      ) : null}
 
       <style>{`
         /* Nav links: #4a3f6b on white is ~8.4:1, comfortably above WCAG AA for body text
@@ -145,7 +226,59 @@ export function PageHeader({
           min-height: 36px;
         }
         .sz-lang-select:hover { background-color: #e9d8fd; border-color: #c4b5fd; }
-        @media (min-width: 768px) { .sz-nav-link { display: block; } }
+
+        /* Hamburger — the mobile counterpart to the inline links. */
+        .sz-burger {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 40px;
+          height: 40px;
+          border: 1px solid #d8c2f0;
+          border-radius: 10px;
+          background: #f3e8ff;
+          color: #4a3f6b;
+          cursor: pointer;
+          padding: 0;
+        }
+        .sz-burger:hover { background: #e9d8fd; }
+        .sz-burger:focus-visible,
+        .sz-drawer-link:focus-visible { outline: 2px solid #7c3aed; outline-offset: 2px; }
+
+        .sz-scrim {
+          position: fixed;
+          inset: 64px 0 0 0;
+          background: rgba(20, 12, 40, 0.35);
+          z-index: 30;
+        }
+        .sz-drawer {
+          position: relative;
+          z-index: 31;
+          display: flex;
+          flex-direction: column;
+          gap: 0.15rem;
+          padding: 0.6rem 1.25rem 1rem;
+          background: white;
+          border-bottom: 1px solid #e4d4f4;
+          box-shadow: 0 16px 32px rgba(20, 12, 40, 0.12);
+        }
+        .sz-drawer-link {
+          display: block;
+          padding: 0.75rem 0.5rem;
+          border-radius: 10px;
+          font-size: 0.95rem;
+          font-weight: 600;
+          color: #4a3f6b;
+          text-decoration: none;
+        }
+        .sz-drawer-link:hover { background: #f3e8ff; color: #5b21b6; }
+        .sz-drawer-link[aria-current='page'] { background: #f3e8ff; color: #5b21b6; }
+
+        @media (min-width: 768px) {
+          .sz-nav-link { display: block; }
+          /* The drawer exists only where the inline links are hidden. */
+          .sz-burger, .sz-drawer, .sz-scrim { display: none; }
+        }
       `}</style>
     </header>
   );

@@ -35,6 +35,8 @@ export default function ConfirmStep() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Set when the server reports the slot was taken between selection and submission.
+  const [slotConflict, setSlotConflict] = useState(false);
   const profileLoaded = useRef(false);
 
   useEffect(() => {
@@ -89,13 +91,15 @@ export default function ConfirmStep() {
       // `replace` so Back does not return to the confirm screen with a spent draft.
       router.replace(`/salons/${salon.slug}/book/result/${res.id}`);
     } catch (err) {
+      // A 409 used to navigate straight back to the date/time step with no explanation, which read
+      // as "the button does nothing". Explain what happened and let the customer choose to go back.
       if (err instanceof ApiError && err.status === 409) {
-        setStartAt(undefined);
-        router.replace(`/salons/${salon.slug}/book/datetime`);
+        setSlotConflict(true);
+        setError(t('slotTakenError'));
       } else {
         setError(err instanceof Error ? err.message : tc('error'));
-        setSubmitting(false);
       }
+      setSubmitting(false);
     }
   }
 
@@ -153,17 +157,31 @@ export default function ConfirmStep() {
           </label>
 
           {error && (
-            <div style={{ background: '#fff5f5', border: '1px solid #fecaca', borderRadius: 10, padding: '0.75rem', fontSize: '0.82rem', color: '#9b1c1c' }}>
+            <div
+              role="alert"
+              style={{ background: '#fff5f5', border: '1px solid #fecaca', borderRadius: 10, padding: '0.75rem', fontSize: '0.82rem', color: '#9b1c1c' }}
+            >
               {error}
             </div>
           )}
 
-          <BookingCTAButton
-            label={submitting ? t('submitting') : t('createReservation')}
-            type="submit"
-            disabled={!termsAccepted || !profile || submitting}
-            loading={submitting}
-          />
+          {slotConflict ? (
+            <BookingCTAButton
+              label={t('chooseAnotherTime')}
+              type="button"
+              onClick={() => {
+                setStartAt(undefined);
+                router.replace(`/salons/${salon.slug}/book/datetime`);
+              }}
+            />
+          ) : (
+            <BookingCTAButton
+              label={submitting ? t('submitting') : t('createReservation')}
+              type="submit"
+              disabled={!termsAccepted || !profile || submitting}
+              loading={submitting}
+            />
+          )}
           <p style={{ textAlign: 'center', fontSize: '0.68rem', color: '#8a7aa8' }}>
             {t('paymentNote')}
           </p>

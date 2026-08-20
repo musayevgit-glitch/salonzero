@@ -26,7 +26,9 @@
     "login": "Giriş",
     "logout": "Çıkış",
     "profile": "Profil",
-    "language": "Dil"
+    "language": "Dil",
+    "openMenu": "Menüyü aç",
+    "closeMenu": "Menüyü kapat"
   },
   "home": {
     "heroTitle": "Güzelliğiniz bizimle daha kolay",
@@ -191,7 +193,9 @@
     "termsLink": "kullanım koşullarını",
     "createReservation": "Rezervasyon oluştur",
     "prevMonth": "Önceki ay",
-    "nextMonth": "Sonraki ay"
+    "nextMonth": "Sonraki ay",
+    "slotTakenError": "Maalesef bu saat az önce doldu. Lütfen başka bir saat seçin.",
+    "chooseAnotherTime": "Başka bir saat seç"
   },
   "auth": {
     "loginTitle": "Giriş yap",
@@ -561,7 +565,10 @@
       "cancellationWindow": "İptal penceresi (saat)",
       "rescheduleWindow": "Yeniden planlama penceresi (saat)",
       "saveSuccess": "Ayarlar başarıyla kaydedildi",
-      "errorLoad": "Ayarlar yüklenemedi"
+      "errorLoad": "Ayarlar yüklenemedi",
+      "bookingSlotInterval": "Zaman aralığı",
+      "bookingSlotIntervalHint": "Müşterilere gösterilen rezervasyon saatleri arasındaki aralık.",
+      "minutesShort": "dk"
     },
     "auditLog": {
       "title": "Denetim Günlüğü",

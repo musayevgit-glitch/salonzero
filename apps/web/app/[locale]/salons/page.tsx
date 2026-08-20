@@ -58,6 +58,26 @@ export default async function SalonsPage({
 
   const t = await getTranslations('salons');
 
+  /**
+   * Builds a listing URL for `targetPage`, preserving every active filter.
+   *
+   * Previously these links were string-concatenated and dropped minPrice/maxPrice entirely, so
+   * paging silently widened a price-filtered result set. Concatenation also left the values
+   * unencoded — a search for "cut & colour" truncated the query at the ampersand.
+   */
+  function pageHref(targetPage: number): string {
+    const qs = new URLSearchParams();
+    if (search) qs.set('search', search);
+    if (city) qs.set('city', city);
+    if (genderFocus) qs.set('genderFocus', genderFocus);
+    if (minPrice) qs.set('minPrice', minPrice);
+    if (maxPrice) qs.set('maxPrice', maxPrice);
+    if (sort !== 'name_asc') qs.set('sort', sort);
+    if (targetPage > 1) qs.set('page', String(targetPage));
+    const query = qs.toString();
+    return query ? `/salons?${query}` : '/salons';
+  }
+
   const [isAuthenticated, fetchResult] = await Promise.all([
     getIsAuthenticated(),
     fetchPublicApi<SalonListResponse>('/public/salons', { params }).catch((err: unknown) => err),
@@ -110,31 +130,42 @@ export default async function SalonsPage({
           </div>
 
           {(currentPage > 1 || currentPage < totalPages) && (
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '3rem' }}>
+            <nav
+              aria-label={t('title')}
+              style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginTop: '3rem' }}
+            >
               {currentPage > 1 && (
-                <Link
-                  href={`/salons?page=${currentPage - 1}${search ? `&search=${search}` : ''}${city ? `&city=${city}` : ''}${genderFocus ? `&genderFocus=${genderFocus}` : ''}${sort !== 'name_asc' ? `&sort=${sort}` : ''}`}
-                  style={{ padding: '0.6rem 1.5rem', border: '1px solid #e4d4f4', borderRadius: 8, color: '#1e1b2e', textDecoration: 'none', fontWeight: 600, background: 'white' }}
-                >
+                <Link href={pageHref(currentPage - 1)} className="sz-page-link">
                   {t('prevPage')}
                 </Link>
               )}
+              <span style={{ fontSize: '0.85rem', color: '#7c6fa0' }}>
+                {currentPage} / {totalPages}
+              </span>
               {currentPage < totalPages && (
-                <Link
-                  href={`/salons?page=${currentPage + 1}${search ? `&search=${search}` : ''}${city ? `&city=${city}` : ''}${genderFocus ? `&genderFocus=${genderFocus}` : ''}${sort !== 'name_asc' ? `&sort=${sort}` : ''}`}
-                  style={{ padding: '0.6rem 1.5rem', border: '1px solid #e4d4f4', borderRadius: 8, color: '#1e1b2e', textDecoration: 'none', fontWeight: 600, background: 'white' }}
-                >
+                <Link href={pageHref(currentPage + 1)} className="sz-page-link">
                   {t('nextPage')}
                 </Link>
               )}
-            </div>
+            </nav>
           )}
         </>
       )}
+      {/* The grid is responsive through `auto-fill`/`minmax` alone. The media queries that used to
+          live here targeted `div[style*="gridTemplateColumns"]`, which never matched anything —
+          React renders the kebab-case `grid-template-columns` into the style attribute. */}
       <style>{`
-        @media (min-width: 1024px) { div[style*="gridTemplateColumns"] { grid-template-columns: repeat(3, 1fr) !important; } }
-        @media (min-width: 768px) and (max-width: 1023px) { div[style*="gridTemplateColumns"] { grid-template-columns: repeat(2, 1fr) !important; } }
-        @media (max-width: 767px) { div[style*="gridTemplateColumns"] { grid-template-columns: 1fr !important; } }
+        .sz-page-link {
+          padding: 0.6rem 1.5rem;
+          border: 1px solid #e4d4f4;
+          border-radius: 10px;
+          color: #1e1b2e;
+          text-decoration: none;
+          font-weight: 600;
+          background: white;
+        }
+        .sz-page-link:hover { background: #f3e8ff; border-color: #c4b5fd; }
+        .sz-page-link:focus-visible { outline: 2px solid #7c3aed; outline-offset: 2px; }
       `}</style>
     </PageLayout>
   );

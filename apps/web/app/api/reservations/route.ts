@@ -5,6 +5,7 @@ import { Prisma } from '@salonomia/database';
 import { verifyRequest, unauthorized } from '../../../lib/server/auth';
 import { prisma } from '../../../lib/server/prisma';
 import { isEmployeeSlotAvailable } from '../../../lib/server/availability';
+import { blockingHoldFilter } from '../../../lib/server/slot-holds';
 import { recordAudit } from '../../../lib/server/audit';
 
 const SLOT_UNAVAILABLE = 'This time is no longer available. Please choose another time.';
@@ -107,8 +108,17 @@ export async function POST(req: NextRequest) {
         where: { employeeId: candidate.id, status: { in: [...ACTIVE_STATUSES] }, startAt: { lt: windowEnd }, blockedUntil: { gt: windowStart } },
         select: { startAt: true, endAt: true, blockedUntil: true },
       }),
+      // A hold this same customer placed while walking through the booking steps must NOT block
+      // their own reservation. Before `heldByUserId` existed every hold looked like a competitor's,
+      // so the customer's own date/time-step hold made availability re-checking fail and every
+      // booking ended in a 409 "slot unavailable" — reservations could not be created at all.
       prisma.slotHold.findMany({
-        where: { employeeId: candidate.id, startAt: { lt: endAt }, endAt: { gt: startAt }, expiresAt: { gt: now } },
+        where: {
+          employeeId: candidate.id,
+          startAt: { lt: endAt },
+          endAt: { gt: startAt },
+          ...blockingHoldFilter(now, customerId),
+        },
         select: { startAt: true, endAt: true },
       }),
     ]);

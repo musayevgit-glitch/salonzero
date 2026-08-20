@@ -31,6 +31,7 @@ interface SettingsData {
     autoConfirm: boolean;
     minNoticeMinutes: number;
     maxAdvanceDays: number;
+    bookingSlotIntervalMinutes: number;
     cancellationWindowHours: number;
     rescheduleWindowHours: number;
   } | null;
@@ -59,6 +60,7 @@ export default function SalonSettingsPage() {
   const [autoConfirm, setAutoConfirm] = useState(false);
   const [minNoticeMinutes, setMinNoticeMinutes] = useState(60);
   const [maxAdvanceDays, setMaxAdvanceDays] = useState(60);
+  const [bookingSlotIntervalMinutes, setBookingSlotIntervalMinutes] = useState(15);
   const [cancellationWindowHours, setCancellationWindowHours] = useState(24);
   const [rescheduleWindowHours, setRescheduleWindowHours] = useState(24);
 
@@ -79,6 +81,7 @@ export default function SalonSettingsPage() {
           setAutoConfirm(data.bookingPolicy.autoConfirm);
           setMinNoticeMinutes(data.bookingPolicy.minNoticeMinutes);
           setMaxAdvanceDays(data.bookingPolicy.maxAdvanceDays);
+          setBookingSlotIntervalMinutes(data.bookingPolicy.bookingSlotIntervalMinutes ?? 15);
           setCancellationWindowHours(data.bookingPolicy.cancellationWindowHours);
           setRescheduleWindowHours(data.bookingPolicy.rescheduleWindowHours);
         }
@@ -118,6 +121,7 @@ export default function SalonSettingsPage() {
           autoConfirm,
           minNoticeMinutes,
           maxAdvanceDays,
+          bookingSlotIntervalMinutes,
           cancellationWindowHours,
           rescheduleWindowHours,
         }),
@@ -270,6 +274,27 @@ export default function SalonSettingsPage() {
                   onChange={(e) => setMaxAdvanceDays(Number(e.target.value))}
                   min={1}
                 />
+              )}
+            </FormField>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <FormField
+              label={t('settings.bookingSlotInterval')}
+              description={t('settings.bookingSlotIntervalHint')}
+            >
+              {(fieldProps) => (
+                <Select
+                  {...fieldProps}
+                  value={String(bookingSlotIntervalMinutes)}
+                  onChange={(e) => setBookingSlotIntervalMinutes(Number(e.target.value))}
+                >
+                  {[5, 10, 15, 20, 30].map((minutes) => (
+                    <option key={minutes} value={minutes}>
+                      {minutes} {t('settings.minutesShort')}
+                    </option>
+                  ))}
+                </Select>
               )}
             </FormField>
           </div>
