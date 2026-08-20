@@ -31,12 +31,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ salo
   const parsed = listServicesQuerySchema.safeParse({
     page: searchParams.page ? Number(searchParams.page) : undefined,
     pageSize: searchParams.pageSize ? Number(searchParams.pageSize) : undefined,
-    isActive:
-      searchParams.isActive === 'true'
-        ? true
-        : searchParams.isActive === 'false'
-          ? false
-          : undefined,
+    isActive: searchParams.isActive || undefined,
     categoryId: searchParams.categoryId || undefined,
     search: searchParams.search || undefined,
   });
