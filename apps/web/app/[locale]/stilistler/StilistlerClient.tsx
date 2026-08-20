@@ -98,19 +98,48 @@ export function StilistlerClient({ stylists }: { stylists: Stylist[] }) {
   return (
     <div style={{ position: 'relative' }}>
       {/* Page heading */}
-      <div style={{ marginBottom: '2rem' }}>
+      <header style={{ marginBottom: '1.75rem', maxWidth: 680 }}>
         <h1
           style={{
             fontFamily: "'Playfair Display', Georgia, serif",
-            fontSize: '2.5rem',
+            fontSize: 'clamp(1.9rem, 5vw, 2.6rem)',
             fontWeight: 700,
             color: '#1e1b2e',
-            margin: '0 0 1rem 0',
+            margin: 0,
+            lineHeight: 1.15,
           }}
         >
           {t('title')}
         </h1>
-        <p style={{ color: '#7c6fa0', fontSize: '1rem', margin: 0 }}>{t('pageSubtitle')}</p>
+        <p style={{ color: '#7c6fa0', fontSize: '1rem', margin: '0.6rem 0 0', lineHeight: 1.6 }}>
+          {t('pageSubtitle')}
+        </p>
+      </header>
+
+      {/* Prominent search — the primary way people narrow this list. */}
+      <div className="sz-search-shell">
+        <svg
+          width="19"
+          height="19"
+          viewBox="0 0 16 16"
+          fill="none"
+          aria-hidden="true"
+          style={{ flexShrink: 0, color: '#6A5ACD' }}
+        >
+          <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.6" />
+          <path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        </svg>
+        <label htmlFor="stylist-search" className="sz-visually-hidden">
+          {t('searchLabel')}
+        </label>
+        <input
+          id="stylist-search"
+          type="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder={t('searchPlaceholder')}
+          autoComplete="off"
+        />
       </div>
 
       {/* Filter panel */}
@@ -119,48 +148,12 @@ export function StilistlerClient({ stylists }: { stylists: Stylist[] }) {
           background: 'white',
           borderRadius: 16,
           border: '1px solid #e4d4f4',
-          padding: '1.5rem',
-          marginBottom: '2.5rem',
+          padding: '1.1rem 1.25rem',
+          margin: '1rem 0 2rem',
+          boxShadow: '0 1px 4px rgba(30,27,46,0.06)',
         }}
       >
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'flex-end' }}>
-          <div
-            style={{
-              flex: '1 1 220px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.4rem',
-              minWidth: 0,
-            }}
-          >
-            <label
-              htmlFor="stylist-search"
-              style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e1b2e' }}
-            >
-              {t('searchLabel')}
-            </label>
-            <input
-              id="stylist-search"
-              type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={t('searchPlaceholder')}
-              autoComplete="off"
-              className="sz-filter-input"
-              style={{
-                height: 44,
-                boxSizing: 'border-box',
-                padding: '0 1rem',
-                borderRadius: 10,
-                border: '1px solid #e4d4f4',
-                outline: 'none',
-                fontSize: '0.9rem',
-                fontFamily: 'inherit',
-                width: '100%',
-              }}
-            />
-          </div>
-
           <div style={{ flex: '1 1 160px', minWidth: 0 }}>
             {cities.length > 0 ? (
               <Dropdown
@@ -234,108 +227,43 @@ export function StilistlerClient({ stylists }: { stylists: Stylist[] }) {
 
       {/* Grid */}
       {filtered.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '4rem 1rem', color: '#7c6fa0' }}>
-          <p style={{ fontSize: '1.1rem', margin: '0 0 0.5rem 0', color: '#1e1b2e' }}>
+        <div className="sz-list-state">
+          <svg width="88" height="88" viewBox="0 0 88 88" fill="none" aria-hidden="true">
+            <circle cx="44" cy="44" r="43" stroke="#e4d4f4" strokeWidth="2" />
+            <circle cx="44" cy="36" r="11" stroke="#6A5ACD" strokeWidth="2.5" />
+            <path
+              d="M25 64c0-9.4 8.5-17 19-17s19 7.6 19 17"
+              stroke="#6A5ACD"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+            />
+          </svg>
+          <p style={{ fontSize: '1rem', fontWeight: 600, margin: '1rem 0 0.35rem', color: '#1e1b2e' }}>
             {t('notFoundTitle')}
           </p>
-          <p>{t('notFoundDesc')}</p>
+          <p style={{ color: '#7c6fa0', fontSize: '0.9rem', margin: 0 }}>{t('notFoundDesc')}</p>
         </div>
       ) : (
-        <div
-          className="stylist-grid"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-            gap: '1.5rem',
-            marginBottom: '3rem',
-          }}
-        >
-          {filtered.map((s, idx) => {
+        <div className="stylist-grid">
+          {filtered.map((s) => {
             const hasPortfolio = s.portfolio && s.portfolio.length > 0;
-            const coverImage = hasPortfolio
-              ? s.portfolio[0]!.imageUrl
-              : `/images/salon-${(idx % 3) + 1}.png`;
+            // The avatar is the stylist's own first portfolio image, or their initials.
+            // Nothing else — borrowing an unrelated salon photo misrepresents their work.
+            const avatar = hasPortfolio ? s.portfolio[0]!.imageUrl : null;
 
             return (
-              <div
-                key={s.id}
-                style={{
-                  background: 'white',
-                  borderRadius: 16,
-                  border: '1px solid #e4d4f4',
-                  overflow: 'hidden',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  boxShadow: '0 2px 8px rgba(30,27,46,0.04)',
-                }}
-              >
-                {/* Cover + avatar */}
-                <div
-                  style={{
-                    height: 130,
-                    background: `linear-gradient(to bottom, rgba(30,27,46,0.05), rgba(30,27,46,0.7)), url(${coverImage})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    position: 'relative',
-                  }}
-                >
-                  <div
-                    aria-hidden="true"
-                    style={{
-                      width: 52,
-                      height: 52,
-                      borderRadius: '50%',
-                      background: '#7c3aed',
-                      color: 'white',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '1.05rem',
-                      fontWeight: 700,
-                      letterSpacing: '0.02em',
-                      border: '3px solid white',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                      position: 'absolute',
-                      bottom: -22,
-                      left: 18,
-                      zIndex: 2,
-                    }}
-                  >
-                    {getInitials(s.fullName)}
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    padding: '2rem 1.25rem 1.25rem',
-                    flex: 1,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.75rem',
-                  }}
-                >
-                  <div>
-                    <h3
-                      style={{
-                        fontFamily: "'Playfair Display', Georgia, serif",
-                        fontSize: '1.15rem',
-                        color: '#1e1b2e',
-                        margin: '0 0 0.2rem',
-                        fontWeight: 700,
-                      }}
-                    >
-                      {s.fullName}
-                    </h3>
-                    <p
-                      style={{
-                        fontSize: '0.8rem',
-                        color: '#6b5d8a',
-                        margin: 0,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.25rem',
-                      }}
-                    >
+              <article key={s.id} className="sz-stylist-card">
+                <div className="sz-stylist-top">
+                  {avatar ? (
+                    <img className="sz-stylist-avatar" src={avatar} alt="" aria-hidden="true" loading="lazy" />
+                  ) : (
+                    <span className="sz-stylist-avatar sz-stylist-avatar-fb" aria-hidden="true">
+                      {getInitials(s.fullName)}
+                    </span>
+                  )}
+                  <div style={{ minWidth: 0 }}>
+                    <h3 className="sz-stylist-name">{s.fullName}</h3>
+                    <p className="sz-stylist-salon">
                       <svg
                         width="11"
                         height="11"
@@ -344,87 +272,34 @@ export function StilistlerClient({ stylists }: { stylists: Stylist[] }) {
                         stroke="currentColor"
                         strokeWidth="2"
                         aria-hidden="true"
+                        style={{ flexShrink: 0 }}
                       >
                         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                         <circle cx="12" cy="10" r="3" />
                       </svg>
-                      {s.salon.city ? `${s.salon.city} · ` : ''}
-                      {s.salon.name}
+                      <span className="sz-truncate">
+                        {s.salon.city ? `${s.salon.city} · ` : ''}
+                        {s.salon.name}
+                      </span>
                     </p>
-                  </div>
-
-                  {s.bio && (
-                    <p
-                      style={{
-                        fontSize: '0.85rem',
-                        color: '#6b5d8a',
-                        lineHeight: 1.5,
-                        margin: 0,
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                      }}
-                    >
-                      {s.bio}
-                    </p>
-                  )}
-
-                  {hasPortfolio && (
-                    <p
-                      style={{ fontSize: '0.78rem', color: '#7c3aed', fontWeight: 500, margin: 0 }}
-                    >
-                      {t('portfolioCount', { count: s.portfolio.length })}
-                    </p>
-                  )}
-
-                  <div
-                    style={{
-                      marginTop: 'auto',
-                      paddingTop: '0.75rem',
-                      display: 'flex',
-                      gap: '0.5rem',
-                    }}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setSelectedStylist(s)}
-                      className="sz-outline-btn"
-                      style={{
-                        flex: 1,
-                        padding: '0.6rem',
-                        background: 'white',
-                        border: '1.5px solid #e4d4f4',
-                        color: '#1e1b2e',
-                        borderRadius: 10,
-                        fontSize: '0.85rem',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        fontFamily: 'inherit',
-                      }}
-                    >
-                      {t('viewPortfolio')}
-                    </button>
-                    <Link
-                      href={bookingHref(s)}
-                      className="sz-primary-btn"
-                      style={{
-                        flex: 1,
-                        padding: '0.6rem 1rem',
-                        background: '#7c3aed',
-                        color: 'white',
-                        borderRadius: 10,
-                        fontSize: '0.85rem',
-                        fontWeight: 600,
-                        textDecoration: 'none',
-                        textAlign: 'center',
-                      }}
-                    >
-                      {t('bookStylist')}
-                    </Link>
                   </div>
                 </div>
-              </div>
+
+                {s.bio ? <p className="sz-stylist-bio">{s.bio}</p> : null}
+
+                {hasPortfolio ? (
+                  <p className="sz-stylist-portfolio">{t('portfolioCount', { count: s.portfolio.length })}</p>
+                ) : null}
+
+                <div className="sz-stylist-actions">
+                  <button type="button" onClick={() => setSelectedStylist(s)} className="sz-outline-btn">
+                    {t('viewPortfolio')}
+                  </button>
+                  <Link href={bookingHref(s)} className="sz-primary-btn">
+                    {t('bookStylist')}
+                  </Link>
+                </div>
+              </article>
             );
           })}
         </div>
@@ -661,14 +536,97 @@ export function StilistlerClient({ stylists }: { stylists: Stylist[] }) {
       )}
 
       <style>{`
+        .sz-search-shell {
+          display: flex;
+          align-items: center;
+          gap: 0.7rem;
+          width: 100%;
+          background: #fff;
+          border: 1px solid #e4d4f4;
+          border-radius: 14px;
+          padding: 0.6rem 1.1rem;
+          box-shadow: 0 1px 4px rgba(30,27,46,0.06);
+          box-sizing: border-box;
+        }
+        .sz-search-shell:focus-within { border-color: #6A5ACD; box-shadow: 0 0 0 3px rgba(106,90,205,0.18); }
+        .sz-search-shell input {
+          flex: 1; min-width: 0; height: 36px;
+          border: none; outline: none; background: none;
+          font-family: inherit; font-size: 0.95rem; color: #1e1b2e;
+        }
+        .sz-visually-hidden {
+          position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+          overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+        }
         .sz-filter-input:hover { border-color: #c4b5fd; }
         .sz-filter-input:focus-visible { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.25); }
-        .sz-outline-btn:hover { background: #faf5ff; }
-        .sz-primary-btn:hover { background: #6d28d9; }
+
+        .sz-list-state {
+          display: flex; flex-direction: column; align-items: center; text-align: center;
+          padding: 4rem 1rem; background: #fff;
+          border: 1px dashed #e4d4f4; border-radius: 18px;
+        }
+
+        .stylist-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 1.25rem;
+          margin-bottom: 3rem;
+        }
+        .sz-stylist-card {
+          background: #fff;
+          border: 1px solid #e4d4f4;
+          border-radius: 18px;
+          padding: 1.25rem;
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+          min-width: 0;
+          box-shadow: 0 1px 4px rgba(30,27,46,0.06);
+          transition: transform 0.18s ease, box-shadow 0.18s ease;
+        }
+        .sz-stylist-card:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(30,27,46,0.10); }
+        .sz-stylist-top { display: flex; align-items: center; gap: 0.85rem; min-width: 0; }
+        .sz-stylist-avatar {
+          width: 58px; height: 58px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
+          border: 2px solid #fff; box-shadow: 0 2px 10px rgba(30,27,46,0.14);
+        }
+        .sz-stylist-avatar-fb {
+          display: flex; align-items: center; justify-content: center;
+          background: linear-gradient(135deg, #6A5ACD, #7c3aed);
+          color: #fff; font-weight: 700; font-size: 1.05rem;
+        }
+        .sz-stylist-name {
+          margin: 0 0 0.2rem;
+          font-family: 'Playfair Display', Georgia, serif;
+          font-size: 1.1rem; font-weight: 700; color: #1e1b2e; line-height: 1.25;
+        }
+        .sz-stylist-salon {
+          margin: 0; display: flex; align-items: center; gap: 0.3rem;
+          font-size: 0.8rem; color: #7c6fa0; min-width: 0;
+        }
+        .sz-truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .sz-stylist-bio {
+          margin: 0; font-size: 0.85rem; line-height: 1.55; color: #6b5d8a;
+          display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        }
+        .sz-stylist-portfolio { margin: 0; font-size: 0.78rem; font-weight: 600; color: #6A5ACD; }
+        .sz-stylist-actions { margin-top: auto; padding-top: 0.5rem; display: flex; gap: 0.5rem; }
+        .sz-stylist-actions .sz-outline-btn {
+          flex: 1; padding: 0.6rem; background: #fff; border: 1.5px solid #e4d4f4;
+          color: #4a3f6b; border-radius: 10px; font-size: 0.84rem; font-weight: 600;
+          cursor: pointer; font-family: inherit;
+        }
+        .sz-stylist-actions .sz-primary-btn {
+          flex: 1; padding: 0.6rem; background: #6A5ACD; color: #fff; border-radius: 10px;
+          font-size: 0.84rem; font-weight: 600; text-decoration: none; text-align: center;
+        }
+        .sz-outline-btn:hover { background: #faf5ff; border-color: #c4b5fd; }
+        .sz-primary-btn:hover { background: #5c4cbe; }
         .sz-outline-btn:focus-visible, .sz-primary-btn:focus-visible { outline: 2px solid #7c3aed; outline-offset: 2px; }
-        @media (min-width: 1024px) { .stylist-grid { grid-template-columns: repeat(3, 1fr) !important; } }
-        @media (min-width: 768px) and (max-width: 1023px) { .stylist-grid { grid-template-columns: repeat(2, 1fr) !important; } }
-        @media (max-width: 767px) { .stylist-grid { grid-template-columns: 1fr !important; } }
+
+        @media (min-width: 640px) { .stylist-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (min-width: 1024px) { .stylist-grid { grid-template-columns: repeat(3, 1fr); } }
       `}</style>
     </div>
   );

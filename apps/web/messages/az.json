@@ -16,7 +16,13 @@
     "searching": "Axtarılır...",
     "showPassword": "Şifrəni göstər",
     "hidePassword": "Şifrəni gizlət",
-    "logout": "Çıxış et"
+    "logout": "Çıxış et",
+    "footerNav": "Naviqasiya",
+    "footerCompany": "Şirkət",
+    "footerSocial": "Sosial",
+    "terms": "İstifadə şərtləri",
+    "contact": "Əlaqə",
+    "footerTagline": "Gözəllik salonlarını kəşf edin, onlayn rezervasiya edin."
   },
   "nav": {
     "salons": "Salonlar",
@@ -57,7 +63,18 @@
     "statsLabel": "Platformada",
     "statsSalons": "{count} aktiv salon",
     "statsCta": "Salonlara bax",
-    "viewSalon": "Baxmaq"
+    "viewSalon": "Baxmaq",
+    "heroTitle2": "Gözəlliyinizi peşəkarlarla kəşf edin",
+    "heroCtaPrimary": "Salonlara bax",
+    "heroCtaSecondary": "Stilistlər",
+    "howItWorksTitle": "Necə işləyir?",
+    "step1Title": "Salon seç",
+    "step1Desc": "Sizə uyğun salonu tapın.",
+    "step2Title": "Vaxt seç",
+    "step2Desc": "Boş saatlardan birini seçin.",
+    "step3Title": "Rezervasiya et",
+    "step3Desc": "Bir kliklə təsdiqləyin.",
+    "whyTitle": "Niyə Salonomia?"
   },
   "salons": {
     "title": "Salonlar",
@@ -79,7 +96,12 @@
     "loadError": "Salonlar yüklənə bilmədi",
     "prevPage": "Əvvəlki",
     "nextPage": "Növbəti",
-    "from": "başlayaraq"
+    "from": "başlayaraq",
+    "pageSubtitle": "Sizə ən yaxın gözəllik salonlarını tapın və onlayn rezervasiya edin.",
+    "searchLabel": "Axtarış",
+    "resultCount": "{count} salon tapıldı",
+    "emptyHint": "Axtarış sözünü dəyişin və ya filtrləri sıfırlayın.",
+    "pageLabel": "Səhifə {current} / {total}"
   },
   "salonDetail": {
     "about": "Haqqında",
@@ -97,7 +119,16 @@
     "loadError": "Salon məlumatları yüklənə bilmədi.",
     "genderWomen": "Qadınlar",
     "genderMen": "Kişilər",
-    "genderUnisex": "Uniseks"
+    "genderUnisex": "Uniseks",
+    "tabServices": "Xidmətlər",
+    "tabStylists": "Stilistlər",
+    "tabAbout": "Haqqında",
+    "contact": "Əlaqə",
+    "otherServices": "Digər xidmətlər",
+    "autoConfirmOn": "Rezervasiyalar anında təsdiqlənir.",
+    "autoConfirmOff": "Rezervasiyalar üçün salonun təsdiqi tələb olunur.",
+    "cancelWindow": "Təyinatdan {hours} saat əvvələ qədər ləğv etmək mümkündür.",
+    "rescheduleWindow": "Təyinatdan {hours} saat əvvələ qədər vaxtı dəyişmək mümkündür."
   },
   "stylists": {
     "title": "Stilistlər",
@@ -277,7 +308,13 @@
     "confirmCancelBtn": "Bəli, ləğv et",
     "statusFilterLabel": "Status",
     "statusRejected": "Rədd edildi",
-    "backToList": "Rezervasiyalara qayıt"
+    "backToList": "Rezervasiyalara qayıt",
+    "tabUpcoming": "Gələcək",
+    "tabPast": "Keçmiş",
+    "noUpcoming": "Gələcək rezervasiyanız yoxdur.",
+    "noPast": "Keçmiş rezervasiyanız yoxdur.",
+    "quickLinks": "Sürətli keçidlər",
+    "notifications": "Bildirişlər"
   },
   "terms": {
     "pageTitle": "İstifadə Şərtləri — Salonomia",

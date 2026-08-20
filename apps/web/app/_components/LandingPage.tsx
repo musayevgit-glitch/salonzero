@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { PageHeader, PageFooter } from './PageLayout';
 import { SalonCard } from './SalonCard';
+import { getInitials } from '../../lib/initials';
+import { resolveSalonCoverUrl, resolveSalonLogoUrl } from '../../lib/salon-images';
 
 interface SalonListItem {
   id: string;
@@ -27,7 +29,7 @@ function ArrowRightIcon({ size = 14 }: { size?: number }) {
       <path
         d="M2.5 7h9M8 3.5 11.5 7 8 10.5"
         stroke="currentColor"
-        strokeWidth="1.4"
+        strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -87,30 +89,18 @@ function HeroSearch() {
   const showPanel = query.trim().length >= 2;
 
   return (
-    <div className="hform" style={{ marginTop: '2rem', position: 'relative', maxWidth: 480 }}>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          background: 'rgba(255,255,255,0.08)',
-          border: '1px solid rgba(167,139,250,0.35)',
-          borderRadius: 20,
-          padding: '0.55rem 1.1rem',
-          gap: '0.6rem',
-          backdropFilter: 'blur(20px)',
-          boxShadow: '0 4px 32px rgba(0,0,0,0.25)',
-        }}
-      >
+    <div style={{ marginTop: '1.75rem', position: 'relative', maxWidth: 460 }}>
+      <div className="sz-hero-search">
         <svg
-          width="16"
-          height="16"
+          width="17"
+          height="17"
           viewBox="0 0 16 16"
           fill="none"
           aria-hidden="true"
-          style={{ flexShrink: 0, color: '#a78bfa' }}
+          style={{ flexShrink: 0, color: '#6A5ACD' }}
         >
-          <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5" />
-          <path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.6" />
+          <path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
         </svg>
         <input
           type="search"
@@ -121,24 +111,9 @@ function HeroSearch() {
           aria-label={t('heroSearchPlaceholder')}
           aria-describedby="hero-search-hint"
           autoComplete="off"
-          style={
-            {
-              flex: 1,
-              minWidth: 0,
-              background: 'none',
-              border: 'none',
-              outline: 'none',
-              color: 'white',
-              fontSize: '0.9rem',
-              height: 34,
-            } as React.CSSProperties
-          }
         />
       </div>
-      <p
-        id="hero-search-hint"
-        style={{ marginTop: '0.5rem', fontSize: '0.72rem', color: 'rgba(220,210,255,0.6)' }}
-      >
+      <p id="hero-search-hint" style={{ marginTop: '0.5rem', fontSize: '0.74rem', color: '#8b7fae' }}>
         {t('searchHint')}
       </p>
 
@@ -148,14 +123,14 @@ function HeroSearch() {
           aria-live="polite"
           style={{
             position: 'absolute',
-            top: '100%',
+            top: 'calc(100% - 1.4rem)',
             left: 0,
             right: 0,
             marginTop: '0.35rem',
             background: 'white',
             borderRadius: 16,
             border: '1px solid #e4d4f4',
-            boxShadow: '0 18px 48px rgba(10,4,30,0.35)',
+            boxShadow: '0 18px 48px rgba(30,27,46,0.16)',
             overflow: 'hidden',
             zIndex: 20,
           }}
@@ -217,526 +192,164 @@ function HeroSearch() {
                 padding: '0.7rem 1rem',
                 fontSize: '0.8rem',
                 fontWeight: 600,
-                color: '#7c3aed',
+                color: '#6A5ACD',
                 textDecoration: 'none',
               }}
             >
               {t('searchViewAll')}
             </a>
           ) : null}
-
-          <style>{`
-            .hero-search-item:hover { background: #faf5ff; }
-            .hero-search-item:focus-visible { outline: 2px solid #7c3aed; outline-offset: -2px; }
-          `}</style>
         </div>
       ) : null}
     </div>
   );
 }
 
-/* ─── Hero ───────────────────────────────────────────────── */
-const HERO_IMAGES = ['/images/salon-1.png', '/images/salon-2.png', '/images/salon-3.png'];
+/* ─── Hero visual: overlapping real salon cards ──────────── */
+function HeroCollage({ salons }: { salons: SalonListItem[] }) {
+  const tr = useTranslations('ratings');
+  // Only real salons are shown. With nothing to show, the collage is skipped entirely
+  // rather than faking a marketplace that has no listings yet.
+  const picks = salons.slice(0, 3);
+  if (picks.length === 0) return null;
 
-function Hero({ salonCount, serviceTerms }: { salonCount: number; serviceTerms: string[] }) {
+  const OFFSETS = [
+    { top: 0, left: '4%', rotate: '-3deg', z: 3 },
+    { top: 92, left: '26%', rotate: '2.5deg', z: 2 },
+    { top: 190, left: '10%', rotate: '-1.5deg', z: 1 },
+  ];
+
+  return (
+    <div className="sz-collage" aria-hidden="true">
+      <span className="sz-collage-glow" />
+      {picks.map((salon, i) => {
+        const o = OFFSETS[i]!;
+        const logo = resolveSalonLogoUrl(salon.logoUrl);
+        const hasRating = typeof salon.avgRating === 'number' && salon.ratingCount > 0;
+        return (
+          <div
+            key={salon.id}
+            className="sz-collage-card"
+            style={{ top: o.top, left: o.left, transform: `rotate(${o.rotate})`, zIndex: o.z }}
+          >
+            <img src={resolveSalonCoverUrl(salon.coverUrl)} alt="" loading="lazy" />
+            <div className="sz-collage-meta">
+              {logo ? (
+                <img className="sz-collage-logo" src={logo} alt="" loading="lazy" />
+              ) : (
+                <span className="sz-collage-logo sz-collage-logo-fb">{getInitials(salon.name)}</span>
+              )}
+              <div style={{ minWidth: 0 }}>
+                <p className="sz-collage-name">{salon.name}</p>
+                <p className="sz-collage-sub">
+                  {hasRating
+                    ? tr('ratingWithCount', {
+                        rating: (salon.avgRating as number).toFixed(1),
+                        count: salon.ratingCount,
+                      })
+                    : (salon.city ?? '')}
+                </p>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ─── Hero ───────────────────────────────────────────────── */
+function Hero({ salons }: { salons: SalonListItem[] }) {
   const t = useTranslations('home');
 
   return (
-    <section
-      style={{
-        position: 'relative',
-        overflow: 'hidden',
-        minHeight: '88vh',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
-      <style>{`
-        @keyframes satinShift {
-          0%   { background-position: 0% 0%; }
-          33%  { background-position: 100% 50%; }
-          66%  { background-position: 50% 100%; }
-          100% { background-position: 0% 0%; }
-        }
-        @keyframes wordUp {
-          from { opacity: 0; transform: translateY(40px) skewY(3deg); }
-          to   { opacity: 1; transform: translateY(0) skewY(0deg); }
-        }
-        @keyframes floatImg {
-          0%, 100% { transform: translateY(0px); }
-          50%       { transform: translateY(-12px); }
-        }
-        @keyframes floatImg2 {
-          0%, 100% { transform: translateY(0px) rotate(-1deg); }
-          50%       { transform: translateY(-8px) rotate(1deg); }
-        }
-        @keyframes purplePulse {
-          0%, 100% { opacity: 0.14; transform: scale(1); }
-          50%       { opacity: 0.32; transform: scale(1.08); }
-        }
-        @keyframes sparkle {
-          0%, 100% { opacity: 0; transform: scale(0.5); }
-          50%       { opacity: 0.75; transform: scale(1); }
-        }
-        @keyframes marquee {
-          from { transform: translateX(0); }
-          to   { transform: translateX(-50%); }
-        }
-        @keyframes badgePop {
-          from { opacity: 0; transform: scale(0.8) translateY(-8px); }
-          to   { opacity: 1; transform: scale(1) translateY(0); }
-        }
-        @keyframes lineGrow {
-          from { width: 0; }
-          to   { width: 100%; }
-        }
-        @keyframes fadeSlide {
-          from { opacity: 0; transform: translateX(-20px); }
-          to   { opacity: 1; transform: translateX(0); }
-        }
-        .hero-satin {
-          background: linear-gradient(
-            135deg,
-            #0a0514 0%,
-            #1a0a38 12%,
-            #2d1565 22%,
-            #5b21b6 33%,
-            #7c3aed 44%,
-            #c4b5fd 50%,
-            #7c3aed 56%,
-            #5b21b6 67%,
-            #2d1565 78%,
-            #1a0a38 88%,
-            #0a0514 100%
-          );
-          background-size: 500% 500%;
-          animation: satinShift 13s ease-in-out infinite;
-        }
-        .hw { display: inline-block; opacity: 0; animation: wordUp 0.65s cubic-bezier(.22,.68,0,1.2) forwards; }
-        .hw1 { animation-delay: 0.1s; }
-        .hw2 { animation-delay: 0.25s; }
-        .hw3 { animation-delay: 0.4s; }
-        .hbadge { opacity: 0; animation: badgePop 0.5s cubic-bezier(.34,1.56,.64,1) 0.05s forwards; }
-        .himg1 { animation: floatImg 7s ease-in-out 0.3s infinite; }
-        .himg2 { animation: floatImg2 9s ease-in-out 1s infinite; }
-        .himg3 { animation: floatImg 11s ease-in-out 2s infinite; }
-        .hform { opacity: 0; animation: fadeSlide 0.6s ease 0.7s forwards; }
-        .purple-line-anim { display: block; height: 3px; background: linear-gradient(90deg, #7c3aed, #c4b5fd, #7c3aed); border-radius: 2px; width: 0; animation: lineGrow 0.8s ease 0.6s forwards; }
-        @media (max-width: 767px) {
-          .hero-cols { flex-direction: column !important; }
-          .hero-right { display: none !important; }
-          .hero-left { max-width: 100% !important; }
-          .hero-h1 { font-size: 2.4rem !important; }
-        }
-      `}</style>
-
-      {/* Animated luxury purple gradient */}
-      <div
-        className="hero-satin"
-        aria-hidden="true"
-        style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
-      />
-
-      {/* Left scrim */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: 'absolute',
-          left: 0,
-          top: 0,
-          bottom: 0,
-          width: '60%',
-          background:
-            'linear-gradient(90deg, rgba(10,4,30,0.75) 0%, rgba(10,4,30,0.42) 65%, transparent 100%)',
-          pointerEvents: 'none',
-        }}
-      />
-
-      {/* Top + bottom vignette */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background:
-            'linear-gradient(180deg, rgba(10,4,30,0.38) 0%, transparent 30%, transparent 70%, rgba(10,4,30,0.28) 100%)',
-          pointerEvents: 'none',
-        }}
-      />
-
-      {/* Purple sparkle dots */}
-      {[
-        { top: '12%', left: '8%', d: '0s', s: 7 },
-        { top: '22%', left: '48%', d: '0.8s', s: 4 },
-        { top: '65%', left: '5%', d: '1.4s', s: 5 },
-        { top: '78%', left: '52%', d: '0.3s', s: 3 },
-        { top: '40%', left: '30%', d: '2s', s: 6 },
-        { top: '88%', left: '22%', d: '1s', s: 4 },
-        { top: '18%', left: '70%', d: '1.6s', s: 5 },
-        { top: '55%', left: '62%', d: '0.5s', s: 3 },
-      ].map((p, i) => (
-        <div
-          key={i}
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            top: p.top,
-            left: p.left,
-            width: p.s,
-            height: p.s,
-            borderRadius: '50%',
-            background: '#a78bfa',
-            animation: `sparkle ${3 + i * 0.4}s ease-in-out ${p.d} infinite`,
-            pointerEvents: 'none',
-          }}
-        />
-      ))}
-
-      {/* Main content */}
-      <div
-        className="hero-cols"
-        style={{
-          maxWidth: 1280,
-          margin: '0 auto',
-          padding: '4rem 1.5rem 3rem',
-          flex: 1,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '3rem',
-          width: '100%',
-          position: 'relative',
-        }}
-      >
-        {/* ── LEFT ── */}
-        <div className="hero-left" style={{ flex: '0 0 52%', maxWidth: 580 }}>
-          {/* Headline */}
-          <h1
-            className="hero-h1 font-display"
-            style={{
-              fontSize: 'clamp(2.6rem, 5.5vw, 4rem)',
-              fontWeight: 800,
-              lineHeight: 1.08,
-              color: 'white',
-              margin: 0,
-            }}
-          >
-            <span className="hw hw1">{t('heroTitle')}</span>
-          </h1>
-
-          {/* Purple underline */}
-          <span className="purple-line-anim" style={{ marginTop: '0.6rem', maxWidth: 260 }} />
-
-          {/* Subtitle */}
-          <p
-            className="hw hw3"
-            style={{
-              marginTop: '1.25rem',
-              fontSize: '1rem',
-              color: 'rgba(220,210,255,0.75)',
-              lineHeight: 1.75,
-              fontWeight: 400,
-            }}
-          >
-            {t('heroSubtitle')}
-          </p>
-
-          {/* Search — auto-searches, no submit button */}
+    <section className="sz-hero">
+      <div className="sz-hero-inner">
+        <div className="sz-hero-copy">
+          <h1 className="sz-hero-title">{t('heroTitle2')}</h1>
+          <p className="sz-hero-sub">{t('heroSubtitle')}</p>
           <HeroSearch />
-        </div>
-
-        {/* ── RIGHT — image collage ── */}
-        <div
-          className="hero-right"
-          style={{ flex: 1, position: 'relative', minHeight: 480, display: 'flex' }}
-        >
-          {/* Background glow behind images */}
-          <div
-            aria-hidden="true"
-            style={{
-              position: 'absolute',
-              top: '15%',
-              left: '10%',
-              width: '70%',
-              height: '70%',
-              borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(139,92,246,0.22) 0%, transparent 70%)',
-              animation: 'purplePulse 6s ease-in-out infinite',
-              pointerEvents: 'none',
-            }}
-          />
-
-          {/* Image 1 — large, top */}
-          <div
-            className="himg1"
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: '5%',
-              width: '58%',
-              height: 280,
-              borderRadius: 20,
-              overflow: 'hidden',
-              border: '1px solid rgba(167,139,250,0.25)',
-              boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
-            }}
-          >
-            <img
-              src={HERO_IMAGES[0]}
-              alt=""
-              aria-hidden="true"
-              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-            />
-            <div
-              style={{
-                position: 'absolute',
-                inset: 0,
-                background: 'linear-gradient(180deg, transparent 50%, rgba(10,4,30,0.4) 100%)',
-              }}
-            />
-          </div>
-
-          {/* Image 2 — smaller, top-right */}
-          <div
-            className="himg2"
-            style={{
-              position: 'absolute',
-              top: 20,
-              right: 0,
-              width: '38%',
-              height: 190,
-              borderRadius: 20,
-              overflow: 'hidden',
-              border: '1px solid rgba(167,139,250,0.2)',
-              boxShadow: '0 16px 48px rgba(0,0,0,0.5)',
-            }}
-          >
-            <img
-              src={HERO_IMAGES[1]}
-              alt=""
-              aria-hidden="true"
-              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-            />
-          </div>
-
-          {/* Image 3 — bottom-right */}
-          <div
-            className="himg3"
-            style={{
-              position: 'absolute',
-              bottom: 0,
-              right: '5%',
-              width: '50%',
-              height: 200,
-              borderRadius: 20,
-              overflow: 'hidden',
-              border: '1px solid rgba(167,139,250,0.2)',
-              boxShadow: '0 16px 48px rgba(0,0,0,0.4)',
-            }}
-          >
-            <img
-              src={HERO_IMAGES[2]}
-              alt=""
-              aria-hidden="true"
-              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-            />
-            <div
-              style={{
-                position: 'absolute',
-                inset: 0,
-                background: 'linear-gradient(180deg, transparent 30%, rgba(10,4,30,0.35) 100%)',
-              }}
-            />
-          </div>
-
-          {/* Live platform stat — real salon count from the public API, no mock data */}
-          <div
-            className="hbadge"
-            style={{
-              position: 'absolute',
-              bottom: 18,
-              left: '2%',
-              background: 'rgba(10,4,30,0.9)',
-              backdropFilter: 'blur(12px)',
-              borderRadius: 16,
-              padding: '0.7rem 1rem',
-              border: '1px solid rgba(167,139,250,0.25)',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-              minWidth: 140,
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                marginBottom: '0.3rem',
-              }}
-            >
-              <div
-                style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: '50%',
-                  background: '#4ade80',
-                  boxShadow: '0 0 6px #4ade80',
-                }}
-              />
-              <span
-                style={{
-                  fontSize: '0.65rem',
-                  color: 'rgba(255,255,255,0.5)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.08em',
-                  fontWeight: 600,
-                }}
-              >
-                {t('statsLabel')}
-              </span>
-            </div>
-            <div style={{ fontSize: '0.78rem', color: 'white', fontWeight: 700 }}>
-              {t('statsSalons', { count: salonCount })}
-            </div>
-            <a
-              href="/salons"
-              style={{
-                fontSize: '0.65rem',
-                color: '#a78bfa',
-                marginTop: '0.1rem',
-                display: 'inline-block',
-                textDecoration: 'none',
-              }}
-            >
-              {t('statsCta')} →
+          <div className="sz-hero-ctas">
+            <a href="/salons" className="sz-btn-primary">
+              {t('heroCtaPrimary')}
+              <ArrowRightIcon />
+            </a>
+            <a href="/stilistler" className="sz-btn-ghost">
+              {t('heroCtaSecondary')}
             </a>
           </div>
         </div>
-      </div>
 
-      {/* Marquee strip — real service categories only. Rendered only when the API returned some,
-          so the platform never advertises services no salon actually offers. */}
-      {serviceTerms.length > 0 ? (
-        <div
-          style={{
-            background: 'rgba(10,4,30,0.55)',
-            borderTop: '1px solid rgba(167,139,250,0.2)',
-            padding: '0.65rem 0',
-            overflow: 'hidden',
-            position: 'relative',
-            backdropFilter: 'blur(4px)',
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              animation: 'marquee 22s linear infinite',
-              width: 'max-content',
-              gap: 0,
-            }}
-            aria-hidden="true"
-          >
-            {[...serviceTerms, ...serviceTerms].map((term, i) => (
-              <span
-                key={`${term}-${i}`}
-                style={{
-                  fontSize: '0.7rem',
-                  color: 'rgba(167,139,250,0.82)',
-                  fontWeight: 600,
-                  letterSpacing: '0.12em',
-                  textTransform: 'uppercase',
-                  padding: '0 2rem',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {term}{' '}
-                <span style={{ color: 'rgba(167,139,250,0.38)', margin: '0 0.5rem' }}>✦</span>
-              </span>
-            ))}
-          </div>
+        <div className="sz-hero-visual">
+          <HeroCollage salons={salons} />
         </div>
-      ) : null}
+      </div>
     </section>
   );
 }
 
-/* ─── Features row ───────────────────────────────────────── */
-function Features() {
+/* ─── How it works ───────────────────────────────────────── */
+function HowItWorks() {
   const t = useTranslations('home');
-  const features = [
+
+  const steps = [
     {
+      title: t('step1Title'),
+      desc: t('step1Desc'),
       icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <rect x="3" y="4" width="14" height="13" rx="2" stroke="#7c3aed" strokeWidth="1.4" />
-          <path d="M7 2v4M13 2v4M3 9h14" stroke="#7c3aed" strokeWidth="1.4" strokeLinecap="round" />
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="6" cy="6" r="2.6" stroke="currentColor" strokeWidth="1.5" />
+          <circle cx="6" cy="18" r="2.6" stroke="currentColor" strokeWidth="1.5" />
+          <path
+            d="M8.2 7.6 20 18M8.2 16.4 20 6"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
         </svg>
       ),
-      title: t('featEasyBooking'),
-      desc: t('featEasyBookingDesc'),
     },
     {
+      title: t('step2Title'),
+      desc: t('step2Desc'),
       icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="3" y="5" width="18" height="16" rx="3" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M8 2.5v4M16 2.5v4M3 10h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      ),
+    },
+    {
+      title: t('step3Title'),
+      desc: t('step3Desc'),
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" />
           <path
-            d="M10 2l1.5 4.5H16l-3.75 2.7 1.43 4.4L10 11.1l-3.68 2.6 1.43-4.4L4 6.5h4.5L10 2z"
-            stroke="#7c3aed"
-            strokeWidth="1.3"
+            d="m8 12.4 2.7 2.7L16.2 9.6"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
             strokeLinejoin="round"
           />
         </svg>
       ),
-      title: t('featVerifiedStylists'),
-      desc: t('featVerifiedStylistsDesc'),
-    },
-    {
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <path
-            d="M10 2l1.3 3.9 4.1.3-3.1 2.7 1 4-3.3-2-3.3 2 1-4-3.1-2.7 4.1-.3L10 2z"
-            stroke="#7c3aed"
-            strokeWidth="1.3"
-            strokeLinejoin="round"
-          />
-        </svg>
-      ),
-      title: t('featQuality'),
-      desc: t('featQualityDesc'),
-    },
-    {
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <path
-            d="M10 3a5 5 0 0 1 5 5c0 3.5-5 9-5 9s-5-5.5-5-9a5 5 0 0 1 5-5z"
-            stroke="#7c3aed"
-            strokeWidth="1.3"
-            strokeLinejoin="round"
-          />
-          <path d="M7 9a3 3 0 0 1 6 0" stroke="#7c3aed" strokeWidth="1.3" strokeLinecap="round" />
-        </svg>
-      ),
-      title: t('featNotification'),
-      desc: t('featNotificationDesc'),
     },
   ];
 
   return (
-    <section
-      style={{
-        background: 'white',
-        borderTop: '1px solid #e4d4f4',
-        borderBottom: '1px solid #e4d4f4',
-      }}
-    >
-      <div
-        style={{ maxWidth: 1280, margin: '0 auto', padding: '1.5rem 1.25rem' }}
-        className="grid grid-cols-2 md:grid-cols-4"
-      >
-        {features.map((f, i) => (
-          <div key={i} className="feature-card">
-            <div className="feature-icon">{f.icon}</div>
-            <p style={{ fontSize: '0.82rem', fontWeight: 600, color: '#1e1b2e' }}>{f.title}</p>
-            <p style={{ fontSize: '0.72rem', color: '#7c6fa0', lineHeight: 1.5 }}>{f.desc}</p>
-          </div>
+    <section className="sz-section">
+      <h2 className="sz-h2">{t('howItWorksTitle')}</h2>
+      <ol className="sz-steps">
+        {steps.map((s, i) => (
+          <li key={s.title} className="sz-step">
+            <span className="sz-step-icon">{s.icon}</span>
+            <span className="sz-step-num">{i + 1}</span>
+            <h3 className="sz-step-title">{s.title}</h3>
+            <p className="sz-step-desc">{s.desc}</p>
+          </li>
         ))}
-      </div>
+      </ol>
     </section>
   );
 }
@@ -748,43 +361,20 @@ function PopularSalons({ salons }: { salons: SalonListItem[] }) {
   const tc = useTranslations('common');
 
   return (
-    <section style={{ maxWidth: 1280, margin: '0 auto', padding: '2.5rem 1.25rem' }}>
-      <div className="flex items-center justify-between" style={{ marginBottom: '1.25rem' }}>
-        <h2
-          className="font-display"
-          style={{ fontSize: '1.4rem', fontWeight: 700, color: '#1e1b2e' }}
-        >
+    <section className="sz-section">
+      <div className="sz-section-head">
+        <h2 className="sz-h2" style={{ margin: 0 }}>
           {t('popularSalons')}
         </h2>
-        <a
-          href="/salons"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.3rem',
-            fontSize: '0.82rem',
-            color: '#7c3aed',
-            fontWeight: 600,
-            textDecoration: 'none',
-          }}
-        >
+        <a href="/salons" className="sz-link-arrow">
           {tc('viewAll')} <ArrowRightIcon size={13} />
         </a>
       </div>
 
       {salons.length === 0 ? (
-        <p
-          style={{
-            textAlign: 'center',
-            padding: '2.5rem 1rem',
-            color: '#7c6fa0',
-            fontSize: '0.95rem',
-          }}
-        >
-          {ts('empty')}
-        </p>
+        <p style={{ textAlign: 'center', padding: '2.5rem 1rem', color: '#7c6fa0' }}>{ts('empty')}</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="sz-salon-grid">
           {salons.slice(0, 6).map((salon) => (
             <SalonCard key={salon.id} salon={salon} />
           ))}
@@ -794,100 +384,97 @@ function PopularSalons({ salons }: { salons: SalonListItem[] }) {
   );
 }
 
-/* ─── CTA dark section ───────────────────────────────────── */
+/* ─── Why Salonomia — 4 benefit tiles ────────────────────── */
+function WhySalonomia() {
+  const t = useTranslations('home');
+  const benefits = [
+    {
+      title: t('featEasyBooking'),
+      desc: t('featEasyBookingDesc'),
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <rect x="3" y="4" width="14" height="13" rx="2.5" stroke="currentColor" strokeWidth="1.4" />
+          <path d="M7 2v4M13 2v4M3 9h14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+        </svg>
+      ),
+    },
+    {
+      title: t('featVerifiedStylists'),
+      desc: t('featVerifiedStylistsDesc'),
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <circle cx="10" cy="7" r="3.2" stroke="currentColor" strokeWidth="1.4" />
+          <path
+            d="M3.5 17c0-3.2 2.9-5.5 6.5-5.5s6.5 2.3 6.5 5.5"
+            stroke="currentColor"
+            strokeWidth="1.4"
+            strokeLinecap="round"
+          />
+        </svg>
+      ),
+    },
+    {
+      title: t('featQuality'),
+      desc: t('featQualityDesc'),
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path
+            d="M10 2l2 4.1 4.5.65-3.25 3.15.77 4.5L10 12.3l-4.02 2.1.77-4.5L3.5 6.75 8 6.1 10 2z"
+            stroke="currentColor"
+            strokeWidth="1.35"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+    },
+    {
+      title: t('featNotification'),
+      desc: t('featNotificationDesc'),
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path
+            d="M5 8a5 5 0 0 1 10 0c0 3.2 1 4.5 1 4.5H4S5 11.2 5 8z"
+            stroke="currentColor"
+            strokeWidth="1.4"
+            strokeLinejoin="round"
+          />
+          <path d="M8.2 15a1.9 1.9 0 0 0 3.6 0" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+        </svg>
+      ),
+    },
+  ];
+
+  return (
+    <section className="sz-section">
+      <h2 className="sz-h2">{t('whyTitle')}</h2>
+      <div className="sz-benefits">
+        {benefits.map((b) => (
+          <div key={b.title} className="sz-benefit">
+            <span className="sz-benefit-icon">{b.icon}</span>
+            <div style={{ minWidth: 0 }}>
+              <h3 className="sz-benefit-title">{b.title}</h3>
+              <p className="sz-benefit-desc">{b.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ─── Closing CTA ────────────────────────────────────────── */
 function CTASection() {
   const t = useTranslations('home');
   return (
-    <section style={{ maxWidth: 1280, margin: '0 auto', padding: '0 1.25rem 3rem' }}>
-      <div
-        style={{
-          borderRadius: '24px',
-          overflow: 'hidden',
-          position: 'relative',
-          background: '#130d2e',
-          padding: '2.5rem 2rem',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '1.5rem',
-          flexWrap: 'wrap',
-        }}
-      >
-        {/* Subtle purple glow overlay */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background:
-              'radial-gradient(ellipse at 70% 50%, rgba(124,58,237,0.25) 0%, transparent 65%)',
-            pointerEvents: 'none',
-          }}
-        />
-        <div style={{ position: 'absolute', inset: 0, opacity: 0.18, overflow: 'hidden' }}>
-          <img
-            src="/images/cta-bg.png"
-            alt=""
-            aria-hidden="true"
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              objectPosition: 'center right',
-            }}
-          />
+    <section className="sz-section">
+      <div className="sz-cta-band">
+        <div style={{ position: 'relative', maxWidth: 460 }}>
+          <h2 className="sz-cta-title">{t('ctaTitle')}</h2>
+          <p className="sz-cta-sub">{t('ctaSubtitle')}</p>
         </div>
-
-        <div style={{ position: 'relative', maxWidth: 400 }}>
-          <div style={{ color: '#a78bfa', marginBottom: '0.75rem', fontSize: '1.2rem' }}>✦</div>
-          <h2
-            className="font-display"
-            style={{
-              fontSize: 'clamp(1.4rem, 3vw, 1.9rem)',
-              fontWeight: 700,
-              color: 'white',
-              lineHeight: 1.2,
-              marginBottom: '0.75rem',
-            }}
-          >
-            {t('ctaTitle')}
-          </h2>
-          <p
-            style={{
-              fontSize: '0.875rem',
-              color: 'rgba(220,210,255,0.72)',
-              lineHeight: 1.6,
-              marginBottom: '1.5rem',
-            }}
-          >
-            {t('ctaSubtitle')}
-          </p>
-          <a
-            href="/salons"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              padding: '0.75rem 1.5rem',
-              borderRadius: '14px',
-              background: '#7c3aed',
-              color: 'white',
-              fontWeight: 700,
-              fontSize: '0.875rem',
-              textDecoration: 'none',
-              transition: 'opacity 0.15s',
-              boxShadow: '0 4px 20px rgba(124,58,237,0.5), inset 0 1px 0 rgba(255,255,255,0.2)',
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLAnchorElement).style.opacity = '0.88';
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLAnchorElement).style.opacity = '1';
-            }}
-          >
-            {t('ctaButton')} <ArrowRightIcon size={14} />
-          </a>
-        </div>
+        <a href="/salons" className="sz-cta-btn">
+          {t('ctaButton')} <ArrowRightIcon size={14} />
+        </a>
       </div>
     </section>
   );
@@ -897,31 +484,247 @@ function CTASection() {
 export function LandingPage({
   isAuthenticated,
   salons,
-  salonCount,
 }: {
   isAuthenticated: boolean;
   salons: SalonListItem[];
   /** Total number of ACTIVE salons, as reported by the public salons API. */
-  salonCount: number;
+  salonCount?: number;
 }) {
-  // Distinct, real service-category names across the salons the API returned.
-  const serviceTerms = [...new Set(salons.flatMap((s) => s.categories ?? []))]
-    .map((name) => name.trim())
-    .filter((name) => name.length > 0)
-    .slice(0, 12);
-
   return (
     <div
-      style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', background: 'white' }}
+      style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', background: '#f9f6f3' }}
     >
       <PageHeader isAuthenticated={isAuthenticated} />
       <main style={{ flex: 1 }}>
-        <Hero salonCount={salonCount} serviceTerms={serviceTerms} />
-        <Features />
+        <Hero salons={salons} />
+        <HowItWorks />
         <PopularSalons salons={salons} />
+        <WhySalonomia />
         <CTASection />
       </main>
       <PageFooter />
+
+      <style>{`
+        /* ── Hero ─────────────────────────────────────────── */
+        .sz-hero {
+          background: linear-gradient(135deg, #faf7ff 0%, #f0ebff 50%, #faf7ff 100%);
+          border-bottom: 1px solid #f0e8f5;
+          overflow: hidden;
+        }
+        .sz-hero-inner {
+          max-width: 1280px;
+          margin: 0 auto;
+          padding: 3rem 1.25rem 3.5rem;
+          display: flex;
+          flex-direction: column;
+          gap: 2.5rem;
+        }
+        .sz-hero-copy { min-width: 0; max-width: 620px; }
+        .sz-hero-title {
+          font-family: 'Playfair Display', Georgia, serif;
+          font-size: clamp(2.1rem, 6vw, 3.4rem);
+          line-height: 1.1;
+          font-weight: 700;
+          color: #1e1b2e;
+          margin: 0;
+          letter-spacing: -0.01em;
+        }
+        .sz-hero-sub {
+          margin: 1rem 0 0;
+          font-size: 1.02rem;
+          line-height: 1.6;
+          color: #7c6fa0;
+          max-width: 46ch;
+        }
+        .sz-hero-search {
+          display: flex;
+          align-items: center;
+          gap: 0.65rem;
+          background: #fff;
+          border: 1px solid #e4d4f4;
+          border-radius: 14px;
+          padding: 0.55rem 1rem;
+          box-shadow: 0 1px 4px rgba(30,27,46,0.06);
+        }
+        .sz-hero-search:focus-within { border-color: #6A5ACD; box-shadow: 0 0 0 3px rgba(106,90,205,0.18); }
+        .sz-hero-search input {
+          flex: 1;
+          min-width: 0;
+          height: 34px;
+          border: none;
+          outline: none;
+          background: none;
+          font-family: inherit;
+          font-size: 0.92rem;
+          color: #1e1b2e;
+        }
+        .hero-search-item:hover { background: #faf5ff; }
+        .hero-search-item:focus-visible { outline: 2px solid #7c3aed; outline-offset: -2px; }
+        .sz-hero-ctas { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.4rem; }
+        .sz-btn-primary {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.45rem;
+          padding: 0.8rem 1.6rem;
+          border-radius: 12px;
+          background: #6A5ACD;
+          color: #fff;
+          font-weight: 700;
+          font-size: 0.92rem;
+          text-decoration: none;
+          box-shadow: 0 8px 22px rgba(106,90,205,0.30);
+          transition: background 0.15s, transform 0.15s;
+        }
+        .sz-btn-primary:hover { background: #5c4cbe; transform: translateY(-1px); }
+        .sz-btn-ghost {
+          display: inline-flex;
+          align-items: center;
+          padding: 0.8rem 1.6rem;
+          border-radius: 12px;
+          background: #fff;
+          border: 1px solid #e4d4f4;
+          color: #4a3f6b;
+          font-weight: 600;
+          font-size: 0.92rem;
+          text-decoration: none;
+          transition: background 0.15s, border-color 0.15s;
+        }
+        .sz-btn-ghost:hover { background: #f3e8ff; border-color: #c4b5fd; }
+        .sz-btn-primary:focus-visible, .sz-btn-ghost:focus-visible { outline: 2px solid #7c3aed; outline-offset: 2px; }
+
+        .sz-hero-visual { display: none; }
+        .sz-collage { position: relative; width: 100%; height: 400px; }
+        .sz-collage-glow {
+          position: absolute;
+          inset: 8% 5%;
+          border-radius: 50%;
+          background: radial-gradient(circle, rgba(124,58,237,0.18) 0%, transparent 70%);
+        }
+        .sz-collage-card {
+          position: absolute;
+          width: 62%;
+          max-width: 300px;
+          background: #fff;
+          border: 1px solid #e4d4f4;
+          border-radius: 16px;
+          overflow: hidden;
+          box-shadow: 0 16px 40px rgba(30,27,46,0.14);
+        }
+        .sz-collage-card img { width: 100%; height: 120px; object-fit: cover; display: block; }
+        .sz-collage-meta { display: flex; align-items: center; gap: 0.55rem; padding: 0.65rem 0.8rem; min-width: 0; }
+        .sz-collage-logo {
+          width: 30px; height: 30px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
+          border: 2px solid #fff; box-shadow: 0 1px 4px rgba(30,27,46,0.2);
+        }
+        .sz-collage-logo-fb {
+          display: flex; align-items: center; justify-content: center;
+          background: #6A5ACD; color: #fff; font-size: 0.68rem; font-weight: 700;
+        }
+        .sz-collage-name {
+          margin: 0; font-size: 0.82rem; font-weight: 700; color: #1e1b2e;
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .sz-collage-sub { margin: 0; font-size: 0.72rem; color: #7c6fa0; }
+
+        /* ── Sections ─────────────────────────────────────── */
+        .sz-section { max-width: 1280px; margin: 0 auto; padding: 3rem 1.25rem 0; }
+        .sz-section:last-of-type { padding-bottom: 3.5rem; }
+        .sz-h2 {
+          font-family: 'Playfair Display', Georgia, serif;
+          font-size: clamp(1.4rem, 3vw, 1.85rem);
+          font-weight: 700;
+          color: #1e1b2e;
+          margin: 0 0 1.5rem;
+        }
+        .sz-section-head {
+          display: flex; align-items: center; justify-content: space-between;
+          gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;
+        }
+        .sz-link-arrow {
+          display: inline-flex; align-items: center; gap: 0.35rem;
+          font-size: 0.85rem; font-weight: 600; color: #6A5ACD; text-decoration: none;
+        }
+        .sz-link-arrow:hover { text-decoration: underline; }
+        .sz-link-arrow:focus-visible { outline: 2px solid #7c3aed; outline-offset: 2px; border-radius: 4px; }
+
+        .sz-steps {
+          list-style: none; margin: 0; padding: 0;
+          display: grid; grid-template-columns: 1fr; gap: 1rem;
+          counter-reset: step;
+        }
+        .sz-step {
+          position: relative;
+          background: #fff;
+          border: 1px solid #e4d4f4;
+          border-radius: 16px;
+          padding: 1.5rem 1.35rem;
+          box-shadow: 0 1px 4px rgba(30,27,46,0.06);
+        }
+        .sz-step-icon {
+          display: inline-flex; align-items: center; justify-content: center;
+          width: 44px; height: 44px; border-radius: 12px;
+          background: rgba(106,90,205,0.10); color: #6A5ACD;
+        }
+        .sz-step-num {
+          position: absolute; top: 1.5rem; right: 1.35rem;
+          font-family: 'Playfair Display', Georgia, serif;
+          font-size: 1.6rem; font-weight: 700; color: #ede4f8; line-height: 1;
+        }
+        .sz-step-title { margin: 0.9rem 0 0.3rem; font-size: 1rem; font-weight: 700; color: #1e1b2e; }
+        .sz-step-desc { margin: 0; font-size: 0.86rem; line-height: 1.55; color: #7c6fa0; }
+
+        .sz-salon-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+
+        .sz-benefits { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+        .sz-benefit {
+          display: flex; align-items: flex-start; gap: 0.9rem;
+          background: #fff; border: 1px solid #e4d4f4; border-radius: 16px;
+          padding: 1.25rem; box-shadow: 0 1px 4px rgba(30,27,46,0.06);
+        }
+        .sz-benefit-icon {
+          display: inline-flex; align-items: center; justify-content: center;
+          width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0;
+          background: rgba(106,90,205,0.10); color: #6A5ACD;
+        }
+        .sz-benefit-title { margin: 0 0 0.25rem; font-size: 0.95rem; font-weight: 700; color: #1e1b2e; }
+        .sz-benefit-desc { margin: 0; font-size: 0.84rem; line-height: 1.55; color: #7c6fa0; }
+
+        .sz-cta-band {
+          position: relative;
+          overflow: hidden;
+          border-radius: 24px;
+          background: linear-gradient(135deg, #1e1b2e 0%, #2d1565 55%, #4c1d95 100%);
+          padding: 2.5rem 1.75rem;
+          display: flex; flex-direction: column; align-items: flex-start; gap: 1.5rem;
+        }
+        .sz-cta-title {
+          font-family: 'Playfair Display', Georgia, serif;
+          font-size: clamp(1.35rem, 3vw, 1.9rem);
+          font-weight: 700; color: #fff; line-height: 1.2; margin: 0 0 0.6rem;
+        }
+        .sz-cta-sub { margin: 0; font-size: 0.9rem; line-height: 1.6; color: rgba(220,210,255,0.78); }
+        .sz-cta-btn {
+          display: inline-flex; align-items: center; gap: 0.5rem;
+          padding: 0.8rem 1.6rem; border-radius: 12px;
+          background: #fff; color: #4c1d95; font-weight: 700; font-size: 0.9rem;
+          text-decoration: none; flex-shrink: 0;
+        }
+        .sz-cta-btn:hover { background: #ede4f8; }
+        .sz-cta-btn:focus-visible { outline: 2px solid #a78bfa; outline-offset: 3px; }
+
+        @media (min-width: 640px) {
+          .sz-salon-grid { grid-template-columns: repeat(2, 1fr); }
+          .sz-benefits { grid-template-columns: repeat(2, 1fr); }
+          .sz-steps { grid-template-columns: repeat(3, 1fr); }
+          .sz-cta-band { flex-direction: row; align-items: center; justify-content: space-between; padding: 2.75rem 2.25rem; }
+        }
+        @media (min-width: 1024px) {
+          .sz-salon-grid { grid-template-columns: repeat(3, 1fr); }
+          .sz-hero-inner { flex-direction: row; align-items: center; gap: 3rem; padding: 4.5rem 1.25rem 5rem; }
+          .sz-hero-copy { flex: 0 0 52%; }
+          .sz-hero-visual { display: block; flex: 1; min-width: 0; }
+        }
+      `}</style>
     </div>
   );
 }

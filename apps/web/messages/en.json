@@ -16,7 +16,13 @@
     "searching": "Searching...",
     "showPassword": "Show password",
     "hidePassword": "Hide password",
-    "logout": "Sign out"
+    "logout": "Sign out",
+    "footerNav": "Navigation",
+    "footerCompany": "Company",
+    "footerSocial": "Social",
+    "terms": "Terms of use",
+    "contact": "Contact",
+    "footerTagline": "Discover beauty salons and book online."
   },
   "nav": {
     "salons": "Salons",
@@ -57,7 +63,18 @@
     "statsLabel": "On the platform",
     "statsSalons": "{count} active salons",
     "statsCta": "Browse salons",
-    "viewSalon": "View"
+    "viewSalon": "View",
+    "heroTitle2": "Discover your beauty with professionals",
+    "heroCtaPrimary": "Browse salons",
+    "heroCtaSecondary": "Stylists",
+    "howItWorksTitle": "How it works",
+    "step1Title": "Pick a salon",
+    "step1Desc": "Find the salon that suits you.",
+    "step2Title": "Pick a time",
+    "step2Desc": "Choose one of the free slots.",
+    "step3Title": "Book it",
+    "step3Desc": "Confirm in a single click.",
+    "whyTitle": "Why Salonomia?"
   },
   "salons": {
     "title": "Salons",
@@ -79,7 +96,12 @@
     "loadError": "Failed to load salons",
     "prevPage": "Previous",
     "nextPage": "Next",
-    "from": "from"
+    "from": "from",
+    "pageSubtitle": "Find the beauty salons nearest to you and book online.",
+    "searchLabel": "Search",
+    "resultCount": "{count} salons found",
+    "emptyHint": "Try a different search term or reset the filters.",
+    "pageLabel": "Page {current} of {total}"
   },
   "salonDetail": {
     "about": "About",
@@ -97,7 +119,16 @@
     "loadError": "Failed to load salon details.",
     "genderWomen": "Women",
     "genderMen": "Men",
-    "genderUnisex": "Unisex"
+    "genderUnisex": "Unisex",
+    "tabServices": "Services",
+    "tabStylists": "Stylists",
+    "tabAbout": "About",
+    "contact": "Contact",
+    "otherServices": "Other services",
+    "autoConfirmOn": "Reservations are confirmed instantly.",
+    "autoConfirmOff": "Reservations require salon approval.",
+    "cancelWindow": "You can cancel up to {hours} hours before the appointment.",
+    "rescheduleWindow": "You can reschedule up to {hours} hours before the appointment."
   },
   "stylists": {
     "title": "Stylists",
@@ -277,7 +308,13 @@
     "confirmCancelBtn": "Yes, cancel",
     "statusFilterLabel": "Status",
     "statusRejected": "Rejected",
-    "backToList": "Back to bookings"
+    "backToList": "Back to bookings",
+    "tabUpcoming": "Upcoming",
+    "tabPast": "Past",
+    "noUpcoming": "You have no upcoming reservations.",
+    "noPast": "You have no past reservations.",
+    "quickLinks": "Quick links",
+    "notifications": "Notifications"
   },
   "terms": {
     "pageTitle": "Terms of Service — Salonomia",

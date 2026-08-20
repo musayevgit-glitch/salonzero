@@ -18,11 +18,14 @@ export function ReservationStatusFilter({
   value,
   label,
   options,
+  tab,
 }: {
   /** Current status, or `ALL_STATUSES` when unfiltered. */
   value: string;
   label: string;
   options: { value: string; label: string }[];
+  /** Upcoming/past tab to preserve across a filter change. */
+  tab?: 'upcoming' | 'past';
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -35,13 +38,14 @@ export function ReservationStatusFilter({
         disabled={isPending}
         onChange={(e) => {
           const next = e.target.value;
+          // Changing the filter always returns to page 1, but must not knock the reader out
+          // of the tab they are reading.
+          const params = new URLSearchParams();
+          if (tab === 'past') params.set('tab', 'past');
+          if (next !== ALL_STATUSES) params.set('status', next);
+          const qs = params.toString();
           startTransition(() => {
-            // Changing the filter always returns to page 1.
-            router.replace(
-              next === ALL_STATUSES
-                ? '/account/reservations'
-                : `/account/reservations?status=${encodeURIComponent(next)}`,
-            );
+            router.replace(qs ? `/account/reservations?${qs}` : '/account/reservations');
           });
         }}
         options={options}
