@@ -156,9 +156,6 @@ export default function StylistStep() {
                     {employee.bio}
                   </p>
                 )}
-                {/* No per-stylist rating is shown: ratings in this system belong to the salon,
-                    not the individual. The star that used to sit here was derived from the
-                    stylist's UUID — a fabricated score, not feedback anyone had given. */}
               </div>
 
               <span style={{ color: '#c5bbb2' }}><ChevronRightIcon /></span>

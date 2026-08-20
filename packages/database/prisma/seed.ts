@@ -1,5 +1,5 @@
 // Development-only seed. Never used in production (guarded by NODE_ENV check below).
-import { PrismaClient } from '../generated/client';
+import { PrismaClient } from '@prisma/client';
 import * as argon2 from 'argon2';
 
 const prisma = new PrismaClient();

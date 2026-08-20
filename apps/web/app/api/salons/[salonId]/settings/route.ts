@@ -17,6 +17,9 @@ const updateSettingsSchema = z.object({
   autoConfirm: z.boolean().optional(),
   minNoticeMinutes: z.number().int().min(0).max(1440).optional(),
   maxAdvanceDays: z.number().int().min(1).max(365).optional(),
+  // Grid spacing for customer-facing booking times. Bounded so a salon cannot request a
+  // 1-minute grid (which explodes the slot count) or an interval longer than an hour.
+  bookingSlotIntervalMinutes: z.number().int().min(5).max(60).optional(),
   cancellationWindowHours: z.number().int().min(0).max(168).optional(),
   rescheduleWindowHours: z.number().int().min(0).max(168).optional(),
 });
@@ -45,6 +48,7 @@ export async function GET(
           autoConfirm: true,
           minNoticeMinutes: true,
           maxAdvanceDays: true,
+          bookingSlotIntervalMinutes: true,
           cancellationWindowHours: true,
           rescheduleWindowHours: true,
         },
@@ -99,6 +103,8 @@ export async function PATCH(
     if (input.autoConfirm !== undefined) policyData.autoConfirm = input.autoConfirm;
     if (input.minNoticeMinutes !== undefined) policyData.minNoticeMinutes = input.minNoticeMinutes;
     if (input.maxAdvanceDays !== undefined) policyData.maxAdvanceDays = input.maxAdvanceDays;
+    if (input.bookingSlotIntervalMinutes !== undefined)
+      policyData.bookingSlotIntervalMinutes = input.bookingSlotIntervalMinutes;
     if (input.cancellationWindowHours !== undefined) policyData.cancellationWindowHours = input.cancellationWindowHours;
     if (input.rescheduleWindowHours !== undefined) policyData.rescheduleWindowHours = input.rescheduleWindowHours;
 
@@ -111,6 +117,7 @@ export async function PATCH(
           autoConfirm: input.autoConfirm ?? false,
           minNoticeMinutes: input.minNoticeMinutes ?? 60,
           maxAdvanceDays: input.maxAdvanceDays ?? 60,
+          bookingSlotIntervalMinutes: input.bookingSlotIntervalMinutes ?? 15,
           cancellationWindowHours: input.cancellationWindowHours ?? 24,
           rescheduleWindowHours: input.rescheduleWindowHours ?? 24,
         },

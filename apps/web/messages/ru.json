@@ -27,7 +27,9 @@
     "logout": "Выйти",
     "profile": "Профиль",
     "language": "Язык",
-    "notifications": "Уведомления"
+    "notifications": "Уведомления",
+    "openMenu": "Открыть меню",
+    "closeMenu": "Закрыть меню"
   },
   "home": {
     "heroTitle": "Ваша красота стала проще",
@@ -192,7 +194,9 @@
     "termsLink": "условия использования",
     "createReservation": "Создать запись",
     "prevMonth": "Предыдущий месяц",
-    "nextMonth": "Следующий месяц"
+    "nextMonth": "Следующий месяц",
+    "slotTakenError": "К сожалению, это время уже занято. Пожалуйста, выберите другое время.",
+    "chooseAnotherTime": "Выбрать другое время"
   },
   "auth": {
     "loginTitle": "Войти",
@@ -563,7 +567,10 @@
       "cancellationWindow": "Окно отмены (часы)",
       "rescheduleWindow": "Окно переноса (часы)",
       "saveSuccess": "Настройки успешно сохранены",
-      "errorLoad": "Не удалось загрузить настройки"
+      "errorLoad": "Не удалось загрузить настройки",
+      "bookingSlotInterval": "Интервал времени",
+      "bookingSlotIntervalHint": "Шаг между временами записи, показываемыми клиентам.",
+      "minutesShort": "мин"
     },
     "auditLog": {
       "title": "Журнал аудита",

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { verifyRequest } from '../../../../../../lib/server/auth';
 import { prisma } from '../../../../../../lib/server/prisma';
 import { computeAvailability, computeAnyStylistAvailability } from '../../../../../../lib/server/availability';
+import { blockingHoldFilter } from '../../../../../../lib/server/slot-holds';
 import { localWallTimeToUtc } from '../../../../../../lib/server/timezone';
 
 const bulkQuerySchema = z.object({
@@ -25,7 +27,13 @@ export async function GET(
 
   const salon = await prisma.salon.findFirst({
     where: { slug, status: 'ACTIVE' },
-    select: { id: true, timezone: true, bookingPolicy: { select: { minNoticeMinutes: true, maxAdvanceDays: true } } },
+    select: {
+      id: true,
+      timezone: true,
+      bookingPolicy: {
+        select: { minNoticeMinutes: true, maxAdvanceDays: true, bookingSlotIntervalMinutes: true },
+      },
+    },
   });
   if (!salon) return NextResponse.json({ message: 'Salon not found.' }, { status: 404 });
 
@@ -37,6 +45,13 @@ export async function GET(
 
   const minNoticeMinutes = salon.bookingPolicy?.minNoticeMinutes ?? 60;
   const maxAdvanceDays = salon.bookingPolicy?.maxAdvanceDays ?? 60;
+  // Salon-configured grid spacing; 15 matches the historical hardcoded default.
+  const slotIntervalMinutes = salon.bookingPolicy?.bookingSlotIntervalMinutes ?? 15;
+
+  // A hold the *viewer* placed must not make their own day look unavailable while they are still
+  // in the booking flow. Other customers' holds still do block, as they should.
+  const viewer = verifyRequest(req);
+  const viewerId = viewer?.sub ?? null;
 
   const employeeWhere = {
     salonId: salon.id, isActive: true,
@@ -99,7 +114,12 @@ export async function GET(
             select: { startAt: true, endAt: true, blockedUntil: true },
           }),
           prisma.slotHold.findMany({
-            where: { employeeId: e.id, startAt: { lt: rangeEnd }, endAt: { gt: rangeStart }, expiresAt: { gt: now } },
+            where: {
+              employeeId: e.id,
+              startAt: { lt: rangeEnd },
+              endAt: { gt: rangeStart },
+              ...blockingHoldFilter(now, viewerId),
+            },
             select: { startAt: true, endAt: true },
           }),
         ]);
@@ -115,7 +135,7 @@ export async function GET(
       }),
     );
 
-    const input = { salonTimezone: salon.timezone, now, rangeStart, rangeEnd, serviceDurationMinutes: service.durationMinutes, bufferMinutes: service.bufferMinutes, minNoticeMinutes, maxAdvanceDays, employees };
+    const input = { salonTimezone: salon.timezone, now, rangeStart, rangeEnd, serviceDurationMinutes: service.durationMinutes, bufferMinutes: service.bufferMinutes, minNoticeMinutes, maxAdvanceDays, slotIntervalMinutes, employees };
     const slots = query.employeeId ? computeAvailability(input) : computeAnyStylistAvailability(input);
     results[dateStr] = slots.length > 0;
     current.setUTCDate(current.getUTCDate() + 1);

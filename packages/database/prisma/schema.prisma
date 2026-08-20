@@ -76,6 +76,7 @@ model User {
   passwordResetTokens PasswordResetToken[]
   employeeProfile     EmployeeProfile?
   ratings             Rating[]
+  slotHolds           SlotHold[]                 @relation("SlotHoldHeldBy")
 
   @@index([status])
 }
@@ -174,6 +175,10 @@ model BookingPolicy {
   maxAdvanceDays          Int      @default(60)
   cancellationWindowHours Int      @default(24)
   rescheduleWindowHours   Int      @default(24)
+
+  /// Grid spacing (minutes) for candidate booking start times shown to customers.
+  /// Salon-configurable: a 5-minute grid offers more slots, a 30-minute grid a tidier calendar.
+  bookingSlotIntervalMinutes Int @default(15)
   createdAt               DateTime @default(now()) @db.Timestamptz(3)
   updatedAt               DateTime @updatedAt @db.Timestamptz(3)
 
@@ -391,10 +396,19 @@ model SlotHold {
   expiresAt  DateTime @db.Timestamptz(3)
   createdAt  DateTime @default(now()) @db.Timestamptz(3)
 
+  /// Who placed the hold. Without this the customer's own hold — taken on the date/time step —
+  /// looked identical to a competing customer's hold when the reservation was finally created,
+  /// so every booking self-conflicted into a 409. Availability and reservation creation both
+  /// exclude the requesting user's own holds by this column.
+  /// Nullable so pre-existing rows (and any future non-user-initiated hold) remain valid.
+  heldByUserId String?
+
   salon    Salon           @relation(fields: [salonId], references: [id], onDelete: Cascade)
   employee EmployeeProfile @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  heldBy   User?           @relation("SlotHoldHeldBy", fields: [heldByUserId], references: [id], onDelete: Cascade)
 
   @@index([employeeId, startAt, expiresAt])
+  @@index([heldByUserId])
 }
 
 // ---------------------------------------------------------------------------
