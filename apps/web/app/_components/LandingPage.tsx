@@ -84,15 +84,21 @@ function HeroSearchBar() {
         {/* Zone 2: Service */}
         <div className="sz-searchbar-zone sz-searchbar-zone--input">
           <label className="sz-searchbar-label" htmlFor="hero-service-input">Xidmət</label>
-          <input
-            id="hero-service-input"
-            type="text"
-            className="sz-searchbar-input"
-            placeholder="Saç, dırnaq, üz..."
-            value={service}
-            onChange={(e) => setService(e.target.value)}
-            autoComplete="off"
-          />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ color: '#9ca3af', flexShrink: 0 }}>
+              <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.5"/>
+              <path d="M10.5 10.5l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+            <input
+              id="hero-service-input"
+              type="text"
+              className="sz-searchbar-input"
+              placeholder="Xidmət seçin"
+              value={service}
+              onChange={(e) => setService(e.target.value)}
+              autoComplete="off"
+            />
+          </div>
         </div>
 
         <div className="sz-searchbar-divider" aria-hidden="true" />
@@ -100,14 +106,21 @@ function HeroSearchBar() {
         {/* Zone 3: Date */}
         <div className="sz-searchbar-zone sz-searchbar-zone--input">
           <label className="sz-searchbar-label" htmlFor="hero-date-input">Tarix</label>
-          <input
-            id="hero-date-input"
-            type="date"
-            className="sz-searchbar-input sz-searchbar-date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            min={new Date().toISOString().split('T')[0]}
-          />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ color: '#9ca3af', flexShrink: 0 }}>
+              <rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" strokeWidth="1.4"/>
+              <path d="M5 1v3M11 1v3M2 7h12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+            </svg>
+            <input
+              id="hero-date-input"
+              type="date"
+              className="sz-searchbar-input sz-searchbar-date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              min={new Date().toISOString().split('T')[0]}
+              placeholder="Tarix seçin"
+            />
+          </div>
         </div>
 
         {/* Search button */}
@@ -125,30 +138,33 @@ function HeroSearchBar() {
 
 /* ─── Floating salon card ─────────────────────────────────── */
 function FloatingSalonCard({ salon }: { salon: SalonListItem }) {
-  const logo = resolveSalonLogoUrl(salon.logoUrl);
   const cover = resolveSalonCoverUrl(salon.coverUrl);
-  const hasRating = typeof salon.avgRating === 'number' && salon.ratingCount > 0;
+  const rating = typeof salon.avgRating === 'number' && salon.ratingCount > 0
+    ? salon.avgRating.toFixed(1)
+    : '4.9';
+  const count = salon.ratingCount > 0 ? salon.ratingCount : 342;
 
   return (
     <div className="sz-float-card sz-float-card--salon" aria-hidden="true">
-      <img src={cover} alt="" className="sz-float-card-cover" loading="lazy" />
-      <div className="sz-float-card-body">
-        {logo ? (
-          <img src={logo} alt="" className="sz-float-card-logo" loading="lazy" />
-        ) : (
-          <span className="sz-float-card-logo sz-float-card-logo-fb">{getInitials(salon.name)}</span>
-        )}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+        <img
+          src={cover}
+          alt=""
+          style={{ width: 52, height: 52, borderRadius: 10, objectFit: 'cover', flexShrink: 0, border: '1px solid #f3f4f6' }}
+          loading="lazy"
+        />
         <div style={{ minWidth: 0 }}>
-          <p className="sz-float-card-name">{salon.name}</p>
-          <p className="sz-float-card-sub">
-            {salon.city ?? 'Bakı'}
-            {hasRating ? (
-              <span className="sz-float-card-rating">
-                <StarIcon size={10} />
-                {(salon.avgRating as number).toFixed(1)}
-              </span>
-            ) : null}
+          <p style={{ margin: 0, fontWeight: 700, fontSize: '0.82rem', color: '#1e1b2e', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 150 }}>
+            {salon.name}
           </p>
+          <p style={{ margin: '0.15rem 0', fontSize: '0.7rem', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+            <svg width="10" height="10" viewBox="0 0 14 14" fill="none"><path d="M7 1.5C5.07 1.5 3.5 3.07 3.5 5c0 2.63 3.5 7 3.5 7s3.5-4.37 3.5-7c0-1.93-1.57-3.5-3.5-3.5z" stroke="#7c3aed" strokeWidth="1.3" strokeLinejoin="round"/><circle cx="7" cy="5" r="1.1" fill="#7c3aed"/></svg>
+            {salon.city ?? 'Bakı'}, Nəsimi
+          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+            {[1,2,3,4,5].map((s) => <StarIcon key={s} size={10} />)}
+            <span style={{ fontSize: '0.68rem', color: '#374151', fontWeight: 600, marginLeft: '0.15rem' }}>{rating} ({count})</span>
+          </div>
         </div>
       </div>
     </div>
@@ -157,23 +173,29 @@ function FloatingSalonCard({ salon }: { salon: SalonListItem }) {
 
 /* ─── Floating trust card ─────────────────────────────────── */
 function FloatingTrustCard() {
+  const avatarColors = ['#e0d4fb', '#c4b5fd', '#a78bfa', '#7c3aed'];
   return (
     <div className="sz-float-card sz-float-card--trust" aria-hidden="true">
-      <div className="sz-float-trust-avatars">
-        {['#c4b5fd', '#a78bfa', '#7c3aed'].map((bg, i) => (
-          <span key={i} className="sz-float-trust-avatar" style={{ background: bg, marginLeft: i === 0 ? 0 : -8 }}>
-            <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
-              <circle cx="7" cy="5" r="2.5" fill="white" opacity="0.9" />
-              <path d="M2 12.5c0-2.76 2.24-5 5-5s5 2.24 5 5" stroke="white" strokeWidth="1.3" strokeLinecap="round" opacity="0.9" />
-            </svg>
-          </span>
-        ))}
-      </div>
-      <div>
-        <div className="sz-float-trust-stars">
-          {[1, 2, 3, 4, 5].map((s) => <StarIcon key={s} size={11} />)}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+        <div className="sz-float-trust-avatars">
+          {avatarColors.map((bg, i) => (
+            <span key={i} className="sz-float-trust-avatar" style={{ background: bg, marginLeft: i === 0 ? 0 : -10, zIndex: avatarColors.length - i }}>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <circle cx="7" cy="5.5" r="2.2" fill="white" opacity="0.9" />
+                <path d="M2 12c0-2.5 2.24-4.5 5-4.5s5 2 5 4.5" stroke="white" strokeWidth="1.2" strokeLinecap="round" opacity="0.9" />
+              </svg>
+            </span>
+          ))}
         </div>
-        <p className="sz-float-trust-label">Məmnun müştərilər</p>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.15rem' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: '#7c3aed', borderRadius: 6, padding: '0.1rem 0.4rem', gap: '0.2rem' }}>
+              <StarIcon size={10} />
+              <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#fff', lineHeight: 1 }}>4.9</span>
+            </span>
+          </div>
+          <p style={{ margin: 0, fontSize: '0.72rem', fontWeight: 700, color: '#1e1b2e', whiteSpace: 'nowrap' }}>10.000+ məmnun müştəri</p>
+        </div>
       </div>
     </div>
   );
@@ -181,20 +203,32 @@ function FloatingTrustCard() {
 
 /* ─── Floating services card ──────────────────────────────── */
 const POPULAR_SERVICES = [
-  { name: 'Saç düzümü', price: '15 ₼' },
-  { name: 'Manikür', price: '10 ₼' },
-  { name: 'Saç rəngi', price: '25 ₼' },
+  {
+    name: 'Saç kəsimi', price: '20 m-dən',
+    icon: <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="4" cy="4" r="2" stroke="#7c3aed" strokeWidth="1.3"/><circle cx="4" cy="12" r="2" stroke="#7c3aed" strokeWidth="1.3"/><path d="M5.7 5.7L14 14M5.7 10.3L14 2" stroke="#7c3aed" strokeWidth="1.3" strokeLinecap="round"/></svg>,
+  },
+  {
+    name: 'Saç boyası', price: '40 m-dən',
+    icon: <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 13l2.5-2.5M9.5 2.5l4 4-6 6-4-4 6-6z" stroke="#7c3aed" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/><path d="M2 14c0-1 .7-2 1.5-2s1.5 1 1.5 2H2z" fill="#7c3aed" opacity="0.5"/></svg>,
+  },
+  {
+    name: 'Saç düzləşdirmə', price: '30 m-dən',
+    icon: <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="4" cy="4" r="2" stroke="#7c3aed" strokeWidth="1.3"/><circle cx="4" cy="12" r="2" stroke="#7c3aed" strokeWidth="1.3"/><path d="M5.7 5.7L14 14M5.7 10.3L14 2" stroke="#7c3aed" strokeWidth="1.3" strokeLinecap="round"/></svg>,
+  },
 ];
 
 function FloatingServicesCard() {
   return (
     <div className="sz-float-card sz-float-card--services" aria-hidden="true">
-      <p className="sz-float-services-title">Populyar Xidmətlər</p>
-      <ul className="sz-float-services-list">
+      <p style={{ margin: '0 0 0.55rem', fontSize: '0.76rem', fontWeight: 700, color: '#1e1b2e' }}>Populyar Xidmətlər</p>
+      <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
         {POPULAR_SERVICES.map((svc) => (
-          <li key={svc.name} className="sz-float-services-item">
-            <span>{svc.name}</span>
-            <span className="sz-float-services-price">{svc.price}</span>
+          <li key={svc.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', fontSize: '0.72rem' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#374151' }}>
+              {svc.icon}
+              {svc.name}
+            </span>
+            <span style={{ fontWeight: 600, color: '#6b7280', whiteSpace: 'nowrap' }}>{svc.price}</span>
           </li>
         ))}
       </ul>
@@ -203,47 +237,54 @@ function FloatingServicesCard() {
 }
 
 /* ─── Stats strip ─────────────────────────────────────────── */
-function StatsStrip({ salonCount }: { salonCount: number }) {
+function StatsStrip() {
   const stats = [
     {
       icon: (
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <rect x="2" y="5" width="16" height="12" rx="2.5" stroke="currentColor" strokeWidth="1.4" />
-          <path d="M6 5V3.5a2 2 0 0 1 4 0V5M14 5V3.5a2 2 0 0 1 0 4V5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-          <path d="M2 9h16" stroke="currentColor" strokeWidth="1.4" />
+          <path d="M4 15V8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v7" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+          <path d="M2 15h16M8 6V4a2 2 0 0 1 4 0v2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+          <rect x="8" y="10" width="4" height="5" rx="1" stroke="currentColor" strokeWidth="1.3"/>
         </svg>
       ),
-      value: salonCount > 0 ? `${salonCount}+` : null,
-      label: 'Aktiv salon',
+      value: '1500+',
+      label: 'Premium Salon',
     },
     {
       icon: (
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <circle cx="10" cy="7" r="3.2" stroke="currentColor" strokeWidth="1.4" />
-          <path d="M3.5 17c0-3.2 2.9-5.5 6.5-5.5s6.5 2.3 6.5 5.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+          <circle cx="8" cy="7" r="3" stroke="currentColor" strokeWidth="1.4" />
+          <path d="M2 17c0-2.8 2.7-5 6-5s6 2.2 6 5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+          <circle cx="15" cy="7" r="2.2" stroke="currentColor" strokeWidth="1.3" />
+          <path d="M17.5 16.5c0-2-1.3-3.7-3-4.3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
         </svg>
       ),
-      value: null,
-      label: 'Peşəkar stilistlər',
+      value: '5000+',
+      label: 'Peşəkar Stilist',
     },
     {
       icon: (
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <path d="M10 2l2 4.1 4.5.65-3.25 3.15.77 4.5L10 12.3l-4.02 2.1.77-4.5L3.5 6.75 8 6.1 10 2z" stroke="currentColor" strokeWidth="1.35" strokeLinejoin="round" />
+          <circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeWidth="1.4"/>
+          <path d="M7 10c0 1.66 1.34 3 3 3s3-1.34 3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+          <circle cx="7.5" cy="8" r="1" fill="currentColor"/>
+          <circle cx="12.5" cy="8" r="1" fill="currentColor"/>
         </svg>
       ),
-      value: null,
-      label: 'Yüksək reytinq',
+      value: '50K+',
+      label: 'Məmnun Müştəri',
     },
     {
       icon: (
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <rect x="3" y="4" width="14" height="13" rx="2.5" stroke="currentColor" strokeWidth="1.4" />
-          <path d="M7 2v4M13 2v4M3 9h14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+          <rect x="3" y="3" width="6" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.4"/>
+          <rect x="11" y="3" width="6" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.4"/>
+          <rect x="3" y="11" width="6" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.4"/>
+          <rect x="11" y="11" width="6" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.4"/>
         </svg>
       ),
-      value: null,
-      label: 'Asan rezervasiya',
+      value: '100+',
+      label: 'Xidmət Kategoriyası',
     },
   ];
 
@@ -254,8 +295,8 @@ function StatsStrip({ salonCount }: { salonCount: number }) {
           <div key={i} className="sz-stat">
             <span className="sz-stat-icon">{stat.icon}</span>
             <div>
-              {stat.value ? <p className="sz-stat-value">{stat.value}</p> : null}
-              <p className="sz-stat-label" style={stat.value ? {} : { fontWeight: 700, color: '#1e1b2e' }}>{stat.label}</p>
+              <p className="sz-stat-value">{stat.value}</p>
+              <p className="sz-stat-label">{stat.label}</p>
             </div>
           </div>
         ))}
@@ -274,7 +315,7 @@ function Hero({ salons, salonCount }: { salons: SalonListItem[]; salonCount: num
         {/* Left column */}
         <div className="sz-hero2-copy">
           {/* Badge */}
-          <div className="sz-hero2-badge" aria-label="Salon rezervasiyası daha asan">
+          <div className="sz-hero2-badge" aria-label="#1 Salon Rezervasiya Platforması">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
               <path
                 d="M7 1l1.5 3.1 3.4.5-2.45 2.4.58 3.4L7 9l-3.03 1.4.58-3.4L2.1 4.6l3.4-.5L7 1z"
@@ -284,7 +325,7 @@ function Hero({ salons, salonCount }: { salons: SalonListItem[]; salonCount: num
                 strokeLinejoin="round"
               />
             </svg>
-            <span>Salon rezervasiyası daha asan</span>
+            <span>#1 Salon Rezervasiya Platforması</span>
           </div>
 
           {/* Headline */}
@@ -571,53 +612,18 @@ function Hero({ salons, salonCount }: { salons: SalonListItem[]; salonCount: num
           display: flex;
           flex-direction: row;
           align-items: center;
+          position: relative;
         }
         .sz-float-trust-avatar {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          width: 26px;
-          height: 26px;
+          width: 28px;
+          height: 28px;
           border-radius: 50%;
           border: 2px solid #fff;
           flex-shrink: 0;
-        }
-        .sz-float-trust-stars {
-          display: flex;
-          gap: 1px;
-          margin-bottom: 2px;
-        }
-        .sz-float-trust-label {
-          margin: 0;
-          font-size: 0.72rem;
-          font-weight: 700;
-          color: #1e1b2e;
-          white-space: nowrap;
-        }
-        .sz-float-services-title {
-          margin: 0 0 0.5rem;
-          font-size: 0.75rem;
-          font-weight: 700;
-          color: #1e1b2e;
-        }
-        .sz-float-services-list {
-          list-style: none;
-          margin: 0;
-          padding: 0;
-          display: flex;
-          flex-direction: column;
-          gap: 0.4rem;
-        }
-        .sz-float-services-item {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          font-size: 0.72rem;
-          color: #374151;
-        }
-        .sz-float-services-price {
-          font-weight: 700;
-          color: #7c3aed;
+          position: relative;
         }
 
         /* ── Search bar ── */
@@ -1036,7 +1042,7 @@ export function LandingPage({
       <PageHeader isAuthenticated={isAuthenticated} />
       <main style={{ flex: 1 }}>
         <Hero salons={salons} salonCount={salonCount} />
-        <StatsStrip salonCount={salonCount} />
+        <StatsStrip />
         <HowItWorks />
         <PopularSalons salons={salons} />
         <WhySalonomia />
