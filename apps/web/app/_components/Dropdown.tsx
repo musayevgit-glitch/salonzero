@@ -35,7 +35,10 @@ export function Dropdown({ label, options, fullWidth = true, id, ...props }: Dro
       }}
     >
       {label ? (
-        <label htmlFor={selectId} style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e1b2e' }}>
+        <label
+          htmlFor={selectId}
+          style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e1b2e' }}
+        >
           {label}
         </label>
       ) : null}

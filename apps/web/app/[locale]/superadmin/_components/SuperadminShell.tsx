@@ -31,7 +31,12 @@ function IconDashboard() {
 function IconSalons() {
   return (
     <svg {...ICON_PROPS}>
-      <path d="M2 8l8-6 8 6v9a1 1 0 01-1 1H3a1 1 0 01-1-1V8z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <path
+        d="M2 8l8-6 8 6v9a1 1 0 01-1 1H3a1 1 0 01-1-1V8z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
       <path d="M7 18v-6h6v6" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
     </svg>
   );
@@ -40,21 +45,36 @@ function IconStylists() {
   return (
     <svg {...ICON_PROPS}>
       <circle cx="10" cy="6" r="3.5" stroke="currentColor" strokeWidth="1.5" />
-      <path d="M2 18c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path
+        d="M2 18c0-4 3.6-7 8-7s8 3 8 7"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
 function IconServices() {
   return (
     <svg {...ICON_PROPS}>
-      <path d="M10 2.5l1.9 5.6 5.6 1.9-5.6 1.9L10 17.5l-1.9-5.6L2.5 10l5.6-1.9z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <path
+        d="M10 2.5l1.9 5.6 5.6 1.9-5.6 1.9L10 17.5l-1.9-5.6L2.5 10l5.6-1.9z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
 function IconTag() {
   return (
     <svg {...ICON_PROPS}>
-      <path d="M2.5 9.2V3a.5.5 0 01.5-.5h6.2a1 1 0 01.7.3l7 7a1 1 0 010 1.4l-6.2 6.2a1 1 0 01-1.4 0l-7-7a1 1 0 01-.3-.7z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <path
+        d="M2.5 9.2V3a.5.5 0 01.5-.5h6.2a1 1 0 01.7.3l7 7a1 1 0 010 1.4l-6.2 6.2a1 1 0 01-1.4 0l-7-7a1 1 0 01-.3-.7z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
       <circle cx="6.5" cy="6.5" r="1.25" stroke="currentColor" strokeWidth="1.5" />
     </svg>
   );
@@ -63,15 +83,32 @@ function IconReservations() {
   return (
     <svg {...ICON_PROPS}>
       <rect x="2" y="4" width="16" height="14" rx="2" stroke="currentColor" strokeWidth="1.5" />
-      <path d="M6 2v3M14 2v3M2 8h16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M7 12.5l1.8 1.8L13 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M6 2v3M14 2v3M2 8h16"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M7 12.5l1.8 1.8L13 10"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
 function IconReports() {
   return (
     <svg {...ICON_PROPS}>
-      <path d="M2 15l4-5 4 2.5 4-7 4 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M2 15l4-5 4 2.5 4-7 4 3"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
       <path d="M2 18h16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   );
@@ -82,29 +119,64 @@ function IconUsers() {
       <circle cx="7" cy="6" r="2.5" stroke="currentColor" strokeWidth="1.5" />
       <path d="M1 17c0-3 2.7-5 6-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
       <circle cx="14" cy="6" r="2.5" stroke="currentColor" strokeWidth="1.5" />
-      <path d="M11.5 12.5c1-.4 2-.5 2.5-.5 3.3 0 6 2 6 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path
+        d="M11.5 12.5c1-.4 2-.5 2.5-.5 3.3 0 6 2 6 5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
 function IconAudit() {
   return (
     <svg {...ICON_PROPS}>
-      <path d="M4 3h8l4 4v11a1 1 0 01-1 1H4a1 1 0 01-1-1V4a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-      <path d="M12 3v4h4M6 10h8M6 13h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M4 3h8l4 4v11a1 1 0 01-1 1H4a1 1 0 01-1-1V4a1 1 0 011-1z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12 3v4h4M6 10h8M6 13h5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
 function IconLogout() {
   return (
     <svg {...ICON_PROPS}>
-      <path d="M8 17H4a1 1 0 01-1-1V4a1 1 0 011-1h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M13 14l4-4-4-4M17 10H8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M8 17H4a1 1 0 01-1-1V4a1 1 0 011-1h4"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M13 14l4-4-4-4M17 10H8"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
 function IconSearch() {
   return (
-    <svg width="15" height="15" viewBox="0 0 20 20" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
+    <svg
+      width="15"
+      height="15"
+      viewBox="0 0 20 20"
+      fill="none"
+      aria-hidden="true"
+      style={{ flexShrink: 0 }}
+    >
       <circle cx="9" cy="9" r="6" stroke="currentColor" strokeWidth="1.6" />
       <path d="M13.5 13.5L17 17" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
     </svg>
@@ -113,15 +185,30 @@ function IconSearch() {
 function IconBell() {
   return (
     <svg width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-      <path d="M10 2.5a5 5 0 00-5 5v3.2l-1.2 2.2a.6.6 0 00.53.9h11.34a.6.6 0 00.53-.9L15 10.7V7.5a5 5 0 00-5-5z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-      <path d="M8 16.2a2.1 2.1 0 004 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path
+        d="M10 2.5a5 5 0 00-5 5v3.2l-1.2 2.2a.6.6 0 00.53.9h11.34a.6.6 0 00.53-.9L15 10.7V7.5a5 5 0 00-5-5z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M8 16.2a2.1 2.1 0 004 0"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
 function IconHamburger() {
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-      <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path
+        d="M3 5h14M3 10h14M3 15h14"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -133,9 +220,19 @@ function IconChevron({ open }: { open: boolean }) {
       viewBox="0 0 20 20"
       fill="none"
       aria-hidden="true"
-      style={{ transition: 'transform 120ms ease', transform: open ? 'rotate(180deg)' : 'none', flexShrink: 0 }}
+      style={{
+        transition: 'transform 120ms ease',
+        transform: open ? 'rotate(180deg)' : 'none',
+        flexShrink: 0,
+      }}
     >
-      <path d="M5 8l5 5 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M5 8l5 5 5-5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -158,12 +255,24 @@ function Wordmark() {
       >
         <svg width="16" height="16" viewBox="0 0 22 22" fill="none" aria-hidden="true">
           <circle cx="11" cy="11" r="9" stroke="#fff" strokeWidth="1.6" />
-          <path d="M7 11c0-2.21 1.79-4 4-4s4 1.79 4 4" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" />
+          <path
+            d="M7 11c0-2.21 1.79-4 4-4s4 1.79 4 4"
+            stroke="#fff"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+          />
           <circle cx="11" cy="14" r="1.5" fill="#fff" />
         </svg>
       </span>
       <span style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <span style={{ fontSize: '0.9375rem', fontWeight: 700, color: 'var(--color-text-primary)', lineHeight: 1.15 }}>
+        <span
+          style={{
+            fontSize: '0.9375rem',
+            fontWeight: 700,
+            color: 'var(--color-text-primary)',
+            lineHeight: 1.15,
+          }}
+        >
           Salonomia
         </span>
         <span
@@ -194,10 +303,30 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', href: '/superadmin', section: 'Əsas', icon: <IconDashboard /> },
   { label: 'Salonlar', href: '/superadmin/salons', section: 'İdarəetmə', icon: <IconSalons /> },
-  { label: 'Stilistlər', href: '/superadmin/stylists', section: 'İdarəetmə', icon: <IconStylists /> },
-  { label: 'Xidmətlər', href: '/superadmin/services', section: 'İdarəetmə', icon: <IconServices /> },
-  { label: 'Kateqoriyalar', href: '/superadmin/service-categories', section: 'İdarəetmə', icon: <IconTag /> },
-  { label: 'Rezervasiyalar', href: '/superadmin/reservations', section: 'İdarəetmə', icon: <IconReservations /> },
+  {
+    label: 'Stilistlər',
+    href: '/superadmin/stylists',
+    section: 'İdarəetmə',
+    icon: <IconStylists />,
+  },
+  {
+    label: 'Xidmətlər',
+    href: '/superadmin/services',
+    section: 'İdarəetmə',
+    icon: <IconServices />,
+  },
+  {
+    label: 'Kateqoriyalar',
+    href: '/superadmin/service-categories',
+    section: 'İdarəetmə',
+    icon: <IconTag />,
+  },
+  {
+    label: 'Rezervasiyalar',
+    href: '/superadmin/reservations',
+    section: 'İdarəetmə',
+    icon: <IconReservations />,
+  },
   { label: 'Hesabatlar', href: '/superadmin/reports', section: 'Analitika', icon: <IconReports /> },
   { label: 'İstifadəçilər', href: '/superadmin/users', section: 'Sistem', icon: <IconUsers /> },
   { label: 'Audit Jurnal', href: '/superadmin/audit-logs', section: 'Sistem', icon: <IconAudit /> },
@@ -230,7 +359,10 @@ function SidebarNav({
   }
 
   return (
-    <nav aria-label="Platform admin naviqasiyası" style={{ display: 'flex', flexDirection: 'column', padding: '0.5rem 0.75rem' }}>
+    <nav
+      aria-label="Platform admin naviqasiyası"
+      style={{ display: 'flex', flexDirection: 'column', padding: '0.5rem 0.75rem' }}
+    >
       {groups.map((group) => (
         <div key={group.section} style={{ marginBottom: '0.5rem' }}>
           <p className="dash-nav-section">{group.section}</p>
@@ -403,7 +535,13 @@ function HeaderSearch() {
                 type="button"
                 onClick={() => go(item.href)}
                 className="dash-nav-link"
-                style={{ width: '100%', background: 'none', font: 'inherit', textAlign: 'left', cursor: 'pointer' }}
+                style={{
+                  width: '100%',
+                  background: 'none',
+                  font: 'inherit',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                }}
               >
                 {item.icon}
                 <span>{item.label}</span>
@@ -473,11 +611,26 @@ function UserMenu({ user }: { user: CurrentUser | null }) {
         >
           {initials || '?'}
         </span>
-        <span className="hidden sm:flex" style={{ flexDirection: 'column', alignItems: 'flex-start', minWidth: 0 }}>
-          <span style={{ fontSize: '0.8125rem', fontWeight: 600, lineHeight: 1.2, maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <span
+          className="hidden sm:flex"
+          style={{ flexDirection: 'column', alignItems: 'flex-start', minWidth: 0 }}
+        >
+          <span
+            style={{
+              fontSize: '0.8125rem',
+              fontWeight: 600,
+              lineHeight: 1.2,
+              maxWidth: 140,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
             {name}
           </span>
-          <span style={{ fontSize: '0.6875rem', color: 'var(--color-text-secondary)', lineHeight: 1.2 }}>
+          <span
+            style={{ fontSize: '0.6875rem', color: 'var(--color-text-secondary)', lineHeight: 1.2 }}
+          >
             Superadmin
           </span>
         </span>
@@ -502,13 +655,41 @@ function UserMenu({ user }: { user: CurrentUser | null }) {
             zIndex: 40,
           }}
         >
-          <div style={{ padding: '0.375rem 0.75rem 0.625rem', borderBottom: '1px solid var(--color-border)', marginBottom: '0.375rem' }}>
-            <p style={{ margin: 0, fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>{name}</p>
-            <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <div
+            style={{
+              padding: '0.375rem 0.75rem 0.625rem',
+              borderBottom: '1px solid var(--color-border)',
+              marginBottom: '0.375rem',
+            }}
+          >
+            <p
+              style={{
+                margin: 0,
+                fontSize: '0.8125rem',
+                fontWeight: 600,
+                color: 'var(--color-text-primary)',
+              }}
+            >
+              {name}
+            </p>
+            <p
+              style={{
+                margin: 0,
+                fontSize: '0.75rem',
+                color: 'var(--color-text-secondary)',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
               {user?.email ?? ''}
             </p>
           </div>
-          <NextLink href="/account" className="dash-nav-link" role="menuitem" onClick={() => setOpen(false)}>
+          <NextLink
+            href="/account"
+            className="dash-nav-link"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+          >
             <IconUsers />
             <span>Hesabım</span>
           </NextLink>
@@ -576,7 +757,9 @@ export function SuperadminShell({ children }: { children: ReactNode }) {
           <SidebarNav activeHref={activeHref} />
         </div>
 
-        <div style={{ borderTop: '1px solid var(--color-border)', padding: '0.75rem', flexShrink: 0 }}>
+        <div
+          style={{ borderTop: '1px solid var(--color-border)', padding: '0.75rem', flexShrink: 0 }}
+        >
           <LogoutButton />
         </div>
       </aside>
@@ -628,7 +811,9 @@ export function SuperadminShell({ children }: { children: ReactNode }) {
             <HeaderSearch />
           </span>
 
-          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+          <div
+            style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.375rem' }}
+          >
             <NextLink
               href="/superadmin/audit-logs"
               aria-label="Son sistem fəaliyyəti"
@@ -657,7 +842,13 @@ export function SuperadminShell({ children }: { children: ReactNode }) {
       {/* ── Mobile drawer ── */}
       <Drawer open={drawerOpen} onOpenChange={setDrawerOpen} title="Platform Admin">
         <SidebarNav activeHref={activeHref} onNavigate={() => setDrawerOpen(false)} />
-        <div style={{ borderTop: '1px solid var(--color-border)', marginTop: '0.5rem', paddingTop: '0.5rem' }}>
+        <div
+          style={{
+            borderTop: '1px solid var(--color-border)',
+            marginTop: '0.5rem',
+            paddingTop: '0.5rem',
+          }}
+        >
           <LogoutButton />
         </div>
       </Drawer>

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../../../lib/server/prisma';
-import { getSalonContext, isSalonContextError } from '../../../../../../../lib/server/salon-context';
+import {
+  getSalonContext,
+  isSalonContextError,
+} from '../../../../../../../lib/server/salon-context';
 import { notFound } from '../../../../../../../lib/server/auth';
 import { recordAudit } from '../../../../../../../lib/server/audit';
 
@@ -21,7 +24,7 @@ const DETAIL_SELECT = { ...SELECT, updatedAt: true } as const;
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ salonId: string; serviceId: string }> }
+  { params }: { params: Promise<{ salonId: string; serviceId: string }> },
 ) {
   const { salonId, serviceId } = await params;
   const ctx = await getSalonContext(req, salonId, 'SALON_ADMIN');

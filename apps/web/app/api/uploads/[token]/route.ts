@@ -6,7 +6,11 @@ import { Readable } from 'node:stream';
 function getLocalAdapter() {
   const adapter = getStorageAdapter() as {
     verifyToken?: (token: string) => unknown;
-    writeObjectWithLimit?: (key: string, stream: NodeJS.ReadableStream, max: number) => Promise<void>;
+    writeObjectWithLimit?: (
+      key: string,
+      stream: NodeJS.ReadableStream,
+      max: number,
+    ) => Promise<void>;
     statObject?: (key: string) => Promise<{ sizeBytes: number } | null>;
     readObjectHead?: (key: string, bytes: number) => Promise<Buffer | null>;
     createReadStream?: (key: string) => NodeJS.ReadableStream;
@@ -23,10 +27,7 @@ type UploadPayload = {
   exp?: number;
 };
 
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: Promise<{ token: string }> },
-) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   const adapter = getLocalAdapter();
   if (!adapter) return NextResponse.json({ message: 'Not found.' }, { status: 404 });
@@ -41,14 +42,24 @@ export async function PUT(
   }
 
   const contentLength = Number(req.headers.get('content-length'));
-  if (!Number.isFinite(contentLength) || contentLength <= 0 || contentLength > payload.maxSizeBytes) {
-    return NextResponse.json({ message: 'Upload exceeds the allowed size limit.' }, { status: 413 });
+  if (
+    !Number.isFinite(contentLength) ||
+    contentLength <= 0 ||
+    contentLength > payload.maxSizeBytes
+  ) {
+    return NextResponse.json(
+      { message: 'Upload exceeds the allowed size limit.' },
+      { status: 413 },
+    );
   }
 
   const arrayBuffer = await req.arrayBuffer();
   const body = Buffer.from(arrayBuffer);
   if (body.length > payload.maxSizeBytes) {
-    return NextResponse.json({ message: 'Upload exceeds the allowed size limit.' }, { status: 413 });
+    return NextResponse.json(
+      { message: 'Upload exceeds the allowed size limit.' },
+      { status: 413 },
+    );
   }
 
   const detectedMime = detectImageMime(body.subarray(0, 12));
@@ -58,17 +69,17 @@ export async function PUT(
 
   const existing = await adapter.statObject!(payload.objectKey);
   if (existing) {
-    return NextResponse.json({ message: 'This upload target has already been used.' }, { status: 409 });
+    return NextResponse.json(
+      { message: 'This upload target has already been used.' },
+      { status: 409 },
+    );
   }
 
   await adapter.writeObjectWithLimit!(payload.objectKey, Readable.from(body), payload.maxSizeBytes);
   return new NextResponse(null, { status: 204 });
 }
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: Promise<{ token: string }> },
-) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   const adapter = getLocalAdapter();
   if (!adapter) return NextResponse.json({ message: 'Not found.' }, { status: 404 });

@@ -182,7 +182,9 @@ export function DashboardShell({
           </p>
         ) : null}
         <NavContent navItems={navItems} renderLink={renderLink} activeHref={activeHref} />
-        {sidebarFooter ? <div className="mt-3 border-t border-border px-3 pt-3">{sidebarFooter}</div> : null}
+        {sidebarFooter ? (
+          <div className="mt-3 border-t border-border px-3 pt-3">{sidebarFooter}</div>
+        ) : null}
       </Drawer>
     </div>
   );

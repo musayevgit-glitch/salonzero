@@ -1,8 +1,20 @@
 'use client';
 
 import {
-  Badge, Button, ConfirmDialog, EmptyState, ErrorState, Input, Link,
-  MobileRecordList, Pagination, PermissionDeniedState, Select, Skeleton, Table, useToast,
+  Badge,
+  Button,
+  ConfirmDialog,
+  EmptyState,
+  ErrorState,
+  Input,
+  Link,
+  MobileRecordList,
+  Pagination,
+  PermissionDeniedState,
+  Select,
+  Skeleton,
+  Table,
+  useToast,
 } from '@salonomia/ui';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -11,15 +23,35 @@ import { FilterBar } from '../../../_components/admin/FilterBar';
 import { LinkButton } from '../../../_components/admin/LinkButton';
 import { PageHeader } from '../../../_components/admin/PageHeader';
 
-interface Salon { id: string; name: string; }
-interface ServiceItem {
-  id: string; name: string; priceAmount: number; currency: string;
-  durationMinutes: number; isActive: boolean; createdAt: string;
-  salonId: string; salonName: string; categoryName: string | null;
-  assignedStylistCount: number; reservationCount: number;
+interface Salon {
+  id: string;
+  name: string;
 }
-interface ServiceListResponse { items: ServiceItem[]; total: number; page: number; pageSize: number; }
-type LoadState = { kind: 'loading' } | { kind: 'permission-denied' } | { kind: 'error'; message: string } | { kind: 'ready'; data: ServiceListResponse };
+interface ServiceItem {
+  id: string;
+  name: string;
+  priceAmount: number;
+  currency: string;
+  durationMinutes: number;
+  isActive: boolean;
+  createdAt: string;
+  salonId: string;
+  salonName: string;
+  categoryName: string | null;
+  assignedStylistCount: number;
+  reservationCount: number;
+}
+interface ServiceListResponse {
+  items: ServiceItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+type LoadState =
+  | { kind: 'loading' }
+  | { kind: 'permission-denied' }
+  | { kind: 'error'; message: string }
+  | { kind: 'ready'; data: ServiceListResponse };
 
 function fmt(cents: number, currency: string) {
   return new Intl.NumberFormat('az-AZ', { style: 'currency', currency }).format(cents / 100);
@@ -40,7 +72,9 @@ export default function SuperadminServicesPage() {
   const [actionBusy, setActionBusy] = useState(false);
 
   useEffect(() => {
-    apiFetch<{ items: Salon[] }>('/salons?pageSize=200').then((r) => setSalons(r.items)).catch(() => {});
+    apiFetch<{ items: Salon[] }>('/salons?pageSize=200')
+      .then((r) => setSalons(r.items))
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -52,14 +86,27 @@ export default function SuperadminServicesPage() {
     if (statusFilter) q.set('status', statusFilter);
 
     apiFetch<ServiceListResponse>(`/superadmin/services?${q}`)
-      .then((data) => { if (!cancelled) setState({ kind: 'ready', data }); })
+      .then((data) => {
+        if (!cancelled) setState({ kind: 'ready', data });
+      })
       .catch((err: unknown) => {
         if (cancelled) return;
-        if (err instanceof ApiError && err.status === 401) { router.replace('/login?returnTo=/superadmin/services'); return; }
-        if (err instanceof ApiError && (err.status === 403 || err.status === 404)) { setState({ kind: 'permission-denied' }); return; }
-        setState({ kind: 'error', message: err instanceof ApiError ? err.message : 'Xəta baş verdi.' });
+        if (err instanceof ApiError && err.status === 401) {
+          router.replace('/login?returnTo=/superadmin/services');
+          return;
+        }
+        if (err instanceof ApiError && (err.status === 403 || err.status === 404)) {
+          setState({ kind: 'permission-denied' });
+          return;
+        }
+        setState({
+          kind: 'error',
+          message: err instanceof ApiError ? err.message : 'Xəta baş verdi.',
+        });
       });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [search, salonFilter, statusFilter, page, router]);
 
   async function handleToggle() {
@@ -67,7 +114,8 @@ export default function SuperadminServicesPage() {
     setActionBusy(true);
     try {
       await apiFetch(`/superadmin/services/${actionService.id}`, {
-        method: 'PATCH', body: JSON.stringify({ isActive: !actionService.isActive }),
+        method: 'PATCH',
+        body: JSON.stringify({ isActive: !actionService.isActive }),
       });
       showToast(actionService.isActive ? 'Xidmət deaktiv edildi' : 'Xidmət aktivləşdirildi');
       setActionService(null);
@@ -79,7 +127,9 @@ export default function SuperadminServicesPage() {
       if (statusFilter) q.set('status', statusFilter);
       apiFetch<ServiceListResponse>(`/superadmin/services?${q}`)
         .then((data) => setState({ kind: 'ready', data }))
-        .catch((err: unknown) => setState({ kind: 'error', message: err instanceof ApiError ? err.message : 'Xəta' }));
+        .catch((err: unknown) =>
+          setState({ kind: 'error', message: err instanceof ApiError ? err.message : 'Xəta' }),
+        );
     } catch (err) {
       showToast(err instanceof ApiError ? err.message : 'Xəta baş verdi', 'danger');
     } finally {
@@ -87,9 +137,25 @@ export default function SuperadminServicesPage() {
     }
   }
 
-  if (state.kind === 'loading') return <main className="dashboard-page"><Skeleton className="h-10 w-full max-w-md" /><Skeleton className="h-64 w-full rounded-[var(--radius-lg)]" /></main>;
-  if (state.kind === 'permission-denied') return <main className="dashboard-page"><PermissionDeniedState /></main>;
-  if (state.kind === 'error') return <main className="dashboard-page"><ErrorState title="Xidmətlər yüklənmədi" description={state.message} /></main>;
+  if (state.kind === 'loading')
+    return (
+      <main className="dashboard-page">
+        <Skeleton className="h-10 w-full max-w-md" />
+        <Skeleton className="h-64 w-full rounded-[var(--radius-lg)]" />
+      </main>
+    );
+  if (state.kind === 'permission-denied')
+    return (
+      <main className="dashboard-page">
+        <PermissionDeniedState />
+      </main>
+    );
+  if (state.kind === 'error')
+    return (
+      <main className="dashboard-page">
+        <ErrorState title="Xidmətlər yüklənmədi" description={state.message} />
+      </main>
+    );
 
   const { items, total, pageSize } = state.data;
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
@@ -104,14 +170,42 @@ export default function SuperadminServicesPage() {
 
       <FilterBar
         search={
-          <Input placeholder="Xidmət adı axtar..." value={search} onChange={(e) => { setPage(1); setSearch(e.target.value); }} aria-label="Xidmət axtar" />
+          <Input
+            placeholder="Xidmət adı axtar..."
+            value={search}
+            onChange={(e) => {
+              setPage(1);
+              setSearch(e.target.value);
+            }}
+            aria-label="Xidmət axtar"
+          />
         }
       >
-        <Select value={salonFilter} onChange={(e) => { setPage(1); setSalonFilter(e.target.value); }} aria-label="Salon filtri" className="sm:max-w-52">
+        <Select
+          value={salonFilter}
+          onChange={(e) => {
+            setPage(1);
+            setSalonFilter(e.target.value);
+          }}
+          aria-label="Salon filtri"
+          className="sm:max-w-52"
+        >
           <option value="">Bütün salonlar</option>
-          {salons.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+          {salons.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.name}
+            </option>
+          ))}
         </Select>
-        <Select value={statusFilter} onChange={(e) => { setPage(1); setStatusFilter(e.target.value); }} aria-label="Status filtri" className="sm:max-w-44">
+        <Select
+          value={statusFilter}
+          onChange={(e) => {
+            setPage(1);
+            setStatusFilter(e.target.value);
+          }}
+          aria-label="Status filtri"
+          className="sm:max-w-44"
+        >
           <option value="">Bütün statuslar</option>
           <option value="ACTIVE">Aktiv</option>
           <option value="INACTIVE">Deaktiv</option>
@@ -124,19 +218,67 @@ export default function SuperadminServicesPage() {
         <>
           <Table
             columns={[
-              { key: 'name', header: 'Xidmət', render: (r: ServiceItem) => <Link href={`/superadmin/services/${r.id}`}>{r.name}</Link> },
-              { key: 'salon', header: 'Salon', render: (r: ServiceItem) => <Link href={`/superadmin/salons/${r.salonId}`}>{r.salonName}</Link> },
-              { key: 'category', header: 'Kateqoriya', render: (r: ServiceItem) => r.categoryName ?? '—' },
-              { key: 'price', header: 'Qiymət', render: (r: ServiceItem) => fmt(r.priceAmount, r.currency) },
-              { key: 'duration', header: 'Müddət', render: (r: ServiceItem) => `${r.durationMinutes} dəq` },
-              { key: 'stylists', header: 'Stilistlər', render: (r: ServiceItem) => r.assignedStylistCount },
-              { key: 'reservations', header: 'Rezerv.', render: (r: ServiceItem) => r.reservationCount },
-              { key: 'status', header: 'Status', render: (r: ServiceItem) => <Badge tone={r.isActive ? 'success' : 'neutral'}>{r.isActive ? 'Aktiv' : 'Deaktiv'}</Badge> },
               {
-                key: 'actions', header: '', render: (r: ServiceItem) => (
+                key: 'name',
+                header: 'Xidmət',
+                render: (r: ServiceItem) => (
+                  <Link href={`/superadmin/services/${r.id}`}>{r.name}</Link>
+                ),
+              },
+              {
+                key: 'salon',
+                header: 'Salon',
+                render: (r: ServiceItem) => (
+                  <Link href={`/superadmin/salons/${r.salonId}`}>{r.salonName}</Link>
+                ),
+              },
+              {
+                key: 'category',
+                header: 'Kateqoriya',
+                render: (r: ServiceItem) => r.categoryName ?? '—',
+              },
+              {
+                key: 'price',
+                header: 'Qiymət',
+                render: (r: ServiceItem) => fmt(r.priceAmount, r.currency),
+              },
+              {
+                key: 'duration',
+                header: 'Müddət',
+                render: (r: ServiceItem) => `${r.durationMinutes} dəq`,
+              },
+              {
+                key: 'stylists',
+                header: 'Stilistlər',
+                render: (r: ServiceItem) => r.assignedStylistCount,
+              },
+              {
+                key: 'reservations',
+                header: 'Rezerv.',
+                render: (r: ServiceItem) => r.reservationCount,
+              },
+              {
+                key: 'status',
+                header: 'Status',
+                render: (r: ServiceItem) => (
+                  <Badge tone={r.isActive ? 'success' : 'neutral'}>
+                    {r.isActive ? 'Aktiv' : 'Deaktiv'}
+                  </Badge>
+                ),
+              },
+              {
+                key: 'actions',
+                header: '',
+                render: (r: ServiceItem) => (
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <Link href={`/superadmin/services/${r.id}/edit`} style={{ fontSize: '0.8rem' }}>Redaktə</Link>
-                    <Button variant={r.isActive ? 'destructive' : 'secondary'} onClick={() => setActionService(r)} style={{ padding: '0.25rem 0.6rem', fontSize: '0.75rem' }}>
+                    <Link href={`/superadmin/services/${r.id}/edit`} style={{ fontSize: '0.8rem' }}>
+                      Redaktə
+                    </Link>
+                    <Button
+                      variant={r.isActive ? 'destructive' : 'secondary'}
+                      onClick={() => setActionService(r)}
+                      style={{ padding: '0.25rem 0.6rem', fontSize: '0.75rem' }}
+                    >
                       {r.isActive ? 'Deaktiv' : 'Aktiv'}
                     </Button>
                   </div>
@@ -150,8 +292,14 @@ export default function SuperadminServicesPage() {
             rows={items}
             getRowKey={(r) => r.id}
             renderPrimary={(r) => <Link href={`/superadmin/services/${r.id}`}>{r.name}</Link>}
-            renderSecondary={(r) => `${r.salonName} · ${fmt(r.priceAmount, r.currency)} · ${r.durationMinutes} dəq`}
-            renderAction={(r) => <Badge tone={r.isActive ? 'success' : 'neutral'}>{r.isActive ? 'Aktiv' : 'Deaktiv'}</Badge>}
+            renderSecondary={(r) =>
+              `${r.salonName} · ${fmt(r.priceAmount, r.currency)} · ${r.durationMinutes} dəq`
+            }
+            renderAction={(r) => (
+              <Badge tone={r.isActive ? 'success' : 'neutral'}>
+                {r.isActive ? 'Aktiv' : 'Deaktiv'}
+              </Badge>
+            )}
           />
         </>
       )}
@@ -162,10 +310,16 @@ export default function SuperadminServicesPage() {
         <ConfirmDialog
           open
           onOpenChange={(o) => !o && setActionService(null)}
-          title={actionService.isActive ? 'Xidməti deaktiv etmək istəyirsiniz?' : 'Xidməti aktivləşdirmək istəyirsiniz?'}
-          description={actionService.isActive
-            ? `"${actionService.name}" xidməti yeni rezervasiyalar üçün bağlanacaq. Mövcud rezervasiyalar qalacaq.`
-            : `"${actionService.name}" xidməti yenidən onlayn bronlamaya açılacaq.`}
+          title={
+            actionService.isActive
+              ? 'Xidməti deaktiv etmək istəyirsiniz?'
+              : 'Xidməti aktivləşdirmək istəyirsiniz?'
+          }
+          description={
+            actionService.isActive
+              ? `"${actionService.name}" xidməti yeni rezervasiyalar üçün bağlanacaq. Mövcud rezervasiyalar qalacaq.`
+              : `"${actionService.name}" xidməti yenidən onlayn bronlamaya açılacaq.`
+          }
           confirmLabel={actionService.isActive ? 'Deaktiv et' : 'Aktivləşdir'}
           destructive={actionService.isActive}
           confirming={actionBusy}

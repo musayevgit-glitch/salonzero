@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../lib/server/prisma';
 import { getSalonContext, isSalonContextError } from '../../../../../lib/server/salon-context';
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ salonId: string }> },
-) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ salonId: string }> }) {
   const { salonId } = await params;
   const ctx = await getSalonContext(req, salonId);
   if (isSalonContextError(ctx)) return ctx;
@@ -58,10 +55,11 @@ export async function GET(
       [...reservations]
         .filter(
           (r) =>
-            r.startAt > now && (r.status === 'CONFIRMED' || r.status === 'PENDING' || r.status === 'CHECKED_IN'),
+            r.startAt > now &&
+            (r.status === 'CONFIRMED' || r.status === 'PENDING' || r.status === 'CHECKED_IN'),
         )
-        .sort((a, b) => a.startAt.getTime() - b.startAt.getTime())[0]?.startAt?.toISOString() ??
-      null;
+        .sort((a, b) => a.startAt.getTime() - b.startAt.getTime())[0]
+        ?.startAt?.toISOString() ?? null;
 
     return {
       id: user.id,

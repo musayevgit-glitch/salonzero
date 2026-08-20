@@ -143,9 +143,7 @@ export default function CustomersPage() {
         <EmptyState
           title={search ? t('customers.noCustomersFound') : t('customers.noCustomers')}
           description={
-            search
-              ? t('customers.noCustomersFoundDesc')
-              : t('customers.noCustomersDesc')
+            search ? t('customers.noCustomersFoundDesc') : t('customers.noCustomersDesc')
           }
         />
       ) : null}
@@ -175,17 +173,13 @@ export default function CustomersPage() {
               {
                 key: 'email',
                 header: t('customers.email'),
-                render: (c) => (
-                  <span className="text-text-secondary">{c.email}</span>
-                ),
+                render: (c) => <span className="text-text-secondary">{c.email}</span>,
               },
               {
                 key: 'visits',
                 header: t('customers.totalVisits'),
                 render: (c) => (
-                  <Badge tone={c.totalVisits > 0 ? 'success' : 'neutral'}>
-                    {c.totalVisits}
-                  </Badge>
+                  <Badge tone={c.totalVisits > 0 ? 'success' : 'neutral'}>{c.totalVisits}</Badge>
                 ),
               },
               {

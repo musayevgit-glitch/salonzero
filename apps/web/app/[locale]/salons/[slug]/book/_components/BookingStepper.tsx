@@ -45,7 +45,12 @@ export function BookingStepper() {
           return (
             <li
               key={step.label}
-              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                position: 'relative',
+              }}
             >
               {/* Connector line */}
               {i > 0 && (
@@ -77,11 +82,7 @@ export function BookingStepper() {
                   justifyContent: 'center',
                   fontSize: '0.75rem',
                   fontWeight: 700,
-                  background: done
-                    ? '#7c3aed'
-                    : active
-                      ? '#1e1b2e'
-                      : 'transparent',
+                  background: done ? '#7c3aed' : active ? '#1e1b2e' : 'transparent',
                   border: done
                     ? '2px solid #7c3aed'
                     : active

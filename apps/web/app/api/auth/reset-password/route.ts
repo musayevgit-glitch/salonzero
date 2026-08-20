@@ -23,7 +23,10 @@ export async function POST(req: NextRequest) {
   const record = await prisma.passwordResetToken.findUnique({ where: { tokenHash } });
 
   if (!record || record.usedAt || record.expiresAt < new Date()) {
-    return NextResponse.json({ message: 'This reset link is invalid or has expired.' }, { status: 400 });
+    return NextResponse.json(
+      { message: 'This reset link is invalid or has expired.' },
+      { status: 400 },
+    );
   }
 
   const passwordHash = await hashPassword(password);
@@ -35,7 +38,12 @@ export async function POST(req: NextRequest) {
     });
   });
 
-  await recordAudit({ actorUserId: record.userId, action: 'user.password_reset', targetType: 'User', targetId: record.userId });
+  await recordAudit({
+    actorUserId: record.userId,
+    action: 'user.password_reset',
+    targetType: 'User',
+    targetId: record.userId,
+  });
 
   return NextResponse.json({ ok: true });
 }

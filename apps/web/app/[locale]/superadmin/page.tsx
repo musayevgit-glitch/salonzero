@@ -14,7 +14,13 @@ interface Stats {
   services: { total: number; active: number; inactive: number };
   reservations: { total: number; today: number; week: number; month: number };
   customers: { total: number };
-  recentSalons: { id: string; name: string; status: string; city: string | null; createdAt: string }[];
+  recentSalons: {
+    id: string;
+    name: string;
+    status: string;
+    city: string | null;
+    createdAt: string;
+  }[];
   recentStylists: {
     id: string;
     fullName: string;
@@ -38,7 +44,12 @@ const I = {
 function SalonIcon() {
   return (
     <svg {...I}>
-      <path d="M2 8l8-6 8 6v9a1 1 0 01-1 1H3a1 1 0 01-1-1V8z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <path
+        d="M2 8l8-6 8 6v9a1 1 0 01-1 1H3a1 1 0 01-1-1V8z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
       <path d="M7 18v-6h6v6" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
     </svg>
   );
@@ -47,14 +58,24 @@ function StylistIcon() {
   return (
     <svg {...I}>
       <circle cx="10" cy="6" r="3.5" stroke="currentColor" strokeWidth="1.5" />
-      <path d="M2 18c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path
+        d="M2 18c0-4 3.6-7 8-7s8 3 8 7"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
 function ServiceIcon() {
   return (
     <svg {...I}>
-      <path d="M10 2.5l1.9 5.6 5.6 1.9-5.6 1.9L10 17.5l-1.9-5.6L2.5 10l5.6-1.9z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <path
+        d="M10 2.5l1.9 5.6 5.6 1.9-5.6 1.9L10 17.5l-1.9-5.6L2.5 10l5.6-1.9z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -62,7 +83,12 @@ function CalendarIcon() {
   return (
     <svg {...I}>
       <rect x="2" y="4" width="16" height="14" rx="2" stroke="currentColor" strokeWidth="1.5" />
-      <path d="M6 2v3M14 2v3M2 8h16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path
+        d="M6 2v3M14 2v3M2 8h16"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -72,7 +98,12 @@ function CustomerIcon() {
       <circle cx="7" cy="6" r="2.5" stroke="currentColor" strokeWidth="1.5" />
       <path d="M1 17c0-3 2.7-5 6-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
       <circle cx="14" cy="6" r="2.5" stroke="currentColor" strokeWidth="1.5" />
-      <path d="M11.5 12.5c1-.4 2-.5 2.5-.5 3.3 0 6 2 6 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path
+        d="M11.5 12.5c1-.4 2-.5 2.5-.5 3.3 0 6 2 6 5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -83,7 +114,12 @@ function ViewAllLink({ href }: { href: string }) {
   return (
     <Link
       href={href}
-      style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-accent)', textDecoration: 'none' }}
+      style={{
+        fontSize: '0.75rem',
+        fontWeight: 600,
+        color: 'var(--color-accent)',
+        textDecoration: 'none',
+      }}
     >
       Hamısı →
     </Link>
@@ -105,9 +141,18 @@ function SplitBar({ active, total }: { active: number; total: number }) {
         role="img"
         aria-label={`Aktiv nisbəti: ${pct}%`}
       >
-        <div style={{ width: `${pct}%`, height: '100%', background: 'var(--color-accent)', borderRadius: 9999 }} />
+        <div
+          style={{
+            width: `${pct}%`,
+            height: '100%',
+            background: 'var(--color-accent)',
+            borderRadius: 9999,
+          }}
+        />
       </div>
-      <p style={{ margin: '0.5rem 0 0', fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
+      <p
+        style={{ margin: '0.5rem 0 0', fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}
+      >
         {active} / {total} aktiv ({pct}%)
       </p>
     </div>
@@ -115,7 +160,11 @@ function SplitBar({ active, total }: { active: number; total: number }) {
 }
 
 function StatusChip({ active, label }: { active: boolean; label: string }) {
-  return <span className={`admin-chip ${active ? 'admin-chip-success' : 'admin-chip-neutral'}`}>{label}</span>;
+  return (
+    <span className={`admin-chip ${active ? 'admin-chip-success' : 'admin-chip-neutral'}`}>
+      {label}
+    </span>
+  );
 }
 
 function RecentRow({
@@ -158,7 +207,11 @@ function RecentRow({
         >
           {primary}
         </span>
-        <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>{secondary}</span>
+        <span
+          style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}
+        >
+          {secondary}
+        </span>
       </span>
       {trailing}
     </Link>
@@ -204,7 +257,11 @@ export default function SuperadminDashboardPage() {
   if (error) {
     return (
       <main className="dashboard-page">
-        <div className="admin-card admin-card-body" role="alert" style={{ color: 'var(--color-danger)' }}>
+        <div
+          className="admin-card admin-card-body"
+          role="alert"
+          style={{ color: 'var(--color-danger)' }}
+        >
           {error}
         </div>
       </main>
@@ -220,7 +277,9 @@ export default function SuperadminDashboardPage() {
         description="Platformanın ümumi vəziyyəti"
         actions={
           <>
-            <LinkButton href="/superadmin/salons/new" variant="secondary">+ Yeni salon</LinkButton>
+            <LinkButton href="/superadmin/salons/new" variant="secondary">
+              + Yeni salon
+            </LinkButton>
             <LinkButton href="/superadmin/reports">Hesabatlar</LinkButton>
           </>
         }
@@ -228,11 +287,45 @@ export default function SuperadminDashboardPage() {
 
       {/* ── KPI row ── */}
       <div className="stat-grid">
-        <StatCard label="Salonlar" value={stats.salons.total} sub={`${stats.salons.active} aktiv`} icon={<SalonIcon />} href="/superadmin/salons" />
-        <StatCard label="Stilistlər" value={stats.stylists.total} sub={`${stats.stylists.active} aktiv`} icon={<StylistIcon />} tone="info" href="/superadmin/stylists" />
-        <StatCard label="Xidmətlər" value={stats.services.total} sub={`${stats.services.active} aktiv`} icon={<ServiceIcon />} tone="warning" href="/superadmin/services" />
-        <StatCard label="Rezervasiyalar (bugün)" value={stats.reservations.today} sub={`${stats.reservations.month} bu ay`} icon={<CalendarIcon />} tone="success" href="/superadmin/reservations" />
-        <StatCard label="Müştərilər" value={stats.customers.total} sub="Qeydiyyatdan keçmiş" icon={<CustomerIcon />} tone="neutral" href="/superadmin/users" />
+        <StatCard
+          label="Salonlar"
+          value={stats.salons.total}
+          sub={`${stats.salons.active} aktiv`}
+          icon={<SalonIcon />}
+          href="/superadmin/salons"
+        />
+        <StatCard
+          label="Stilistlər"
+          value={stats.stylists.total}
+          sub={`${stats.stylists.active} aktiv`}
+          icon={<StylistIcon />}
+          tone="info"
+          href="/superadmin/stylists"
+        />
+        <StatCard
+          label="Xidmətlər"
+          value={stats.services.total}
+          sub={`${stats.services.active} aktiv`}
+          icon={<ServiceIcon />}
+          tone="warning"
+          href="/superadmin/services"
+        />
+        <StatCard
+          label="Rezervasiyalar (bugün)"
+          value={stats.reservations.today}
+          sub={`${stats.reservations.month} bu ay`}
+          icon={<CalendarIcon />}
+          tone="success"
+          href="/superadmin/reservations"
+        />
+        <StatCard
+          label="Müştərilər"
+          value={stats.customers.total}
+          sub="Qeydiyyatdan keçmiş"
+          icon={<CustomerIcon />}
+          tone="neutral"
+          href="/superadmin/users"
+        />
       </div>
 
       {/* ── Breakdown + reservation volume ── */}
@@ -240,24 +333,33 @@ export default function SuperadminDashboardPage() {
         <SectionCard title="Resurs vəziyyəti" className="lg:col-span-2">
           <div className="grid gap-5 sm:grid-cols-3">
             <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-secondary">Salonlar</p>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-secondary">
+                Salonlar
+              </p>
               <SplitBar active={stats.salons.active} total={stats.salons.total} />
               <p className="mt-1 text-xs text-text-secondary">{stats.salons.suspended} deaktiv</p>
             </div>
             <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-secondary">Stilistlər</p>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-secondary">
+                Stilistlər
+              </p>
               <SplitBar active={stats.stylists.active} total={stats.stylists.total} />
               <p className="mt-1 text-xs text-text-secondary">{stats.stylists.inactive} deaktiv</p>
             </div>
             <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-secondary">Xidmətlər</p>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-secondary">
+                Xidmətlər
+              </p>
               <SplitBar active={stats.services.active} total={stats.services.total} />
               <p className="mt-1 text-xs text-text-secondary">{stats.services.inactive} deaktiv</p>
             </div>
           </div>
         </SectionCard>
 
-        <SectionCard title="Rezervasiya həcmi" headerAction={<ViewAllLink href="/superadmin/reservations" />}>
+        <SectionCard
+          title="Rezervasiya həcmi"
+          headerAction={<ViewAllLink href="/superadmin/reservations" />}
+        >
           <dl className="flex flex-col gap-3">
             {[
               { label: 'Bugün', value: stats.reservations.today },
@@ -276,9 +378,20 @@ export default function SuperadminDashboardPage() {
 
       {/* ── Recent activity ── */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <SectionCard title="Son salonlar" headerAction={<ViewAllLink href="/superadmin/salons" />} padded={false}>
+        <SectionCard
+          title="Son salonlar"
+          headerAction={<ViewAllLink href="/superadmin/salons" />}
+          padded={false}
+        >
           {stats.recentSalons.length === 0 ? (
-            <p style={{ padding: '1.25rem', fontSize: '0.85rem', color: 'var(--color-text-secondary)', margin: 0 }}>
+            <p
+              style={{
+                padding: '1.25rem',
+                fontSize: '0.85rem',
+                color: 'var(--color-text-secondary)',
+                margin: 0,
+              }}
+            >
               Heç bir salon yoxdur.
             </p>
           ) : (
@@ -289,15 +402,31 @@ export default function SuperadminDashboardPage() {
                 primary={s.name}
                 secondary={s.city ?? '—'}
                 first={i === 0}
-                trailing={<StatusChip active={s.status === 'ACTIVE'} label={s.status === 'ACTIVE' ? 'Aktiv' : 'Deaktiv'} />}
+                trailing={
+                  <StatusChip
+                    active={s.status === 'ACTIVE'}
+                    label={s.status === 'ACTIVE' ? 'Aktiv' : 'Deaktiv'}
+                  />
+                }
               />
             ))
           )}
         </SectionCard>
 
-        <SectionCard title="Son stilistlər" headerAction={<ViewAllLink href="/superadmin/stylists" />} padded={false}>
+        <SectionCard
+          title="Son stilistlər"
+          headerAction={<ViewAllLink href="/superadmin/stylists" />}
+          padded={false}
+        >
           {stats.recentStylists.length === 0 ? (
-            <p style={{ padding: '1.25rem', fontSize: '0.85rem', color: 'var(--color-text-secondary)', margin: 0 }}>
+            <p
+              style={{
+                padding: '1.25rem',
+                fontSize: '0.85rem',
+                color: 'var(--color-text-secondary)',
+                margin: 0,
+              }}
+            >
               Heç bir stilist yoxdur.
             </p>
           ) : (
@@ -308,7 +437,9 @@ export default function SuperadminDashboardPage() {
                 primary={s.fullName}
                 secondary={s.salonName}
                 first={i === 0}
-                trailing={<StatusChip active={s.isActive} label={s.isActive ? 'Aktiv' : 'Deaktiv'} />}
+                trailing={
+                  <StatusChip active={s.isActive} label={s.isActive ? 'Aktiv' : 'Deaktiv'} />
+                }
               />
             ))
           )}

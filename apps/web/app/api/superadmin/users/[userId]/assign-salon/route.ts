@@ -14,10 +14,7 @@ const assignSalonSchema = z
 
 // POST /api/superadmin/users/[userId]/assign-salon
 // Superadmin-only. Grants (or updates) a SalonMembership for the target user.
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ userId: string }> },
-) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ userId: string }> }) {
   const superadminCheck = requireSuperadmin(req);
   if (superadminCheck instanceof NextResponse) return superadminCheck;
 

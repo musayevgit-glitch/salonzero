@@ -2,19 +2,22 @@ import { NextRequest, NextResponse } from 'next/server';
 import { publicAvailabilityQuerySchema } from '@salonomia/validation';
 import { verifyRequest } from '../../../../../../lib/server/auth';
 import { prisma } from '../../../../../../lib/server/prisma';
-import { computeAvailability, computeAnyStylistAvailability } from '../../../../../../lib/server/availability';
+import {
+  computeAvailability,
+  computeAnyStylistAvailability,
+} from '../../../../../../lib/server/availability';
 import { blockingHoldFilter } from '../../../../../../lib/server/slot-holds';
 import { localWallTimeToUtc } from '../../../../../../lib/server/timezone';
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ slug: string }> },
-) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const rawParams = Object.fromEntries(req.nextUrl.searchParams.entries());
   const parsed = publicAvailabilityQuerySchema.safeParse(rawParams);
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid query.', errors: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid query.', errors: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
   const query = parsed.data;
 
@@ -50,7 +53,8 @@ export async function GET(
   const rangeEnd = localWallTimeToUtc(localDate, 24 * 60, salon.timezone);
 
   const employeeWhere = {
-    salonId: salon.id, isActive: true,
+    salonId: salon.id,
+    isActive: true,
     eligibleServices: { some: { serviceId: query.serviceId } },
     ...(query.employeeId ? { id: query.employeeId } : {}),
   };
@@ -61,9 +65,16 @@ export async function GET(
       id: true,
       workingSchedules: { select: { weekday: true, startMinuteOfDay: true, endMinuteOfDay: true } },
       breaks: { select: { weekday: true, startMinuteOfDay: true, endMinuteOfDay: true } },
-      timeOff: { where: { startAt: { lt: rangeEnd }, endAt: { gt: rangeStart } }, select: { startAt: true, endAt: true } },
+      timeOff: {
+        where: { startAt: { lt: rangeEnd }, endAt: { gt: rangeStart } },
+        select: { startAt: true, endAt: true },
+      },
       reservations: {
-        where: { status: { in: ['PENDING', 'CONFIRMED', 'CHECKED_IN'] }, startAt: { lt: rangeEnd }, blockedUntil: { gt: rangeStart } },
+        where: {
+          status: { in: ['PENDING', 'CONFIRMED', 'CHECKED_IN'] },
+          startAt: { lt: rangeEnd },
+          blockedUntil: { gt: rangeStart },
+        },
         select: { startAt: true, endAt: true, blockedUntil: true },
       },
     },
@@ -73,25 +84,36 @@ export async function GET(
 
   // Fetch active slot holds for these employees to exclude temporarily held slots
   const employeeIds = employees.map((e) => e.id);
-  const activeHolds = employeeIds.length > 0
-    ? await prisma.slotHold.findMany({
-        where: {
-          employeeId: { in: employeeIds },
-          startAt: { lt: rangeEnd },
-          endAt: { gt: rangeStart },
-          ...blockingHoldFilter(now, viewerId),
-        },
-        select: { employeeId: true, startAt: true, endAt: true },
-      })
-    : [];
+  const activeHolds =
+    employeeIds.length > 0
+      ? await prisma.slotHold.findMany({
+          where: {
+            employeeId: { in: employeeIds },
+            startAt: { lt: rangeEnd },
+            endAt: { gt: rangeStart },
+            ...blockingHoldFilter(now, viewerId),
+          },
+          select: { employeeId: true, startAt: true, endAt: true },
+        })
+      : [];
 
   const input = {
-    salonTimezone: salon.timezone, now, rangeStart, rangeEnd,
-    serviceDurationMinutes: service.durationMinutes, bufferMinutes: service.bufferMinutes,
-    minNoticeMinutes, maxAdvanceDays, slotIntervalMinutes,
+    salonTimezone: salon.timezone,
+    now,
+    rangeStart,
+    rangeEnd,
+    serviceDurationMinutes: service.durationMinutes,
+    bufferMinutes: service.bufferMinutes,
+    minNoticeMinutes,
+    maxAdvanceDays,
+    slotIntervalMinutes,
     employees: employees.map((e) => ({
-      employeeId: e.id, isActive: true, isEligibleForService: true,
-      workingSchedule: e.workingSchedules, breaks: e.breaks, timeOff: e.timeOff,
+      employeeId: e.id,
+      isActive: true,
+      isEligibleForService: true,
+      workingSchedule: e.workingSchedules,
+      breaks: e.breaks,
+      timeOff: e.timeOff,
       blockingReservations: [
         ...e.reservations,
         ...activeHolds
@@ -106,7 +128,8 @@ export async function GET(
     : computeAnyStylistAvailability(input);
 
   return NextResponse.json({
-    date: query.date, timezone: salon.timezone,
+    date: query.date,
+    timezone: salon.timezone,
     slots: slots.map((s) => ({ startAt: s.startAt.toISOString(), endAt: s.endAt.toISOString() })),
   });
 }

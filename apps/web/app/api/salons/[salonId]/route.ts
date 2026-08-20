@@ -27,10 +27,7 @@ const DETAIL_SELECT = {
   logoUrl: true,
 } as const;
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ salonId: string }> }
-) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ salonId: string }> }) {
   const superadminCheck = requireSuperadmin(req);
   if (superadminCheck instanceof NextResponse) return superadminCheck;
 
@@ -52,7 +49,7 @@ export async function GET(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ salonId: string }> }
+  { params }: { params: Promise<{ salonId: string }> },
 ) {
   const superadminCheck = requireSuperadmin(req);
   if (superadminCheck instanceof NextResponse) return superadminCheck;
@@ -71,7 +68,10 @@ export async function PATCH(
 
   const parsed = updateSalonSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid input.', errors: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid input.', errors: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const input = parsed.data;
@@ -79,7 +79,10 @@ export async function PATCH(
   if (input.expectedUpdatedAt) {
     const expected = new Date(input.expectedUpdatedAt).getTime();
     if (expected !== current.updatedAt.getTime()) {
-      return NextResponse.json({ message: 'This salon was changed by someone else. Reload and try again.' }, { status: 409 });
+      return NextResponse.json(
+        { message: 'This salon was changed by someone else. Reload and try again.' },
+        { status: 409 },
+      );
     }
   }
 

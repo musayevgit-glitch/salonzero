@@ -34,4 +34,3 @@ export function notFound(message = 'Not found.'): NextResponse {
 export function conflict(message: string): NextResponse {
   return NextResponse.json({ message }, { status: 409 });
 }
-

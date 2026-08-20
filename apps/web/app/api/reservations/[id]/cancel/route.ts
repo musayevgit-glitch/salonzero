@@ -12,10 +12,7 @@ import {
 
 const CANCELLABLE = ['PENDING', 'CONFIRMED'] as const;
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const authPayload = verifyRequest(req);
   if (!authPayload) return unauthorized();
 
@@ -36,7 +33,8 @@ export async function POST(
     where: { id, customerId: authPayload.sub },
     select: { ...RESERVATION_NOTIFICATION_SELECT, status: true, salonId: true },
   });
-  if (!reservation) return NextResponse.json({ message: 'Reservation not found.' }, { status: 404 });
+  if (!reservation)
+    return NextResponse.json({ message: 'Reservation not found.' }, { status: 404 });
 
   if (!(CANCELLABLE as readonly string[]).includes(reservation.status)) {
     return NextResponse.json({ message: 'This reservation cannot be cancelled.' }, { status: 409 });
@@ -46,7 +44,10 @@ export async function POST(
   const windowHours = policy?.cancellationWindowHours ?? 24;
   const deadline = reservation.startAt.getTime() - windowHours * 60 * 60_000;
   if (Date.now() >= deadline) {
-    return NextResponse.json({ message: 'This reservation can no longer be cancelled online.' }, { status: 409 });
+    return NextResponse.json(
+      { message: 'This reservation can no longer be cancelled online.' },
+      { status: 409 },
+    );
   }
 
   const updated = await prisma.$transaction(async (tx) => {
@@ -56,7 +57,13 @@ export async function POST(
       select: { id: true, status: true, startAt: true, endAt: true },
     });
     await tx.reservationStatusHistory.create({
-      data: { reservationId: id, fromStatus: reservation.status as never, toStatus: 'CANCELLED_BY_CUSTOMER', changedByUserId: authPayload.sub, reason: parsed.data.reason ?? null },
+      data: {
+        reservationId: id,
+        fromStatus: reservation.status as never,
+        toStatus: 'CANCELLED_BY_CUSTOMER',
+        changedByUserId: authPayload.sub,
+        reason: parsed.data.reason ?? null,
+      },
     });
     // A cancelled appointment must stop reminding the customer to attend it.
     await clearReservationReminders(tx, id);
@@ -73,6 +80,12 @@ export async function POST(
     return r;
   });
 
-  await recordAudit({ actorUserId: authPayload.sub, action: 'reservation.cancelled_by_customer', targetType: 'Reservation', targetId: id, salonId: reservation.salonId });
+  await recordAudit({
+    actorUserId: authPayload.sub,
+    action: 'reservation.cancelled_by_customer',
+    targetType: 'Reservation',
+    targetId: id,
+    salonId: reservation.salonId,
+  });
   return NextResponse.json(updated);
 }

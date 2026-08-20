@@ -341,7 +341,7 @@ async function main() {
         create: [1, 2, 3, 4, 5, 6].map((wd) => ({
           weekday: wd,
           startMinuteOfDay: 780, // 13:00
-          endMinuteOfDay: 840,   // 14:00
+          endMinuteOfDay: 840, // 14:00
         })),
       },
     },
@@ -374,16 +374,13 @@ async function main() {
         ],
       },
       eligibleServices: {
-        create: [
-          { serviceId: s1manikur.id },
-          { serviceId: s1pedikur.id },
-        ],
+        create: [{ serviceId: s1manikur.id }, { serviceId: s1pedikur.id }],
       },
       workingSchedules: {
         create: [1, 2, 3, 4, 5].map((wd) => ({
           weekday: wd,
           startMinuteOfDay: 600, // 10:00
-          endMinuteOfDay: 1140,  // 19:00
+          endMinuteOfDay: 1140, // 19:00
         })),
       },
     },
@@ -411,23 +408,20 @@ async function main() {
         ],
       },
       eligibleServices: {
-        create: [
-          { serviceId: s1uzBaxim.id },
-          { serviceId: s1qas.id },
-        ],
+        create: [{ serviceId: s1uzBaxim.id }, { serviceId: s1qas.id }],
       },
       workingSchedules: {
         create: [2, 3, 4, 5, 6].map((wd) => ({
           weekday: wd,
           startMinuteOfDay: 540, // 09:00
-          endMinuteOfDay: 1080,  // 18:00
+          endMinuteOfDay: 1080, // 18:00
         })),
       },
     },
   });
 
   // ─── Salon 2: Gentleman's Club ─────────────────────────────
-  console.log('💈 Creating Gentleman\'s Club salon...');
+  console.log("💈 Creating Gentleman's Club salon...");
 
   const salon2 = await prisma.salon.create({
     data: {
@@ -545,7 +539,7 @@ async function main() {
   const s2barbeSched = [0, 1, 2, 3, 4, 5, 6].map((wd) => ({
     weekday: wd,
     startMinuteOfDay: 600, // 10:00
-    endMinuteOfDay: 1200,  // 20:00
+    endMinuteOfDay: 1200, // 20:00
   }));
 
   const emp3 = await prisma.employeeProfile.create({
@@ -553,7 +547,7 @@ async function main() {
       salonId: salon2.id,
       userId: stylist3User.id,
       fullName: 'Kamran Rəhimov',
-      bio: '15 illik berbər təcrübəsi. London\'da TONI&GUY akademiyasından sertifikat almışdır. Fade texnikası üzrə Azərbaycan çempionu (2022). Hər kəsmə bir sənət əsəridir.',
+      bio: "15 illik berbər təcrübəsi. London'da TONI&GUY akademiyasından sertifikat almışdır. Fade texnikası üzrə Azərbaycan çempionu (2022). Hər kəsmə bir sənət əsəridir.",
       isActive: true,
       portfolio: {
         create: [
@@ -593,7 +587,7 @@ async function main() {
         create: [0, 1, 2, 3, 4, 5, 6].map((wd) => ({
           weekday: wd,
           startMinuteOfDay: 840, // 14:00
-          endMinuteOfDay: 900,   // 15:00
+          endMinuteOfDay: 900, // 15:00
         })),
       },
     },
@@ -637,7 +631,7 @@ async function main() {
         create: [1, 2, 3, 4, 5, 6].map((wd) => ({
           weekday: wd,
           startMinuteOfDay: 540, // 09:00
-          endMinuteOfDay: 1140,  // 19:00
+          endMinuteOfDay: 1140, // 19:00
         })),
       },
     },
@@ -650,7 +644,7 @@ async function main() {
   console.log('═══════════════════════════════════════════════════');
   console.log('  SUPERADMIN   superadmin@salonomia.az');
   console.log('  SALON ADMIN  admin@guzelxanim.az       (Gözəl Xanım)');
-  console.log('  SALON ADMIN  admin@gentlemanclub.az    (Gentleman\'s Club)');
+  console.log("  SALON ADMIN  admin@gentlemanclub.az    (Gentleman's Club)");
   console.log('  CUSTOMER     musteri@mail.az');
   console.log('  STİLİST      sevinc@guzelxanim.az      (Sevinc Məmmədova)');
   console.log('  STİLİST      nigar@guzelxanim.az       (Nigar İsmayılova)');
@@ -660,7 +654,11 @@ async function main() {
   console.log('═══════════════════════════════════════════════════\n');
 
   void superadmin;
-  void emp1; void emp2; void emp3; void emp4; void emp5;
+  void emp1;
+  void emp2;
+  void emp3;
+  void emp4;
+  void emp5;
 }
 
 main()

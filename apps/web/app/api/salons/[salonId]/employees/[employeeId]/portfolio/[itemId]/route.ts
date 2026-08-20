@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../../../../lib/server/prisma';
-import { getSalonContext, isSalonContextError } from '../../../../../../../../lib/server/salon-context';
+import {
+  getSalonContext,
+  isSalonContextError,
+} from '../../../../../../../../lib/server/salon-context';
 import { badRequest, notFound } from '../../../../../../../../lib/server/auth';
 import { getStorageAdapter } from '../../../../../../../../lib/server/storage';
 import { updatePortfolioItemSchema } from '@salonomia/validation';
@@ -19,7 +22,7 @@ async function toDetail(item: {
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ salonId: string; employeeId: string; itemId: string }> }
+  { params }: { params: Promise<{ salonId: string; employeeId: string; itemId: string }> },
 ) {
   const { salonId, employeeId, itemId } = await params;
   const ctx = await getSalonContext(req, salonId, 'SALON_ADMIN');
@@ -45,7 +48,10 @@ export async function PATCH(
 
   const parsed = updatePortfolioItemSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid input.', errors: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid input.', errors: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const input = parsed.data;
@@ -69,7 +75,7 @@ export async function PATCH(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: Promise<{ salonId: string; employeeId: string; itemId: string }> }
+  { params }: { params: Promise<{ salonId: string; employeeId: string; itemId: string }> },
 ) {
   const { salonId, employeeId, itemId } = await params;
   const ctx = await getSalonContext(req, salonId, 'SALON_ADMIN');

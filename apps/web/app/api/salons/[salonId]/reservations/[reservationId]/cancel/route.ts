@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../../../lib/server/prisma';
-import { getSalonContext, isSalonContextError } from '../../../../../../../lib/server/salon-context';
+import {
+  getSalonContext,
+  isSalonContextError,
+} from '../../../../../../../lib/server/salon-context';
 import { notFound, badRequest } from '../../../../../../../lib/server/auth';
 import { reservationReasonSchema } from '@salonomia/validation';
 import { recordAudit } from '../../../../../../../lib/server/audit';
@@ -12,13 +15,23 @@ import {
 } from '../../../../../../../lib/server/notifications';
 
 const RESERVATION_SELECT = {
-  id: true, salonId: true, serviceId: true, employeeId: true, status: true,
-  startAt: true, endAt: true, priceAmount: true, currency: true, customerNote: true, guestName: true, createdAt: true,
+  id: true,
+  salonId: true,
+  serviceId: true,
+  employeeId: true,
+  status: true,
+  startAt: true,
+  endAt: true,
+  priceAmount: true,
+  currency: true,
+  customerNote: true,
+  guestName: true,
+  createdAt: true,
 } as const;
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ salonId: string; reservationId: string }> }
+  { params }: { params: Promise<{ salonId: string; reservationId: string }> },
 ) {
   const { salonId, reservationId } = await params;
   const ctx = await getSalonContext(req, salonId);
@@ -32,7 +45,10 @@ export async function POST(
   if (!current) return notFound();
 
   if (current.status !== 'PENDING' && current.status !== 'CONFIRMED') {
-    return NextResponse.json({ message: 'This reservation can no longer be cancelled.' }, { status: 409 });
+    return NextResponse.json(
+      { message: 'This reservation can no longer be cancelled.' },
+      { status: 409 },
+    );
   }
 
   let body: unknown;
@@ -44,7 +60,10 @@ export async function POST(
 
   const parsed = reservationReasonSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid input.', errors: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid input.', errors: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const { reason } = parsed.data;
@@ -76,7 +95,8 @@ export async function POST(
           type: NOTIFICATION_TYPE.CANCELLED,
           payload: buildNotificationPayload(current, {
             title: 'Rezervasiya salon tərəfindən ləğv edildi',
-            message: 'Salon rezervasiyanızı ləğv etdi. Ətraflı məlumat üçün salonla əlaqə saxlayın.',
+            message:
+              'Salon rezervasiyanızı ləğv etdi. Ətraflı məlumat üçün salonla əlaqə saxlayın.',
           }),
         },
       });
@@ -95,6 +115,9 @@ export async function POST(
 
     return NextResponse.json(updated);
   } catch (err) {
-    return NextResponse.json({ message: 'This reservation was already updated by someone else.' }, { status: 409 });
+    return NextResponse.json(
+      { message: 'This reservation was already updated by someone else.' },
+      { status: 409 },
+    );
   }
 }

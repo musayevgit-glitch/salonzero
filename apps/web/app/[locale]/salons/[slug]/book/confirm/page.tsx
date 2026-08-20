@@ -109,7 +109,10 @@ export default function ConfirmStep() {
       backHref={`/salons/${salon.slug}/book/summary`}
       backLabel={t('backToSummary')}
       footer={
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+        <form
+          onSubmit={handleSubmit}
+          style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}
+        >
           {/* Terms */}
           <label
             style={{
@@ -126,17 +129,28 @@ export default function ConfirmStep() {
           >
             <div
               style={{
-                width: 20, height: 20, borderRadius: 6,
+                width: 20,
+                height: 20,
+                borderRadius: 6,
                 border: `2px solid ${termsAccepted ? '#7c3aed' : '#c5bbb2'}`,
                 background: termsAccepted ? '#7c3aed' : 'white',
-                flexShrink: 0, marginTop: '0.05rem',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0,
+                marginTop: '0.05rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
                 transition: 'all 0.15s',
               }}
             >
               {termsAccepted && (
                 <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true">
-                  <path d="M2 5.5l2.5 2.5 4.5-4.5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  <path
+                    d="M2 5.5l2.5 2.5 4.5-4.5"
+                    stroke="white"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
               )}
             </div>
@@ -149,7 +163,12 @@ export default function ConfirmStep() {
             />
             <span style={{ fontSize: '0.78rem', color: '#6b5d8a', lineHeight: 1.5 }}>
               {t('termsText').split('{link}')[0]}
-              <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: '#7c3aed', fontWeight: 600, textDecoration: 'none' }}>
+              <a
+                href="/terms"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: '#7c3aed', fontWeight: 600, textDecoration: 'none' }}
+              >
                 {t('termsLink')}
               </a>
               {t('termsText').split('{link}')[1]}
@@ -159,7 +178,14 @@ export default function ConfirmStep() {
           {error && (
             <div
               role="alert"
-              style={{ background: '#fff5f5', border: '1px solid #fecaca', borderRadius: 10, padding: '0.75rem', fontSize: '0.82rem', color: '#9b1c1c' }}
+              style={{
+                background: '#fff5f5',
+                border: '1px solid #fecaca',
+                borderRadius: 10,
+                padding: '0.75rem',
+                fontSize: '0.82rem',
+                color: '#9b1c1c',
+              }}
             >
               {error}
             </div>
@@ -194,9 +220,35 @@ export default function ConfirmStep() {
 
       {/* Profile card */}
       {!profile ? (
-        <div style={{ background: 'white', border: '1px solid #e4d4f4', borderRadius: 14, padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          <div style={{ height: 16, width: '60%', borderRadius: 8, background: '#f0e8e0', animation: 'pulse 1.5s ease-in-out infinite' }} />
-          <div style={{ height: 14, width: '40%', borderRadius: 8, background: '#f0e8e0', animation: 'pulse 1.5s ease-in-out infinite' }} />
+        <div
+          style={{
+            background: 'white',
+            border: '1px solid #e4d4f4',
+            borderRadius: 14,
+            padding: '1rem',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem',
+          }}
+        >
+          <div
+            style={{
+              height: 16,
+              width: '60%',
+              borderRadius: 8,
+              background: '#f0e8e0',
+              animation: 'pulse 1.5s ease-in-out infinite',
+            }}
+          />
+          <div
+            style={{
+              height: 14,
+              width: '40%',
+              borderRadius: 8,
+              background: '#f0e8e0',
+              animation: 'pulse 1.5s ease-in-out infinite',
+            }}
+          />
         </div>
       ) : (
         <div
@@ -209,9 +261,17 @@ export default function ConfirmStep() {
             marginBottom: '1rem',
           }}
         >
-          <p style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1e1b2e' }}>{profile.fullName ?? t('guestName')}</p>
-          <p style={{ fontSize: '0.8rem', color: '#7c6fa0', marginTop: '0.2rem' }}>{profile.email}</p>
-          {profile.phone && <p style={{ fontSize: '0.8rem', color: '#7c6fa0', marginTop: '0.1rem' }}>{profile.phone}</p>}
+          <p style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1e1b2e' }}>
+            {profile.fullName ?? t('guestName')}
+          </p>
+          <p style={{ fontSize: '0.8rem', color: '#7c6fa0', marginTop: '0.2rem' }}>
+            {profile.email}
+          </p>
+          {profile.phone && (
+            <p style={{ fontSize: '0.8rem', color: '#7c6fa0', marginTop: '0.1rem' }}>
+              {profile.phone}
+            </p>
+          )}
         </div>
       )}
 
@@ -219,7 +279,13 @@ export default function ConfirmStep() {
       <div style={{ marginBottom: '0.75rem' }}>
         <label
           htmlFor="note"
-          style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#1e1b2e', marginBottom: '0.5rem' }}
+          style={{
+            display: 'block',
+            fontSize: '0.85rem',
+            fontWeight: 600,
+            color: '#1e1b2e',
+            marginBottom: '0.5rem',
+          }}
         >
           {t('noteLabel')}{' '}
           <span style={{ fontWeight: 400, color: '#7c6fa0' }}>{t('noteOptional')}</span>
@@ -247,8 +313,12 @@ export default function ConfirmStep() {
             transition: 'border-color 0.15s',
             boxSizing: 'border-box',
           }}
-          onFocus={(e) => { (e.currentTarget as HTMLTextAreaElement).style.borderColor = '#7c3aed'; }}
-          onBlur={(e) => { (e.currentTarget as HTMLTextAreaElement).style.borderColor = '#e4d4f4'; }}
+          onFocus={(e) => {
+            (e.currentTarget as HTMLTextAreaElement).style.borderColor = '#7c3aed';
+          }}
+          onBlur={(e) => {
+            (e.currentTarget as HTMLTextAreaElement).style.borderColor = '#e4d4f4';
+          }}
         />
       </div>
 

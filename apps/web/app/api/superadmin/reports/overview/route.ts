@@ -11,7 +11,8 @@ const REVENUE_STATUSES: ReservationStatus[] = [
 
 function parseRange(req: NextRequest) {
   const { searchParams } = req.nextUrl;
-  const from = searchParams.get('from') ?? new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
+  const from =
+    searchParams.get('from') ?? new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
   const to = searchParams.get('to') ?? new Date().toISOString().slice(0, 10);
   return {
     from,
@@ -28,9 +29,12 @@ export async function GET(req: NextRequest) {
   const { from, to, start, end } = parseRange(req);
 
   const [
-    totalSalons, activeSalons,
-    totalStylists, activeStylists,
-    totalServices, activeServices,
+    totalSalons,
+    activeSalons,
+    totalStylists,
+    activeStylists,
+    totalServices,
+    activeServices,
     totalReservations,
     byStatus,
     revenueResult,
@@ -59,9 +63,7 @@ export async function GET(req: NextRequest) {
     }),
   ]);
 
-  const byStatusMap = Object.fromEntries(
-    byStatus.map((r) => [r.status, r._count.id]),
-  );
+  const byStatusMap = Object.fromEntries(byStatus.map((r) => [r.status, r._count.id]));
 
   const completed = byStatusMap[ReservationStatus.COMPLETED] ?? 0;
   const cancelled =
@@ -83,8 +85,8 @@ export async function GET(req: NextRequest) {
       cancelled,
       noShows,
       pending: byStatusMap[ReservationStatus.PENDING] ?? 0,
-      cancellationRate: totalReservations > 0 ? (cancelled / totalReservations) : 0,
-      completionRate: totalReservations > 0 ? (completed / totalReservations) : 0,
+      cancellationRate: totalReservations > 0 ? cancelled / totalReservations : 0,
+      completionRate: totalReservations > 0 ? completed / totalReservations : 0,
     },
     revenue: revenueResult._sum.priceAmount ?? 0,
     customers: { unique: uniqueCustomers.length },

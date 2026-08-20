@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../../../lib/server/prisma';
-import { getSalonContext, isSalonContextError } from '../../../../../../../lib/server/salon-context';
+import {
+  getSalonContext,
+  isSalonContextError,
+} from '../../../../../../../lib/server/salon-context';
 import { badRequest, notFound } from '../../../../../../../lib/server/auth';
 import { createBreakSchema } from '@salonomia/validation';
 import { recordAudit } from '../../../../../../../lib/server/audit';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ salonId: string; employeeId: string }> }
+  { params }: { params: Promise<{ salonId: string; employeeId: string }> },
 ) {
   const { salonId, employeeId } = await params;
   const ctx = await getSalonContext(req, salonId);
@@ -29,7 +32,7 @@ export async function GET(
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ salonId: string; employeeId: string }> }
+  { params }: { params: Promise<{ salonId: string; employeeId: string }> },
 ) {
   const { salonId, employeeId } = await params;
   const ctx = await getSalonContext(req, salonId, 'SALON_ADMIN');
@@ -53,7 +56,10 @@ export async function POST(
 
   const parsed = createBreakSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid input.', errors: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid input.', errors: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const input = parsed.data;
@@ -63,10 +69,12 @@ export async function POST(
   });
   const fitsWithinSchedule = sameDaySchedule.some(
     (ws) =>
-      input.startMinuteOfDay >= ws.startMinuteOfDay && input.endMinuteOfDay <= ws.endMinuteOfDay
+      input.startMinuteOfDay >= ws.startMinuteOfDay && input.endMinuteOfDay <= ws.endMinuteOfDay,
   );
   if (!fitsWithinSchedule) {
-    return badRequest('This break must fit entirely within an existing working-schedule block for that day.');
+    return badRequest(
+      'This break must fit entirely within an existing working-schedule block for that day.',
+    );
   }
 
   const sameDayBreaks = await prisma.break.findMany({
@@ -75,7 +83,7 @@ export async function POST(
   const overlapsBreak = sameDayBreaks.some(
     (existing) =>
       input.startMinuteOfDay < existing.endMinuteOfDay &&
-      existing.startMinuteOfDay < input.endMinuteOfDay
+      existing.startMinuteOfDay < input.endMinuteOfDay,
   );
   if (overlapsBreak) {
     return badRequest('This break overlaps an existing break for that day.');

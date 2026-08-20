@@ -204,7 +204,9 @@ export function WeekCalendar({
                   position: 'relative',
                   height: gridHeight,
                   borderLeft: '1px solid var(--color-border)',
-                  background: isToday ? 'color-mix(in srgb, var(--color-accent) 6%, transparent)' : 'transparent',
+                  background: isToday
+                    ? 'color-mix(in srgb, var(--color-accent) 6%, transparent)'
+                    : 'transparent',
                 }}
               >
                 {/* Hour gridlines */}

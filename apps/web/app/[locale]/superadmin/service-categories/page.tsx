@@ -282,7 +282,11 @@ export default function SuperadminServiceCategoriesPage() {
                       disabled={index === categories.length - 1 || busy}
                       onClick={() => move(index, 1)}
                     />
-                    <Button variant="secondary" disabled={busy} onClick={() => toggleActive(category)}>
+                    <Button
+                      variant="secondary"
+                      disabled={busy}
+                      onClick={() => toggleActive(category)}
+                    >
                       {category.isActive ? 'Deaktiv et' : 'Aktivləşdir'}
                     </Button>
                   </div>

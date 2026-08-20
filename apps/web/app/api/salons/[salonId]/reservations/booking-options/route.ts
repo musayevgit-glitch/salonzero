@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../../lib/server/prisma';
 import { getSalonContext, isSalonContextError } from '../../../../../../lib/server/salon-context';
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ salonId: string }> }
-) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ salonId: string }> }) {
   const { salonId } = await params;
   const ctx = await getSalonContext(req, salonId);
   if (isSalonContextError(ctx)) return ctx;

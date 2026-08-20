@@ -160,8 +160,16 @@ export default function CustomerDetailPage() {
       {/* Stats row */}
       <div className="grid grid-cols-2 gap-4 max-w-lg sm:grid-cols-4">
         <StatMini label={t('customers.totalVisits')} value={customer.stats.completed} />
-        <StatMini label={t('customers.completed')} value={customer.stats.completed} color="var(--color-success)" />
-        <StatMini label={t('customers.cancelled')} value={customer.stats.cancelled} color="#d97706" />
+        <StatMini
+          label={t('customers.completed')}
+          value={customer.stats.completed}
+          color="var(--color-success)"
+        />
+        <StatMini
+          label={t('customers.cancelled')}
+          value={customer.stats.cancelled}
+          color="#d97706"
+        />
         <StatMini label={t('customers.noShows')} value={customer.stats.noShows} color="#dc2626" />
       </div>
 
@@ -179,7 +187,10 @@ export default function CustomerDetailPage() {
         ) : (
           <div className="flex flex-col divide-y divide-border">
             {customer.reservations.map((r) => (
-              <div key={r.id} className="flex items-start justify-between gap-4 py-3 first:pt-0 last:pb-0">
+              <div
+                key={r.id}
+                className="flex items-start justify-between gap-4 py-3 first:pt-0 last:pb-0"
+              >
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-text-primary">{r.serviceName}</p>
                   <p className="mt-0.5 text-xs text-text-secondary">
@@ -203,15 +214,7 @@ export default function CustomerDetailPage() {
   );
 }
 
-function StatMini({
-  label,
-  value,
-  color,
-}: {
-  label: string;
-  value: number;
-  color?: string;
-}) {
+function StatMini({ label, value, color }: { label: string; value: number; color?: string }) {
   return (
     <Card>
       <p className="text-xs text-text-secondary">{label}</p>

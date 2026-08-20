@@ -19,7 +19,11 @@ export async function PATCH(
   if (!item) return notFound();
 
   let body: unknown;
-  try { body = await req.json(); } catch { return badRequest('Invalid JSON.'); }
+  try {
+    body = await req.json();
+  } catch {
+    return badRequest('Invalid JSON.');
+  }
 
   const parsed = patchSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ message: 'Invalid input.' }, { status: 400 });

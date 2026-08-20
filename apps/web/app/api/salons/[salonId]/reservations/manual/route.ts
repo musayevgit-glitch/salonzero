@@ -15,7 +15,10 @@ function canonicalJson(value: unknown): string {
   if (value === null || typeof value !== 'object') return JSON.stringify(value);
   if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
   const r = value as Record<string, unknown>;
-  return `{${Object.keys(r).sort().map((k) => `${JSON.stringify(k)}:${canonicalJson(r[k])}`).join(',')}}`;
+  return `{${Object.keys(r)
+    .sort()
+    .map((k) => `${JSON.stringify(k)}:${canonicalJson(r[k])}`)
+    .join(',')}}`;
 }
 
 function hashPayload(payload: Record<string, unknown>): string {
@@ -23,14 +26,21 @@ function hashPayload(payload: Record<string, unknown>): string {
 }
 
 const RESERVATION_SELECT = {
-  id: true, salonId: true, serviceId: true, employeeId: true, status: true,
-  startAt: true, endAt: true, priceAmount: true, currency: true, customerNote: true, guestName: true, createdAt: true,
+  id: true,
+  salonId: true,
+  serviceId: true,
+  employeeId: true,
+  status: true,
+  startAt: true,
+  endAt: true,
+  priceAmount: true,
+  currency: true,
+  customerNote: true,
+  guestName: true,
+  createdAt: true,
 } as const;
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ salonId: string }> }
-) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ salonId: string }> }) {
   const { salonId } = await params;
   const ctx = await getSalonContext(req, salonId, 'ANY'); // ANY allows SALON_MANAGER, SALON_ADMIN, and SUPERADMIN
   if (isSalonContextError(ctx)) return ctx;
@@ -44,7 +54,10 @@ export async function POST(
 
   const parsed = createManualReservationSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid input.', errors: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid input.', errors: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const input = parsed.data;
@@ -83,8 +96,14 @@ export async function POST(
       if (existing.idempotencyExpiresAt && existing.idempotencyExpiresAt < now) {
         return NextResponse.json({ message: 'This idempotency key has expired.' }, { status: 409 });
       }
-      if (existing.idempotencyPayloadHash && existing.idempotencyPayloadHash !== idempotencyPayloadHash) {
-        return NextResponse.json({ message: 'This idempotency key was already used for a different request.' }, { status: 409 });
+      if (
+        existing.idempotencyPayloadHash &&
+        existing.idempotencyPayloadHash !== idempotencyPayloadHash
+      ) {
+        return NextResponse.json(
+          { message: 'This idempotency key was already used for a different request.' },
+          { status: 409 },
+        );
       }
       const { idempotencyPayloadHash: _h, idempotencyExpiresAt: _e, ...reservation } = existing;
       return NextResponse.json(reservation, { status: 201 });
@@ -99,7 +118,13 @@ export async function POST(
 
   const service = await prisma.service.findFirst({
     where: { id: input.serviceId, salonId: salon.id, isActive: true },
-    select: { id: true, durationMinutes: true, bufferMinutes: true, priceAmount: true, currency: true },
+    select: {
+      id: true,
+      durationMinutes: true,
+      bufferMinutes: true,
+      priceAmount: true,
+      currency: true,
+    },
   });
   if (!service) return badRequest('This service is not available at this salon.');
 
@@ -108,7 +133,9 @@ export async function POST(
 
   const startAt = new Date(input.startAt);
   const endAt = new Date(startAt.getTime() + service.durationMinutes * 60_000);
-  const blockedUntil = new Date(startAt.getTime() + (service.durationMinutes + service.bufferMinutes) * 60_000);
+  const blockedUntil = new Date(
+    startAt.getTime() + (service.durationMinutes + service.bufferMinutes) * 60_000,
+  );
 
   // If a SALON_MANAGER is requesting, restrict employee candidates to themselves.
   let filterEmployeeId = input.employeeId;
@@ -118,7 +145,9 @@ export async function POST(
       select: { id: true },
     });
     if (!employee) {
-      return badRequest('SALON_MANAGER does not have an associated employee profile in this salon.');
+      return badRequest(
+        'SALON_MANAGER does not have an associated employee profile in this salon.',
+      );
     }
     if (filterEmployeeId && filterEmployeeId !== employee.id) {
       return badRequest('SALON_MANAGER can only book reservations for themselves.');
@@ -127,7 +156,8 @@ export async function POST(
   }
 
   const employeeWhere = {
-    salonId: salon.id, isActive: true,
+    salonId: salon.id,
+    isActive: true,
     eligibleServices: { some: { serviceId: service.id } },
     ...(filterEmployeeId ? { id: filterEmployeeId } : {}),
   };
@@ -136,7 +166,8 @@ export async function POST(
     select: { id: true },
     orderBy: { id: 'asc' },
   });
-  if (candidates.length === 0) return badRequest('No eligible stylist is available for this service.');
+  if (candidates.length === 0)
+    return badRequest('No eligible stylist is available for this service.');
 
   const windowStart = new Date(startAt.getTime() - 24 * 60 * 60_000);
   const windowEnd = new Date(startAt.getTime() + 24 * 60 * 60_000);
@@ -146,20 +177,42 @@ export async function POST(
     const [workingSchedule, breaks, timeOff, blockingReservations] = await Promise.all([
       prisma.workingSchedule.findMany({ where: { employeeId: candidate.id } }),
       prisma.break.findMany({ where: { employeeId: candidate.id } }),
-      prisma.timeOff.findMany({ where: { employeeId: candidate.id, startAt: { lt: windowEnd }, endAt: { gt: windowStart } } }),
+      prisma.timeOff.findMany({
+        where: { employeeId: candidate.id, startAt: { lt: windowEnd }, endAt: { gt: windowStart } },
+      }),
       prisma.reservation.findMany({
-        where: { employeeId: candidate.id, status: { in: [...ACTIVE_STATUSES] }, startAt: { lt: windowEnd }, blockedUntil: { gt: windowStart } },
+        where: {
+          employeeId: candidate.id,
+          status: { in: [...ACTIVE_STATUSES] },
+          startAt: { lt: windowEnd },
+          blockedUntil: { gt: windowStart },
+        },
         select: { startAt: true, endAt: true, blockedUntil: true },
       }),
     ]);
 
     const available = isEmployeeSlotAvailable({
-      employee: { employeeId: candidate.id, isActive: true, isEligibleForService: true, workingSchedule, breaks, timeOff, blockingReservations },
-      salonTimezone: salon.timezone, now, candidateStart: startAt,
-      serviceDurationMinutes: service.durationMinutes, bufferMinutes: service.bufferMinutes,
-      minNoticeMinutes: bookingPolicy.minNoticeMinutes, maxAdvanceDays: bookingPolicy.maxAdvanceDays,
+      employee: {
+        employeeId: candidate.id,
+        isActive: true,
+        isEligibleForService: true,
+        workingSchedule,
+        breaks,
+        timeOff,
+        blockingReservations,
+      },
+      salonTimezone: salon.timezone,
+      now,
+      candidateStart: startAt,
+      serviceDurationMinutes: service.durationMinutes,
+      bufferMinutes: service.bufferMinutes,
+      minNoticeMinutes: bookingPolicy.minNoticeMinutes,
+      maxAdvanceDays: bookingPolicy.maxAdvanceDays,
     });
-    if (available) { chosenEmployeeId = candidate.id; break; }
+    if (available) {
+      chosenEmployeeId = candidate.id;
+      break;
+    }
   }
 
   if (!chosenEmployeeId) return NextResponse.json({ message: SLOT_UNAVAILABLE }, { status: 409 });
@@ -169,35 +222,72 @@ export async function POST(
   try {
     const created = await prisma.$transaction(async (tx) => {
       const conflicting = await tx.reservation.count({
-        where: { employeeId: chosenEmployeeId!, status: { in: [...ACTIVE_STATUSES] }, startAt: { lt: blockedUntil }, blockedUntil: { gt: startAt } },
+        where: {
+          employeeId: chosenEmployeeId!,
+          status: { in: [...ACTIVE_STATUSES] },
+          startAt: { lt: blockedUntil },
+          blockedUntil: { gt: startAt },
+        },
       });
       if (conflicting > 0) throw new Error('SLOT_CONFLICT');
 
       const reservation = await tx.reservation.create({
         data: {
-          salonId: salon.id, serviceId: service.id, employeeId: chosenEmployeeId!,
-          customerId, status, startAt, endAt, blockedUntil,
-          priceAmount: service.priceAmount, currency: service.currency,
+          salonId: salon.id,
+          serviceId: service.id,
+          employeeId: chosenEmployeeId!,
+          customerId,
+          status,
+          startAt,
+          endAt,
+          blockedUntil,
+          priceAmount: service.priceAmount,
+          currency: service.currency,
           customerNote: input.customerNote ?? null,
           guestName: input.customerFullName,
           idempotencyKey: input.idempotencyKey,
           idempotencyPayloadHash,
-          idempotencyExpiresAt: input.idempotencyKey ? new Date(now.getTime() + IDEMPOTENCY_TTL_MS) : null,
+          idempotencyExpiresAt: input.idempotencyKey
+            ? new Date(now.getTime() + IDEMPOTENCY_TTL_MS)
+            : null,
         },
         select: RESERVATION_SELECT,
       });
 
-      await tx.reservationStatusHistory.create({ data: { reservationId: reservation.id, fromStatus: null, toStatus: status, changedByUserId: ctx.userId } });
-      await tx.notification.create({ data: { userId: customerId, type: status === 'CONFIRMED' ? 'reservation.confirmed' : 'reservation.pending_customer', payload: { reservationId: reservation.id } } });
+      await tx.reservationStatusHistory.create({
+        data: {
+          reservationId: reservation.id,
+          fromStatus: null,
+          toStatus: status,
+          changedByUserId: ctx.userId,
+        },
+      });
+      await tx.notification.create({
+        data: {
+          userId: customerId,
+          type: status === 'CONFIRMED' ? 'reservation.confirmed' : 'reservation.pending_customer',
+          payload: { reservationId: reservation.id },
+        },
+      });
 
       return reservation;
     });
 
-    await recordAudit({ actorUserId: ctx.userId, action: 'reservation.created', targetType: 'Reservation', targetId: created.id, salonId: salon.id });
+    await recordAudit({
+      actorUserId: ctx.userId,
+      action: 'reservation.created',
+      targetType: 'Reservation',
+      targetId: created.id,
+      salonId: salon.id,
+    });
     return NextResponse.json(created, { status: 201 });
   } catch (err) {
     const msg = err instanceof Error ? err.message : '';
-    if (msg === 'SLOT_CONFLICT' || msg.includes('reservation_no_overlap_per_employee') || msg.includes('deadlock')) {
+    if (
+      msg === 'SLOT_CONFLICT' ||
+      msg.includes('reservation_no_overlap_per_employee') ||
+      msg.includes('deadlock')
+    ) {
       return NextResponse.json({ message: SLOT_UNAVAILABLE }, { status: 409 });
     }
     throw err;

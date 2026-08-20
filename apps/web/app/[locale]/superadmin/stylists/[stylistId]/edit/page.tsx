@@ -62,14 +62,20 @@ export default function EditStylistPage() {
           setState({ kind: 'not-found' });
           return;
         }
-        setState({ kind: 'error', message: err instanceof ApiError ? err.message : 'Xəta baş verdi.' });
+        setState({
+          kind: 'error',
+          message: err instanceof ApiError ? err.message : 'Xəta baş verdi.',
+        });
       });
   }, [stylistId, router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (submitting || state.kind !== 'ready') return;
-    if (!fullName.trim()) { setError('Ad daxil edilməlidir.'); return; }
+    if (!fullName.trim()) {
+      setError('Ad daxil edilməlidir.');
+      return;
+    }
     setSubmitting(true);
     setError(null);
     try {
@@ -90,15 +96,24 @@ export default function EditStylistPage() {
     }
   }
 
-  if (state.kind === 'loading') return (
-    <main className="dashboard-page"><Skeleton className="h-80 w-full max-w-lg" /></main>
-  );
-  if (state.kind === 'not-found') return (
-    <main className="dashboard-page"><PermissionDeniedState /></main>
-  );
-  if (state.kind === 'error') return (
-    <main className="dashboard-page"><ErrorState title="Stilist yüklənmədi" description={state.message} /></main>
-  );
+  if (state.kind === 'loading')
+    return (
+      <main className="dashboard-page">
+        <Skeleton className="h-80 w-full max-w-lg" />
+      </main>
+    );
+  if (state.kind === 'not-found')
+    return (
+      <main className="dashboard-page">
+        <PermissionDeniedState />
+      </main>
+    );
+  if (state.kind === 'error')
+    return (
+      <main className="dashboard-page">
+        <ErrorState title="Stilist yüklənmədi" description={state.message} />
+      </main>
+    );
 
   const { stylist } = state;
 
@@ -129,7 +144,9 @@ export default function EditStylistPage() {
             />
             <div>
               <p className="text-sm font-medium text-text-primary">{stylist.fullName}</p>
-              <p className="text-xs text-text-secondary">Foto profil səhifəsindən dəyişdirilə bilər</p>
+              <p className="text-xs text-text-secondary">
+                Foto profil səhifəsindən dəyişdirilə bilər
+              </p>
             </div>
           </div>
         )}
@@ -178,7 +195,11 @@ export default function EditStylistPage() {
             <Button type="submit" loading={submitting} disabled={submitting}>
               Yadda saxla
             </Button>
-            <Button type="button" variant="secondary" onClick={() => router.push(`/superadmin/stylists/${stylistId}`)}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => router.push(`/superadmin/stylists/${stylistId}`)}
+            >
               Ləğv et
             </Button>
           </div>

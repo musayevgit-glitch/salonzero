@@ -119,7 +119,10 @@ export default function ServiceDetailPage() {
   return (
     <main className="dashboard-page">
       <Breadcrumbs
-        items={[{ label: t('services.title'), href: `/salon/${salonId}/services` }, { label: service.name }]}
+        items={[
+          { label: t('services.title'), href: `/salon/${salonId}/services` },
+          { label: service.name },
+        ]}
       />
       <Card className="max-w-lg">
         <div className="flex items-center justify-between">
@@ -139,11 +142,15 @@ export default function ServiceDetailPage() {
           </div>
           <div className="flex justify-between gap-3">
             <dt className="text-text-secondary">{t('services.duration')}</dt>
-            <dd>{service.durationMinutes} {t('common.minutes')}</dd>
+            <dd>
+              {service.durationMinutes} {t('common.minutes')}
+            </dd>
           </div>
           <div className="flex justify-between gap-3">
             <dt className="text-text-secondary">{t('services.buffer')}</dt>
-            <dd>{service.bufferMinutes} {t('common.minutes')}</dd>
+            <dd>
+              {service.bufferMinutes} {t('common.minutes')}
+            </dd>
           </div>
         </dl>
 
@@ -167,11 +174,7 @@ export default function ServiceDetailPage() {
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
         title={service.isActive ? t('services.deactivateTitle') : t('services.activateTitle')}
-        description={
-          service.isActive
-            ? t('services.deactivateDesc')
-            : t('services.activateDesc')
-        }
+        description={service.isActive ? t('services.deactivateDesc') : t('services.activateDesc')}
         confirmLabel={service.isActive ? t('common.deactivate') : t('common.activate')}
         destructive={service.isActive}
         confirming={lifecycleBusy}

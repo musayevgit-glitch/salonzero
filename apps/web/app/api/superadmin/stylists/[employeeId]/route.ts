@@ -32,7 +32,11 @@ export async function GET(
       updatedAt: true,
       salon: { select: { id: true, name: true, timezone: true, status: true } },
       eligibleServices: {
-        select: { service: { select: { id: true, name: true, isActive: true, priceAmount: true, currency: true } } },
+        select: {
+          service: {
+            select: { id: true, name: true, isActive: true, priceAmount: true, currency: true },
+          },
+        },
       },
       workingSchedules: {
         select: { id: true, weekday: true, startMinuteOfDay: true, endMinuteOfDay: true },
@@ -59,7 +63,7 @@ export async function GET(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ employeeId: string }> }
+  { params }: { params: Promise<{ employeeId: string }> },
 ) {
   const superadminCheck = requireSuperadmin(req);
   if (superadminCheck instanceof NextResponse) return superadminCheck;
@@ -78,7 +82,10 @@ export async function PATCH(
 
   const parsed = updateStylistSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid input.', errors: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid input.', errors: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const { isActive, fullName, bio } = parsed.data;
@@ -99,11 +106,12 @@ export async function PATCH(
     },
   });
 
-  const action = isActive === true
-    ? 'stylist.activated_by_admin'
-    : isActive === false
-      ? 'stylist.deactivated_by_admin'
-      : 'stylist.updated_by_admin';
+  const action =
+    isActive === true
+      ? 'stylist.activated_by_admin'
+      : isActive === false
+        ? 'stylist.deactivated_by_admin'
+        : 'stylist.updated_by_admin';
 
   await recordAudit({
     actorUserId: superadminCheck.userId,

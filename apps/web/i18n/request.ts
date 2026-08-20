@@ -8,9 +8,7 @@ export default getRequestConfig(async () => {
   // We read it from the NEXT_LOCALE cookie set by the LanguageSwitcher.
   const cookieStore = await cookies();
   const cookieLocale = cookieStore.get('NEXT_LOCALE')?.value;
-  const locale = hasLocale(routing.locales, cookieLocale)
-    ? cookieLocale
-    : routing.defaultLocale;
+  const locale = hasLocale(routing.locales, cookieLocale) ? cookieLocale : routing.defaultLocale;
 
   return {
     locale,

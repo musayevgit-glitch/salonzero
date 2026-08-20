@@ -31,7 +31,15 @@ export default function StilistadminPortalPage() {
   }, [router]);
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#faf5f0' }}>
+    <div
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#faf5f0',
+      }}
+    >
       <p style={{ color: '#9a8878', fontSize: '0.95rem' }}>Yönləndirilir...</p>
     </div>
   );

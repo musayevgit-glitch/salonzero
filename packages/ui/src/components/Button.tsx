@@ -11,9 +11,9 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary:     'btn-lg btn-lg-primary',
-  secondary:   'btn-lg btn-lg-secondary',
-  ghost:       'btn-lg btn-lg-ghost',
+  primary: 'btn-lg btn-lg-primary',
+  secondary: 'btn-lg btn-lg-secondary',
+  ghost: 'btn-lg btn-lg-ghost',
   destructive: 'btn-lg btn-lg-destructive',
 };
 

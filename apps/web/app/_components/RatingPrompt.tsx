@@ -17,10 +17,19 @@ interface EligibleReservation {
 
 function StarIcon({ filled }: { filled: boolean }) {
   return (
-    <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"
-      fill={filled ? '#f59e0b' : 'none'} stroke={filled ? '#f59e0b' : '#c4b5fd'} strokeWidth="1.6">
-      <path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3z"
-        strokeLinejoin="round" />
+    <svg
+      width="26"
+      height="26"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      fill={filled ? '#f59e0b' : 'none'}
+      stroke={filled ? '#f59e0b' : '#c4b5fd'}
+      strokeWidth="1.6"
+    >
+      <path
+        d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3z"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -143,12 +152,24 @@ export function RatingPrompt() {
         className="sz-rp-dialog"
       >
         {thanks ? (
-          <p role="status" style={{ margin: 0, textAlign: 'center', fontWeight: 600, color: '#166534', padding: '1.5rem 0' }}>
+          <p
+            role="status"
+            style={{
+              margin: 0,
+              textAlign: 'center',
+              fontWeight: 600,
+              color: '#166534',
+              padding: '1.5rem 0',
+            }}
+          >
             {t('thanks')}
           </p>
         ) : (
           <>
-            <h2 id="sz-rp-title" style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#1e1b2e' }}>
+            <h2
+              id="sz-rp-title"
+              style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#1e1b2e' }}
+            >
               {t('promptTitle')}
             </h2>
             <p style={{ margin: '0.35rem 0 0', fontSize: '0.86rem', color: '#6b5d8a' }}>
@@ -156,7 +177,9 @@ export function RatingPrompt() {
             </p>
 
             <fieldset style={{ border: 0, margin: '1.1rem 0 0', padding: 0 }}>
-              <legend style={{ fontSize: '0.82rem', fontWeight: 600, color: '#4a3f6b', padding: 0 }}>
+              <legend
+                style={{ fontSize: '0.82rem', fontWeight: 600, color: '#4a3f6b', padding: 0 }}
+              >
                 {t('chooseStars')}
               </legend>
               <div style={{ display: 'flex', gap: '0.35rem', marginTop: '0.5rem' }}>
@@ -178,7 +201,16 @@ export function RatingPrompt() {
               </div>
             </fieldset>
 
-            <label htmlFor="sz-rp-comment" style={{ display: 'block', marginTop: '1rem', fontSize: '0.82rem', fontWeight: 600, color: '#4a3f6b' }}>
+            <label
+              htmlFor="sz-rp-comment"
+              style={{
+                display: 'block',
+                marginTop: '1rem',
+                fontSize: '0.82rem',
+                fontWeight: 600,
+                color: '#4a3f6b',
+              }}
+            >
               {t('commentLabel')}
             </label>
             <textarea
@@ -192,16 +224,34 @@ export function RatingPrompt() {
             />
 
             {error ? (
-              <p role="alert" style={{ margin: '0.6rem 0 0', fontSize: '0.82rem', color: '#b91c1c', fontWeight: 600 }}>
+              <p
+                role="alert"
+                style={{
+                  margin: '0.6rem 0 0',
+                  fontSize: '0.82rem',
+                  color: '#b91c1c',
+                  fontWeight: 600,
+                }}
+              >
                 {error}
               </p>
             ) : null}
 
             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.1rem' }}>
-              <button type="button" onClick={dismiss} className="sz-rp-btn sz-rp-btn-ghost" disabled={submitting}>
+              <button
+                type="button"
+                onClick={dismiss}
+                className="sz-rp-btn sz-rp-btn-ghost"
+                disabled={submitting}
+              >
                 {t('later')}
               </button>
-              <button type="button" onClick={() => void submit()} className="sz-rp-btn sz-rp-btn-primary" disabled={submitting}>
+              <button
+                type="button"
+                onClick={() => void submit()}
+                className="sz-rp-btn sz-rp-btn-primary"
+                disabled={submitting}
+              >
                 {submitting ? t('submitting') : t('submit')}
               </button>
             </div>

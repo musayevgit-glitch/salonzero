@@ -77,7 +77,10 @@ export default function EditSalonPage() {
           setState({ kind: 'permission-denied' });
           return;
         }
-        setState({ kind: 'error', message: err instanceof ApiError ? err.message : 'Xəta baş verdi.' });
+        setState({
+          kind: 'error',
+          message: err instanceof ApiError ? err.message : 'Xəta baş verdi.',
+        });
       });
   }, [salonId, router]);
 
@@ -114,15 +117,24 @@ export default function EditSalonPage() {
     }
   }
 
-  if (state.kind === 'loading') return (
-    <main className="dashboard-page"><Skeleton className="h-96 w-full max-w-2xl" /></main>
-  );
-  if (state.kind === 'permission-denied') return (
-    <main className="dashboard-page"><PermissionDeniedState /></main>
-  );
-  if (state.kind === 'error') return (
-    <main className="dashboard-page"><ErrorState title="Salon yüklənmədi" description={state.message} /></main>
-  );
+  if (state.kind === 'loading')
+    return (
+      <main className="dashboard-page">
+        <Skeleton className="h-96 w-full max-w-2xl" />
+      </main>
+    );
+  if (state.kind === 'permission-denied')
+    return (
+      <main className="dashboard-page">
+        <PermissionDeniedState />
+      </main>
+    );
+  if (state.kind === 'error')
+    return (
+      <main className="dashboard-page">
+        <ErrorState title="Salon yüklənmədi" description={state.message} />
+      </main>
+    );
 
   return (
     <main className="dashboard-page">
@@ -136,7 +148,9 @@ export default function EditSalonPage() {
 
       <div className="max-w-2xl">
         <h1 className="text-2xl font-bold text-text-primary mb-1">Salonu redaktə et</h1>
-        <p className="text-sm text-text-secondary">Slug: <code className="bg-surface px-1.5 py-0.5 rounded text-xs">{state.salon.slug}</code></p>
+        <p className="text-sm text-text-secondary">
+          Slug: <code className="bg-surface px-1.5 py-0.5 rounded text-xs">{state.salon.slug}</code>
+        </p>
       </div>
 
       <Card className="max-w-2xl">
@@ -147,46 +161,84 @@ export default function EditSalonPage() {
             <div className="sm:col-span-2">
               <FormField label="Salon adı">
                 {(p) => (
-                  <Input {...p} required value={name} onChange={(e) => setName(e.target.value)} placeholder="Məs. Nova Beauty Studio" />
+                  <Input
+                    {...p}
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Məs. Nova Beauty Studio"
+                  />
                 )}
               </FormField>
             </div>
 
             <FormField label="Saat qurşağı" description="IANA format, məs. Asia/Baku">
               {(p) => (
-                <Input {...p} required value={timezone} onChange={(e) => setTimezone(e.target.value)} placeholder="Asia/Baku" />
+                <Input
+                  {...p}
+                  required
+                  value={timezone}
+                  onChange={(e) => setTimezone(e.target.value)}
+                  placeholder="Asia/Baku"
+                />
               )}
             </FormField>
 
             <FormField label="Şəhər" optional>
               {(p) => (
-                <Input {...p} value={city} onChange={(e) => setCity(e.target.value)} placeholder="Bakı" />
+                <Input
+                  {...p}
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  placeholder="Bakı"
+                />
               )}
             </FormField>
 
             <div className="sm:col-span-2">
               <FormField label="Ünvan" optional>
                 {(p) => (
-                  <Input {...p} value={addressLine} onChange={(e) => setAddressLine(e.target.value)} placeholder="Neftçilər pr. 12, Bakı" />
+                  <Input
+                    {...p}
+                    value={addressLine}
+                    onChange={(e) => setAddressLine(e.target.value)}
+                    placeholder="Neftçilər pr. 12, Bakı"
+                  />
                 )}
               </FormField>
             </div>
 
             <FormField label="Telefon" optional>
               {(p) => (
-                <Input {...p} type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+994 50 000 00 00" />
+                <Input
+                  {...p}
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+994 50 000 00 00"
+                />
               )}
             </FormField>
 
             <FormField label="E-poçt" optional>
               {(p) => (
-                <Input {...p} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="info@salon.az" />
+                <Input
+                  {...p}
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="info@salon.az"
+                />
               )}
             </FormField>
 
             <FormField label="Hədəf auditoriya" optional>
               {(p) => (
-                <Select {...p} value={genderFocus} onChange={(e) => setGenderFocus(e.target.value as typeof genderFocus)}>
+                <Select
+                  {...p}
+                  value={genderFocus}
+                  onChange={(e) => setGenderFocus(e.target.value as typeof genderFocus)}
+                >
                   <option value="">Seçilməyib</option>
                   <option value="WOMEN">Qadınlar</option>
                   <option value="MEN">Kişilər</option>
@@ -198,7 +250,13 @@ export default function EditSalonPage() {
             <div className="sm:col-span-2">
               <FormField label="Açıqlama" optional>
                 {(p) => (
-                  <Textarea {...p} rows={4} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Salon haqqında qısa məlumat..." />
+                  <Textarea
+                    {...p}
+                    rows={4}
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Salon haqqında qısa məlumat..."
+                  />
                 )}
               </FormField>
             </div>
@@ -208,7 +266,11 @@ export default function EditSalonPage() {
             <Button type="submit" loading={submitting} disabled={submitting}>
               Dəyişiklikləri saxla
             </Button>
-            <Button type="button" variant="secondary" onClick={() => router.push(`/superadmin/salons/${salonId}`)}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => router.push(`/superadmin/salons/${salonId}`)}
+            >
               Ləğv et
             </Button>
           </div>

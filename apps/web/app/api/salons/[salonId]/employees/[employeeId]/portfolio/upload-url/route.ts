@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../../../../lib/server/prisma';
-import { getSalonContext, isSalonContextError } from '../../../../../../../../lib/server/salon-context';
+import {
+  getSalonContext,
+  isSalonContextError,
+} from '../../../../../../../../lib/server/salon-context';
 import { notFound } from '../../../../../../../../lib/server/auth';
 import { handleImageUpload } from '../../../../../../../../lib/server/upload';
 import { recordAudit } from '../../../../../../../../lib/server/audit';
@@ -21,7 +24,11 @@ export async function POST(
   });
   if (!employee) return notFound();
 
-  const result = await handleImageUpload(req, `employees/${employeeId}/portfolio`, MAX_PORTFOLIO_UPLOAD_BYTES);
+  const result = await handleImageUpload(
+    req,
+    `employees/${employeeId}/portfolio`,
+    MAX_PORTFOLIO_UPLOAD_BYTES,
+  );
   if (result instanceof NextResponse) return result;
 
   const lastItem = await prisma.employeePortfolioItem.findFirst({
@@ -47,5 +54,8 @@ export async function POST(
     salonId,
   });
 
-  return NextResponse.json({ id: item.id, imageUrl: result.url, caption: null, sortOrder: item.sortOrder }, { status: 201 });
+  return NextResponse.json(
+    { id: item.id, imageUrl: result.url, caption: null, sortOrder: item.sortOrder },
+    { status: 201 },
+  );
 }

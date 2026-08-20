@@ -89,8 +89,25 @@ export default async function ReservationsListPage({
 
   return (
     <PageLayout activeNav="reservations" isAuthenticated={true}>
-      <div style={{ maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '2rem', color: '#1e1b2e', margin: 0 }}>{t('reservationsTitle')}</h1>
+      <div
+        style={{
+          maxWidth: 600,
+          margin: '0 auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '1.5rem',
+        }}
+      >
+        <h1
+          style={{
+            fontFamily: "'Playfair Display', serif",
+            fontSize: '2rem',
+            color: '#1e1b2e',
+            margin: 0,
+          }}
+        >
+          {t('reservationsTitle')}
+        </h1>
 
         {/* Status filter — a dropdown so it scales as statuses are added */}
         <ReservationStatusFilter
@@ -102,7 +119,16 @@ export default async function ReservationsListPage({
         {data.items.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '3rem 0' }}>
             <p style={{ color: '#7c6fa0' }}>{t('noReservations')}</p>
-            <Link href="/salons" style={{ display: 'inline-block', marginTop: '1rem', color: '#7c3aed', textDecoration: 'none', fontWeight: 500 }}>
+            <Link
+              href="/salons"
+              style={{
+                display: 'inline-block',
+                marginTop: '1rem',
+                color: '#7c3aed',
+                textDecoration: 'none',
+                fontWeight: 500,
+              }}
+            >
               {t('discoverSalons')}
             </Link>
           </div>
@@ -111,49 +137,94 @@ export default async function ReservationsListPage({
             {data.items.map((r) => {
               const bStyle = BADGE_STYLE[r.status] || { background: '#f3f4f6', color: '#4b5563' };
               const dateStr = formatLongDateTime(r.startAt, locale);
-              
+
               return (
-                <div key={r.id} style={{
-                  background: 'white',
-                  border: '1px solid #e4d4f4',
-                  borderRadius: 14,
-                  padding: '1.25rem',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.75rem'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div
+                  key={r.id}
+                  style={{
+                    background: 'white',
+                    border: '1px solid #e4d4f4',
+                    borderRadius: 14,
+                    padding: '1.25rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.75rem',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                    }}
+                  >
                     <div>
-                      <div style={{ fontWeight: 600, color: '#1e1b2e', fontSize: '1.05rem' }}>{r.salon.name}</div>
-                      <div style={{ color: '#6b5d8a', fontSize: '0.9rem', marginTop: '0.2rem' }}>{r.service.name}</div>
+                      <div style={{ fontWeight: 600, color: '#1e1b2e', fontSize: '1.05rem' }}>
+                        {r.salon.name}
+                      </div>
+                      <div style={{ color: '#6b5d8a', fontSize: '0.9rem', marginTop: '0.2rem' }}>
+                        {r.service.name}
+                      </div>
                     </div>
-                    <span style={{
-                      padding: '0.25rem 0.75rem',
-                      borderRadius: 9999,
-                      fontSize: '0.75rem',
-                      fontWeight: 600,
-                      ...bStyle
-                    }}>
+                    <span
+                      style={{
+                        padding: '0.25rem 0.75rem',
+                        borderRadius: 9999,
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        ...bStyle,
+                      }}
+                    >
                       {STATUS_MAP[r.status] || r.status}
                     </span>
                   </div>
-                  
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '0.25rem' }}>
+
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr',
+                      gap: '0.5rem',
+                      marginTop: '0.25rem',
+                    }}
+                  >
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontSize: '0.75rem', color: '#7c6fa0' }}>{tb('date')} &amp; {tb('time')}</span>
-                      <span style={{ fontSize: '0.85rem', color: '#1e1b2e', fontWeight: 500 }}>{dateStr}</span>
+                      <span style={{ fontSize: '0.75rem', color: '#7c6fa0' }}>
+                        {tb('date')} &amp; {tb('time')}
+                      </span>
+                      <span style={{ fontSize: '0.85rem', color: '#1e1b2e', fontWeight: 500 }}>
+                        {dateStr}
+                      </span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                       <span style={{ fontSize: '0.75rem', color: '#7c6fa0' }}>{tb('stylist')}</span>
-                      <span style={{ fontSize: '0.85rem', color: '#1e1b2e', fontWeight: 500 }}>{r.employee?.fullName || tb('anyStylist')}</span>
+                      <span style={{ fontSize: '0.85rem', color: '#1e1b2e', fontWeight: 500 }}>
+                        {r.employee?.fullName || tb('anyStylist')}
+                      </span>
                     </div>
                   </div>
 
-                  <div style={{ borderTop: '1px solid #e4d4f4', margin: '0.5rem -1.25rem 0', padding: '1rem 1.25rem 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div
+                    style={{
+                      borderTop: '1px solid #e4d4f4',
+                      margin: '0.5rem -1.25rem 0',
+                      padding: '1rem 1.25rem 0',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
                     <div style={{ fontSize: '1rem', fontWeight: 600, color: '#1e1b2e' }}>
                       {formatMoney(r.priceAmount)}
                     </div>
-                    <Link href={`/account/reservations/${r.id}`} style={{ color: '#7c3aed', fontSize: '0.9rem', fontWeight: 500, textDecoration: 'none' }}>
+                    <Link
+                      href={`/account/reservations/${r.id}`}
+                      style={{
+                        color: '#7c3aed',
+                        fontSize: '0.9rem',
+                        fontWeight: 500,
+                        textDecoration: 'none',
+                      }}
+                    >
                       {t('viewDetails')}
                     </Link>
                   </div>
@@ -164,14 +235,38 @@ export default async function ReservationsListPage({
         )}
 
         {totalPages > 1 && (
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', fontSize: '0.9rem' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginTop: '1rem',
+              fontSize: '0.9rem',
+            }}
+          >
             {page > 1 ? (
-              <Link href={`?page=${page - 1}${status ? `&status=${status}` : ''}`} style={{ color: '#7c3aed', textDecoration: 'none' }}>{t('prevPage')}</Link>
-            ) : <span />}
-            <span style={{ color: '#7c6fa0' }}>{t('pageOf', { current: page, total: totalPages })}</span>
+              <Link
+                href={`?page=${page - 1}${status ? `&status=${status}` : ''}`}
+                style={{ color: '#7c3aed', textDecoration: 'none' }}
+              >
+                {t('prevPage')}
+              </Link>
+            ) : (
+              <span />
+            )}
+            <span style={{ color: '#7c6fa0' }}>
+              {t('pageOf', { current: page, total: totalPages })}
+            </span>
             {page < totalPages ? (
-              <Link href={`?page=${page + 1}${status ? `&status=${status}` : ''}`} style={{ color: '#7c3aed', textDecoration: 'none' }}>{t('nextPage')}</Link>
-            ) : <span />}
+              <Link
+                href={`?page=${page + 1}${status ? `&status=${status}` : ''}`}
+                style={{ color: '#7c3aed', textDecoration: 'none' }}
+              >
+                {t('nextPage')}
+              </Link>
+            ) : (
+              <span />
+            )}
           </div>
         )}
       </div>

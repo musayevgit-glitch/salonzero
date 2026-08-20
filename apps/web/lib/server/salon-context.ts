@@ -27,7 +27,7 @@ export async function getSalonContext(
   if (payload.isSuperadmin) {
     const salon = await prisma.salon.findUnique({ where: { id: salonId }, select: { id: true } });
     if (!salon) return notFound();
-    
+
     // Log superadmin entry context
     await recordAudit({
       actorUserId: payload.sub,

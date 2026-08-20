@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../../../../lib/server/prisma';
-import { getSalonContext, isSalonContextError } from '../../../../../../../../lib/server/salon-context';
+import {
+  getSalonContext,
+  isSalonContextError,
+} from '../../../../../../../../lib/server/salon-context';
 import { badRequest, notFound } from '../../../../../../../../lib/server/auth';
 import { reorderPortfolioSchema } from '@salonomia/validation';
 import { recordAudit } from '../../../../../../../../lib/server/audit';
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ salonId: string; employeeId: string }> }
+  { params }: { params: Promise<{ salonId: string; employeeId: string }> },
 ) {
   const { salonId, employeeId } = await params;
   const ctx = await getSalonContext(req, salonId, 'SALON_ADMIN');
@@ -28,7 +31,10 @@ export async function POST(
 
   const parsed = reorderPortfolioSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid input.', errors: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid input.', errors: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const input = parsed.data;
@@ -41,8 +47,7 @@ export async function POST(
   const requestedIds = new Set(input.itemIds);
 
   const sameSet =
-    existingIds.size === requestedIds.size &&
-    [...existingIds].every((id) => requestedIds.has(id));
+    existingIds.size === requestedIds.size && [...existingIds].every((id) => requestedIds.has(id));
   if (!sameSet) {
     return badRequest('itemIds must be exactly the employee’s current portfolio items.');
   }
@@ -52,8 +57,8 @@ export async function POST(
       prisma.employeePortfolioItem.update({
         where: { id, employeeId },
         data: { sortOrder: index },
-      })
-    )
+      }),
+    ),
   );
 
   await recordAudit({

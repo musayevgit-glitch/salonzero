@@ -37,5 +37,5 @@ export const config = {
   // - Static files (anything with a dot extension)
   // Frontend paths like /salons, /account, /login etc. must NOT be excluded so that
   // next-intl middleware can inject the [locale] segment for the [locale] folder routing.
-  matcher: ['/((?!_next|_vercel|api|auth|public|customer|reservations|.*\\..*).*)',],
+  matcher: ['/((?!_next|_vercel|api|auth|public|customer|reservations|.*\\..*).*)'],
 };

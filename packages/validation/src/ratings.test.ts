@@ -54,14 +54,22 @@ describe('createRatingSchema', () => {
       createRatingSchema.parse({ reservationId: RESERVATION_ID, stars: 5, customerId: 'forged' }),
     ).toThrow();
     expect(() =>
-      createRatingSchema.parse({ reservationId: RESERVATION_ID, stars: 5, createdAt: '2026-01-01' }),
+      createRatingSchema.parse({
+        reservationId: RESERVATION_ID,
+        stars: 5,
+        createdAt: '2026-01-01',
+      }),
     ).toThrow();
   });
 });
 
 describe('listSalonRatingsQuerySchema', () => {
   it('defaults page and pageSize', () => {
-    expect(listSalonRatingsQuerySchema.parse({})).toEqual({ page: 1, pageSize: 20, stars: undefined });
+    expect(listSalonRatingsQuerySchema.parse({})).toEqual({
+      page: 1,
+      pageSize: 20,
+      stars: undefined,
+    });
   });
 
   it('coerces numeric query strings', () => {

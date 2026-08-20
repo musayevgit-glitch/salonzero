@@ -38,11 +38,12 @@ export default function ServiceStep() {
     ...salon.uncategorizedServices,
   ];
 
-  const visibleServices = activeCategoryId === null
-    ? allServices
-    : activeCategoryId === '__uncategorized__'
-      ? salon.uncategorizedServices
-      : (salon.serviceCategories.find((c) => c.id === activeCategoryId)?.services ?? []);
+  const visibleServices =
+    activeCategoryId === null
+      ? allServices
+      : activeCategoryId === '__uncategorized__'
+        ? salon.uncategorizedServices
+        : (salon.serviceCategories.find((c) => c.id === activeCategoryId)?.services ?? []);
 
   const selectedService = allServices.find((s) => s.id === draft.serviceId);
 
@@ -98,7 +99,9 @@ export default function ServiceStep() {
           />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontWeight: 700, fontSize: '1rem', color: '#1e1b2e', marginBottom: '0.25rem' }}>
+          <p
+            style={{ fontWeight: 700, fontSize: '1rem', color: '#1e1b2e', marginBottom: '0.25rem' }}
+          >
             {salon.name}
           </p>
           <a
@@ -137,16 +140,28 @@ export default function ServiceStep() {
           <span
             aria-hidden="true"
             style={{
-              width: 40, height: 40, borderRadius: '50%', background: '#7c3aed', color: 'white',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: 700, fontSize: '0.85rem', flexShrink: 0,
+              width: 40,
+              height: 40,
+              borderRadius: '50%',
+              background: '#7c3aed',
+              color: 'white',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: 700,
+              fontSize: '0.85rem',
+              flexShrink: 0,
             }}
           >
             {getInitials(preselectedEmployee.fullName)}
           </span>
           <span style={{ minWidth: 0 }}>
-            <span style={{ display: 'block', fontSize: '0.72rem', color: '#6b5d8a' }}>{t('stylist')}</span>
-            <span style={{ display: 'block', fontSize: '0.9rem', fontWeight: 700, color: '#1e1b2e' }}>
+            <span style={{ display: 'block', fontSize: '0.72rem', color: '#6b5d8a' }}>
+              {t('stylist')}
+            </span>
+            <span
+              style={{ display: 'block', fontSize: '0.9rem', fontWeight: 700, color: '#1e1b2e' }}
+            >
               {preselectedEmployee.fullName}
             </span>
           </span>
@@ -154,14 +169,18 @@ export default function ServiceStep() {
       ) : null}
 
       {!hasServices && (
-        <p style={{ color: '#7c6fa0', fontSize: '0.875rem', textAlign: 'center', marginTop: '2rem' }}>
+        <p
+          style={{ color: '#7c6fa0', fontSize: '0.875rem', textAlign: 'center', marginTop: '2rem' }}
+        >
           {t('noServicesAvailable')}
         </p>
       )}
 
       {/* Service header */}
       {hasServices && (
-        <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#1e1b2e', marginBottom: '0.75rem' }}>
+        <h2
+          style={{ fontSize: '1rem', fontWeight: 700, color: '#1e1b2e', marginBottom: '0.75rem' }}
+        >
           {t('serviceName')}
         </h2>
       )}
@@ -182,9 +201,19 @@ export default function ServiceStep() {
         >
           {[
             { id: null, label: t('allCategories'), count: allServices.length },
-            ...salon.serviceCategories.map((c) => ({ id: c.id, label: c.name, count: c.services.length })),
+            ...salon.serviceCategories.map((c) => ({
+              id: c.id,
+              label: c.name,
+              count: c.services.length,
+            })),
             ...(salon.uncategorizedServices.length > 0
-              ? [{ id: '__uncategorized__', label: t('otherCategory'), count: salon.uncategorizedServices.length }]
+              ? [
+                  {
+                    id: '__uncategorized__',
+                    label: t('otherCategory'),
+                    count: salon.uncategorizedServices.length,
+                  },
+                ]
               : []),
           ].map((tab) => {
             const active = activeCategoryId === tab.id;
@@ -226,7 +255,18 @@ export default function ServiceStep() {
       )}
 
       {/* Service list */}
-      <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', listStyle: 'none', padding: 0, margin: 0 }} role="listbox" aria-label="Xidmətlər">
+      <ul
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.6rem',
+          listStyle: 'none',
+          padding: 0,
+          margin: 0,
+        }}
+        role="listbox"
+        aria-label="Xidmətlər"
+      >
         {visibleServices.map((service) => {
           const selected = draft.serviceId === service.id;
           return (
@@ -248,11 +288,22 @@ export default function ServiceStep() {
                   alignItems: 'center',
                   gap: '0.875rem',
                   transition: 'border-color 0.15s, background 0.15s',
-                  boxShadow: selected ? '0 0 0 3px rgba(201,164,96,0.12)' : '0 1px 3px rgba(30,27,46,0.05)',
+                  boxShadow: selected
+                    ? '0 0 0 3px rgba(201,164,96,0.12)'
+                    : '0 1px 3px rgba(30,27,46,0.05)',
                 }}
               >
                 {/* Thumbnail */}
-                <div style={{ width: 52, height: 52, borderRadius: 10, overflow: 'hidden', flexShrink: 0, background: '#f3e8ff' }}>
+                <div
+                  style={{
+                    width: 52,
+                    height: 52,
+                    borderRadius: 10,
+                    overflow: 'hidden',
+                    flexShrink: 0,
+                    background: '#f3e8ff',
+                  }}
+                >
                   <img
                     src="/images/salon-1.png"
                     alt=""
@@ -263,8 +314,17 @@ export default function ServiceStep() {
 
                 {/* Info */}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontWeight: 600, fontSize: '0.9rem', color: '#1e1b2e' }}>{service.name}</p>
-                  <p style={{ fontSize: '0.8rem', fontWeight: 700, color: '#7c3aed', marginTop: '0.15rem' }}>
+                  <p style={{ fontWeight: 600, fontSize: '0.9rem', color: '#1e1b2e' }}>
+                    {service.name}
+                  </p>
+                  <p
+                    style={{
+                      fontSize: '0.8rem',
+                      fontWeight: 700,
+                      color: '#7c3aed',
+                      marginTop: '0.15rem',
+                    }}
+                  >
                     {formatMoney(service.priceAmount)}
                   </p>
                   <p style={{ fontSize: '0.72rem', color: '#7c6fa0', marginTop: '0.1rem' }}>
@@ -303,10 +363,10 @@ export default function ServiceStep() {
           border: '1px solid #f0e4c0',
         }}
       >
-        <span style={{ flexShrink: 0, marginTop: '0.05rem' }}><InfoIcon /></span>
-        <p style={{ fontSize: '0.75rem', color: '#8a7355', lineHeight: 1.5 }}>
-          {t('priceNote')}
-        </p>
+        <span style={{ flexShrink: 0, marginTop: '0.05rem' }}>
+          <InfoIcon />
+        </span>
+        <p style={{ fontSize: '0.75rem', color: '#8a7355', lineHeight: 1.5 }}>{t('priceNote')}</p>
       </div>
     </BookingPageShell>
   );

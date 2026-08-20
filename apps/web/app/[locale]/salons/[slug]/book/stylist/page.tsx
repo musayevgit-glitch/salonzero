@@ -10,7 +10,13 @@ import { getInitials } from '../../../../../../lib/initials';
 function ChevronRightIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M6 4l4 4-4 4"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -91,22 +97,32 @@ export default function StylistStep() {
             transition: 'border-color 0.15s, background 0.15s',
           }}
         >
-          <div style={{
-            width: 48, height: 48, borderRadius: '50%',
-            background: '#f3e8ff',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0,
-            fontSize: '1.1rem',
-          }}>
+          <div
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: '50%',
+              background: '#f3e8ff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              fontSize: '1.1rem',
+            }}
+          >
             ✦
           </div>
           <div style={{ flex: 1 }}>
-            <p style={{ fontWeight: 600, fontSize: '0.9rem', color: '#1e1b2e' }}>{t('anyStylist')}</p>
+            <p style={{ fontWeight: 600, fontSize: '0.9rem', color: '#1e1b2e' }}>
+              {t('anyStylist')}
+            </p>
             <p style={{ fontSize: '0.75rem', color: '#7c6fa0', marginTop: '0.15rem' }}>
               {t('anyAvailable')}
             </p>
           </div>
-          <span style={{ color: '#c5bbb2' }}><ChevronRightIcon /></span>
+          <span style={{ color: '#c5bbb2' }}>
+            <ChevronRightIcon />
+          </span>
         </button>
 
         {/* Employee list */}
@@ -130,19 +146,29 @@ export default function StylistStep() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.875rem',
-                boxShadow: selected ? '0 0 0 3px rgba(201,164,96,0.12)' : '0 1px 3px rgba(30,27,46,0.05)',
+                boxShadow: selected
+                  ? '0 0 0 3px rgba(201,164,96,0.12)'
+                  : '0 1px 3px rgba(30,27,46,0.05)',
                 transition: 'border-color 0.15s, background 0.15s',
               }}
             >
               {/* Avatar */}
-              <div style={{
-                width: 52, height: 52, borderRadius: '50%',
-                background: `hsl(${(i * 47 + 20) % 360}, 35%, 72%)`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                flexShrink: 0,
-                fontSize: '1rem', fontWeight: 700, color: 'white',
-                overflow: 'hidden',
-              }}>
+              <div
+                style={{
+                  width: 52,
+                  height: 52,
+                  borderRadius: '50%',
+                  background: `hsl(${(i * 47 + 20) % 360}, 35%, 72%)`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  fontSize: '1rem',
+                  fontWeight: 700,
+                  color: 'white',
+                  overflow: 'hidden',
+                }}
+              >
                 {getInitials(employee.fullName)}
               </div>
 
@@ -152,24 +178,49 @@ export default function StylistStep() {
                   {employee.fullName}
                 </p>
                 {employee.bio && (
-                  <p style={{ fontSize: '0.72rem', color: '#7c6fa0', marginTop: '0.1rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <p
+                    style={{
+                      fontSize: '0.72rem',
+                      color: '#7c6fa0',
+                      marginTop: '0.1rem',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
                     {employee.bio}
                   </p>
                 )}
               </div>
 
-              <span style={{ color: '#c5bbb2' }}><ChevronRightIcon /></span>
+              <span style={{ color: '#c5bbb2' }}>
+                <ChevronRightIcon />
+              </span>
             </button>
           );
         })}
 
         {salon.employees.length === 0 && (
-          <p style={{ color: '#7c6fa0', fontSize: '0.875rem', textAlign: 'center', marginTop: '1rem' }}>
+          <p
+            style={{
+              color: '#7c6fa0',
+              fontSize: '0.875rem',
+              textAlign: 'center',
+              marginTop: '1rem',
+            }}
+          >
             {t('noStylistsAvailable')}{' '}
             <button
               type="button"
               onClick={() => handleSelect(null)}
-              style={{ color: '#7c3aed', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', fontSize: 'inherit' }}
+              style={{
+                color: '#7c3aed',
+                fontWeight: 600,
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: 'inherit',
+              }}
             >
               {t('continueBtn')}
             </button>

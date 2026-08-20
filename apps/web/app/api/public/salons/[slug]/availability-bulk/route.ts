@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { verifyRequest } from '../../../../../../lib/server/auth';
 import { prisma } from '../../../../../../lib/server/prisma';
-import { computeAvailability, computeAnyStylistAvailability } from '../../../../../../lib/server/availability';
+import {
+  computeAvailability,
+  computeAnyStylistAvailability,
+} from '../../../../../../lib/server/availability';
 import { blockingHoldFilter } from '../../../../../../lib/server/slot-holds';
 import { localWallTimeToUtc } from '../../../../../../lib/server/timezone';
 
@@ -13,15 +16,15 @@ const bulkQuerySchema = z.object({
   endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
 });
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ slug: string }> },
-) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const rawParams = Object.fromEntries(req.nextUrl.searchParams.entries());
   const parsed = bulkQuerySchema.safeParse(rawParams);
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid query.', errors: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid query.', errors: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
   const query = parsed.data;
 
@@ -54,7 +57,8 @@ export async function GET(
   const viewerId = viewer?.sub ?? null;
 
   const employeeWhere = {
-    salonId: salon.id, isActive: true,
+    salonId: salon.id,
+    isActive: true,
     eligibleServices: { some: { serviceId: query.serviceId } },
     ...(query.employeeId ? { id: query.employeeId } : {}),
   };
@@ -110,7 +114,12 @@ export async function GET(
             select: { startAt: true, endAt: true },
           }),
           prisma.reservation.findMany({
-            where: { employeeId: e.id, status: { in: ['PENDING', 'CONFIRMED', 'CHECKED_IN'] }, startAt: { lt: rangeEnd }, blockedUntil: { gt: rangeStart } },
+            where: {
+              employeeId: e.id,
+              status: { in: ['PENDING', 'CONFIRMED', 'CHECKED_IN'] },
+              startAt: { lt: rangeEnd },
+              blockedUntil: { gt: rangeStart },
+            },
             select: { startAt: true, endAt: true, blockedUntil: true },
           }),
           prisma.slotHold.findMany({
@@ -125,8 +134,12 @@ export async function GET(
         ]);
         void employeeIds;
         return {
-          employeeId: e.id, isActive: true, isEligibleForService: true,
-          workingSchedule: e.workingSchedules, breaks: e.breaks, timeOff,
+          employeeId: e.id,
+          isActive: true,
+          isEligibleForService: true,
+          workingSchedule: e.workingSchedules,
+          breaks: e.breaks,
+          timeOff,
           blockingReservations: [
             ...reservations,
             ...holds.map((h) => ({ startAt: h.startAt, endAt: h.endAt, blockedUntil: h.endAt })),
@@ -135,8 +148,21 @@ export async function GET(
       }),
     );
 
-    const input = { salonTimezone: salon.timezone, now, rangeStart, rangeEnd, serviceDurationMinutes: service.durationMinutes, bufferMinutes: service.bufferMinutes, minNoticeMinutes, maxAdvanceDays, slotIntervalMinutes, employees };
-    const slots = query.employeeId ? computeAvailability(input) : computeAnyStylistAvailability(input);
+    const input = {
+      salonTimezone: salon.timezone,
+      now,
+      rangeStart,
+      rangeEnd,
+      serviceDurationMinutes: service.durationMinutes,
+      bufferMinutes: service.bufferMinutes,
+      minNoticeMinutes,
+      maxAdvanceDays,
+      slotIntervalMinutes,
+      employees,
+    };
+    const slots = query.employeeId
+      ? computeAvailability(input)
+      : computeAnyStylistAvailability(input);
     results[dateStr] = slots.length > 0;
     current.setUTCDate(current.getUTCDate() + 1);
   }

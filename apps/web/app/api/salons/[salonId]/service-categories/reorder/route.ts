@@ -5,10 +5,7 @@ import { badRequest } from '../../../../../../lib/server/auth';
 import { reorderServiceCategoriesSchema } from '@salonomia/validation';
 import { recordAudit } from '../../../../../../lib/server/audit';
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ salonId: string }> }
-) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ salonId: string }> }) {
   const { salonId } = await params;
   const ctx = await getSalonContext(req, salonId, 'SALON_ADMIN');
   if (isSalonContextError(ctx)) return ctx;
@@ -22,7 +19,10 @@ export async function POST(
 
   const parsed = reorderServiceCategoriesSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid input.', errors: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid input.', errors: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const input = parsed.data;
@@ -35,8 +35,7 @@ export async function POST(
   const requestedIds = new Set(input.categoryIds);
 
   const sameSet =
-    existingIds.size === requestedIds.size &&
-    [...existingIds].every((id) => requestedIds.has(id));
+    existingIds.size === requestedIds.size && [...existingIds].every((id) => requestedIds.has(id));
   if (!sameSet) {
     return badRequest('categoryIds must be exactly the salon’s current categories.');
   }
@@ -46,8 +45,8 @@ export async function POST(
       prisma.serviceCategory.update({
         where: { id, salonId },
         data: { sortOrder: index },
-      })
-    )
+      }),
+    ),
   );
 
   await recordAudit({

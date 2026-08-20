@@ -32,7 +32,10 @@ export async function POST(req: NextRequest) {
 
   const parsed = createRatingSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid input.', errors: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid input.', errors: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const { reservationId, stars, comment } = parsed.data;
@@ -57,7 +60,10 @@ export async function POST(req: NextRequest) {
     select: { id: true },
   });
   if (existing) {
-    return NextResponse.json({ message: 'This reservation has already been rated.' }, { status: 409 });
+    return NextResponse.json(
+      { message: 'This reservation has already been rated.' },
+      { status: 409 },
+    );
   }
 
   try {
@@ -75,7 +81,10 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     // Unique violation on reservationId — a concurrent submit won the race.
     if (typeof err === 'object' && err !== null && (err as { code?: string }).code === 'P2002') {
-      return NextResponse.json({ message: 'This reservation has already been rated.' }, { status: 409 });
+      return NextResponse.json(
+        { message: 'This reservation has already been rated.' },
+        { status: 409 },
+      );
     }
     throw err;
   }

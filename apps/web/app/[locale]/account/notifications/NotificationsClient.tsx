@@ -59,17 +59,20 @@ export function NotificationsClient() {
   const [state, setState] = useState<State>({ kind: 'loading' });
   const [markingAll, setMarkingAll] = useState(false);
 
-  const load = useCallback(async (targetPage: number) => {
-    setState((prev) => (prev.kind === 'ready' ? prev : { kind: 'loading' }));
-    try {
-      const data = await apiFetch<NotificationList>(
-        `/customer/notifications?page=${targetPage}&pageSize=${PAGE_SIZE}`,
-      );
-      setState({ kind: 'ready', data });
-    } catch {
-      setState({ kind: 'error', message: t('loadError') });
-    }
-  }, [t]);
+  const load = useCallback(
+    async (targetPage: number) => {
+      setState((prev) => (prev.kind === 'ready' ? prev : { kind: 'loading' }));
+      try {
+        const data = await apiFetch<NotificationList>(
+          `/customer/notifications?page=${targetPage}&pageSize=${PAGE_SIZE}`,
+        );
+        setState({ kind: 'ready', data });
+      } catch {
+        setState({ kind: 'error', message: t('loadError') });
+      }
+    },
+    [t],
+  );
 
   useEffect(() => {
     void load(page);
@@ -120,7 +123,12 @@ export function NotificationsClient() {
         {[0, 1, 2, 3].map((i) => (
           <div
             key={i}
-            style={{ height: 84, borderRadius: 14, background: '#f3e8ff', animation: 'sz-pulse 1.4s ease-in-out infinite' }}
+            style={{
+              height: 84,
+              borderRadius: 14,
+              background: '#f3e8ff',
+              animation: 'sz-pulse 1.4s ease-in-out infinite',
+            }}
           />
         ))}
         <style>{`@keyframes sz-pulse { 0%,100% { opacity: 1 } 50% { opacity: 0.55 } }`}</style>
@@ -130,9 +138,22 @@ export function NotificationsClient() {
 
   if (state.kind === 'error') {
     return (
-      <div role="alert" style={{ background: '#fee2e2', color: '#991b1b', padding: '1rem 1.15rem', borderRadius: 14 }}>
+      <div
+        role="alert"
+        style={{
+          background: '#fee2e2',
+          color: '#991b1b',
+          padding: '1rem 1.15rem',
+          borderRadius: 14,
+        }}
+      >
         <p style={{ margin: 0, fontWeight: 600 }}>{state.message}</p>
-        <button type="button" onClick={() => void load(page)} className="sz-notif-btn" style={{ marginTop: '0.75rem' }}>
+        <button
+          type="button"
+          onClick={() => void load(page)}
+          className="sz-notif-btn"
+          style={{ marginTop: '0.75rem' }}
+        >
           {t('retry')}
           <style>{BUTTON_CSS}</style>
         </button>
@@ -165,7 +186,16 @@ export function NotificationsClient() {
         </button>
       </div>
 
-      <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+      <ul
+        style={{
+          listStyle: 'none',
+          margin: 0,
+          padding: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.6rem',
+        }}
+      >
         {items.map((item) => {
           const p = item.payload ?? {};
           const titleKey = TITLE_KEY_BY_TYPE[item.type];
@@ -181,14 +211,25 @@ export function NotificationsClient() {
               >
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <h2 style={{ margin: 0, fontSize: '0.95rem', fontWeight: unread ? 700 : 600, color: '#1e1b2e' }}>
+                    <h2
+                      style={{
+                        margin: 0,
+                        fontSize: '0.95rem',
+                        fontWeight: unread ? 700 : 600,
+                        color: '#1e1b2e',
+                      }}
+                    >
                       {title}
                     </h2>
                     {p.message ? (
-                      <p style={{ margin: '0.3rem 0 0', fontSize: '0.86rem', color: '#4a3f6b' }}>{p.message}</p>
+                      <p style={{ margin: '0.3rem 0 0', fontSize: '0.86rem', color: '#4a3f6b' }}>
+                        {p.message}
+                      </p>
                     ) : null}
                     {detail ? (
-                      <p style={{ margin: '0.3rem 0 0', fontSize: '0.8rem', color: '#6b5d8a' }}>{detail}</p>
+                      <p style={{ margin: '0.3rem 0 0', fontSize: '0.8rem', color: '#6b5d8a' }}>
+                        {detail}
+                      </p>
                     ) : null}
                     {p.startAt ? (
                       <p style={{ margin: '0.3rem 0 0', fontSize: '0.8rem', color: '#6b5d8a' }}>
@@ -203,14 +244,27 @@ export function NotificationsClient() {
                   {unread ? (
                     <span
                       aria-hidden="true"
-                      style={{ width: 9, height: 9, borderRadius: '50%', background: '#7c3aed', flexShrink: 0, marginTop: 6 }}
+                      style={{
+                        width: 9,
+                        height: 9,
+                        borderRadius: '50%',
+                        background: '#7c3aed',
+                        flexShrink: 0,
+                        marginTop: 6,
+                      }}
                     />
                   ) : null}
                 </div>
 
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.7rem' }}>
+                <div
+                  style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.7rem' }}
+                >
                   {unread ? (
-                    <button type="button" onClick={() => void markRead(item)} className="sz-notif-btn">
+                    <button
+                      type="button"
+                      onClick={() => void markRead(item)}
+                      className="sz-notif-btn"
+                    >
                       {t('markRead')}
                     </button>
                   ) : null}
@@ -233,7 +287,12 @@ export function NotificationsClient() {
       {totalPages > 1 ? (
         <nav
           aria-label={t('title')}
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.75rem',
+          }}
         >
           <button
             type="button"

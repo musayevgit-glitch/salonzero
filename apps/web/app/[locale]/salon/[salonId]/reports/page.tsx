@@ -102,7 +102,10 @@ export default function SalonReportsPage() {
   const today = getToday();
 
   // Build day rows for Table
-  interface DayRow { day: string; count: number }
+  interface DayRow {
+    day: string;
+    count: number;
+  }
   const dayRows: DayRow[] = report
     ? Object.entries(report.byDay).map(([day, count]) => ({ day, count }))
     : [];
@@ -205,7 +208,10 @@ export default function SalonReportsPage() {
                 value={formatMoney(amount, currency)}
               />
             ))}
-            <KpiCard label={t('reports.completed')} value={String(report.byStatus['COMPLETED'] ?? 0)} />
+            <KpiCard
+              label={t('reports.completed')}
+              value={String(report.byStatus['COMPLETED'] ?? 0)}
+            />
             <KpiCard
               label={t('reports.cancellations')}
               value={String(
@@ -217,7 +223,9 @@ export default function SalonReportsPage() {
 
           {/* Status breakdown */}
           <Card>
-            <h2 className="mb-4 text-sm font-semibold text-text-primary">{t('reports.byStatus')}</h2>
+            <h2 className="mb-4 text-sm font-semibold text-text-primary">
+              {t('reports.byStatus')}
+            </h2>
             <dl className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
               {Object.entries(report.byStatus).map(([status, count]) => (
                 <div key={status}>
@@ -231,7 +239,9 @@ export default function SalonReportsPage() {
           {/* Top services */}
           {report.topServices.length > 0 ? (
             <Card>
-              <h2 className="mb-4 text-sm font-semibold text-text-primary">{t('reports.topServices')}</h2>
+              <h2 className="mb-4 text-sm font-semibold text-text-primary">
+                {t('reports.topServices')}
+              </h2>
               <div className="flex flex-col gap-3">
                 {report.topServices.map((s, i) => {
                   const max = report.topServices[0]?.count ?? 1;
@@ -242,7 +252,9 @@ export default function SalonReportsPage() {
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div className="flex justify-between gap-2 mb-1">
                           <span className="truncate text-text-primary">{s.name}</span>
-                          <span className="text-text-secondary font-medium shrink-0">{s.count}</span>
+                          <span className="text-text-secondary font-medium shrink-0">
+                            {s.count}
+                          </span>
                         </div>
                         <div
                           style={{
@@ -278,7 +290,11 @@ export default function SalonReportsPage() {
               </h2>
               <Table<DayRow>
                 columns={[
-                  { key: 'date', header: t('reports.date'), render: (row) => <span>{row.day}</span> },
+                  {
+                    key: 'date',
+                    header: t('reports.date'),
+                    render: (row) => <span>{row.day}</span>,
+                  },
                   {
                     key: 'count',
                     header: t('reports.reservations'),

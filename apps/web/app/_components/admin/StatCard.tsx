@@ -29,7 +29,11 @@ export function StatCard({ label, value, sub, icon, tone = 'accent', href }: Sta
   const body = (
     <>
       {icon ? (
-        <span className="stat-card-icon" style={{ background: palette.bg, color: palette.fg }} aria-hidden="true">
+        <span
+          className="stat-card-icon"
+          style={{ background: palette.bg, color: palette.fg }}
+          aria-hidden="true"
+        >
           {icon}
         </span>
       ) : null}

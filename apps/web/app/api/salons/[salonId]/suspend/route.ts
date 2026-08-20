@@ -23,10 +23,7 @@ const DETAIL_SELECT = {
   genderFocus: true,
 } as const;
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ salonId: string }> }
-) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ salonId: string }> }) {
   const superadminCheck = requireSuperadmin(req);
   if (superadminCheck instanceof NextResponse) return superadminCheck;
 
@@ -44,7 +41,10 @@ export async function POST(
 
   const parsed = salonLifecycleActionSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid input.', errors: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid input.', errors: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const input = parsed.data;

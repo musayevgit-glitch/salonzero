@@ -25,8 +25,7 @@ export function LinkButton({
   children,
   ...props
 }: LinkButtonProps) {
-  const sizeClass =
-    size === 'sm' ? 'min-h-9 px-3 text-[0.8125rem]' : 'min-h-11 px-4 text-sm';
+  const sizeClass = size === 'sm' ? 'min-h-9 px-3 text-[0.8125rem]' : 'min-h-11 px-4 text-sm';
 
   return (
     <NextLink

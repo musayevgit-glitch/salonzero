@@ -12,5 +12,10 @@ export async function GET(req: NextRequest) {
   });
   if (!user || user.status !== 'ACTIVE') return unauthorized();
 
-  return NextResponse.json({ id: user.id, email: user.email, fullName: user.fullName, isSuperadmin: user.isSuperadmin });
+  return NextResponse.json({
+    id: user.id,
+    email: user.email,
+    fullName: user.fullName,
+    isSuperadmin: user.isSuperadmin,
+  });
 }

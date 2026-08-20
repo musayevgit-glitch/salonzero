@@ -11,10 +11,7 @@ function toUtcRange(from: string, to: string) {
   return { start, end };
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ salonId: string }> }
-) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ salonId: string }> }) {
   const { salonId } = await params;
   const ctx = await getSalonContext(req, salonId, 'ANY');
   if (isSalonContextError(ctx)) return ctx;
@@ -24,7 +21,10 @@ export async function GET(
 
   const parsed = salonReportQuerySchema.safeParse(searchParams);
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid query parameters.', errors: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid query parameters.', errors: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const query = parsed.data;
@@ -76,5 +76,13 @@ export async function GET(
     .slice(0, 5)
     .map(([name, count]) => ({ name, count }));
 
-  return NextResponse.json({ total, byStatus, revenue, byDay, topServices, from: query.from, to: query.to });
+  return NextResponse.json({
+    total,
+    byStatus,
+    revenue,
+    byDay,
+    topServices,
+    from: query.from,
+    to: query.to,
+  });
 }

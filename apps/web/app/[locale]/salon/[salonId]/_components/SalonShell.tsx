@@ -105,7 +105,12 @@ function GearIcon() {
 function HamburgerIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-      <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path
+        d="M3 5h14M3 10h14M3 15h14"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -130,15 +135,57 @@ interface NavItemDef {
 
 const NAV_ITEMS: NavItemDef[] = [
   { labelKey: 'nav.overview', segment: '', sectionKey: 'nav.sectionDaily', icon: <HomeIcon /> },
-  { labelKey: 'nav.reservations', segment: 'reservations', sectionKey: 'nav.sectionDaily', icon: <CalendarCheckIcon />, showBadge: true },
-  { labelKey: 'nav.employees', segment: 'employees', sectionKey: 'nav.sectionSalon', icon: <UsersIcon /> },
-  { labelKey: 'nav.services', segment: 'services', sectionKey: 'nav.sectionSalon', icon: <SparklesIcon /> },
-  { labelKey: 'nav.serviceCategories', segment: 'service-categories', sectionKey: 'nav.sectionSalon', icon: <TagIcon />, adminOnly: true },
-  { labelKey: 'nav.customers', segment: 'customers', sectionKey: 'nav.sectionSalon', icon: <PersonIcon /> },
-  { labelKey: 'nav.ratings', segment: 'ratings', sectionKey: 'nav.sectionSalon', icon: <StarIcon /> },
-  { labelKey: 'nav.reports', segment: 'reports', sectionKey: 'nav.sectionManagement', icon: <ChartIcon />, adminOnly: true },
-  { labelKey: 'nav.settings', segment: 'settings', sectionKey: 'nav.sectionManagement', icon: <GearIcon /> },
-
+  {
+    labelKey: 'nav.reservations',
+    segment: 'reservations',
+    sectionKey: 'nav.sectionDaily',
+    icon: <CalendarCheckIcon />,
+    showBadge: true,
+  },
+  {
+    labelKey: 'nav.employees',
+    segment: 'employees',
+    sectionKey: 'nav.sectionSalon',
+    icon: <UsersIcon />,
+  },
+  {
+    labelKey: 'nav.services',
+    segment: 'services',
+    sectionKey: 'nav.sectionSalon',
+    icon: <SparklesIcon />,
+  },
+  {
+    labelKey: 'nav.serviceCategories',
+    segment: 'service-categories',
+    sectionKey: 'nav.sectionSalon',
+    icon: <TagIcon />,
+    adminOnly: true,
+  },
+  {
+    labelKey: 'nav.customers',
+    segment: 'customers',
+    sectionKey: 'nav.sectionSalon',
+    icon: <PersonIcon />,
+  },
+  {
+    labelKey: 'nav.ratings',
+    segment: 'ratings',
+    sectionKey: 'nav.sectionSalon',
+    icon: <StarIcon />,
+  },
+  {
+    labelKey: 'nav.reports',
+    segment: 'reports',
+    sectionKey: 'nav.sectionManagement',
+    icon: <ChartIcon />,
+    adminOnly: true,
+  },
+  {
+    labelKey: 'nav.settings',
+    segment: 'settings',
+    sectionKey: 'nav.sectionManagement',
+    icon: <GearIcon />,
+  },
 ];
 
 interface CurrentUser {
@@ -185,7 +232,10 @@ function SidebarNav({
   }
 
   return (
-    <nav aria-label="Salon navigation" style={{ display: 'flex', flexDirection: 'column', padding: '0.5rem 0.75rem' }}>
+    <nav
+      aria-label="Salon navigation"
+      style={{ display: 'flex', flexDirection: 'column', padding: '0.5rem 0.75rem' }}
+    >
       {sections.map((group) => (
         <div key={group.sectionKey} style={{ marginBottom: '0.5rem' }}>
           <p className="dash-nav-section">{t(group.sectionKey)}</p>
@@ -243,11 +293,20 @@ function SidebarLanguageSwitcher({ label }: { label: string }) {
   }
 
   return (
-    <div style={{ padding: '0.75rem 1rem', borderTop: '1px solid var(--color-border)', flexShrink: 0 }}>
+    <div
+      style={{ padding: '0.75rem 1rem', borderTop: '1px solid var(--color-border)', flexShrink: 0 }}
+    >
       <p className="dash-nav-section" style={{ padding: '0 0 0.375rem' }}>
         {label}
       </p>
-      <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', width: '100%' }}>
+      <div
+        style={{
+          position: 'relative',
+          display: 'inline-flex',
+          alignItems: 'center',
+          width: '100%',
+        }}
+      >
         <select
           value={currentLocale}
           onChange={handleChange}
@@ -272,7 +331,15 @@ function SidebarLanguageSwitcher({ label }: { label: string }) {
             </option>
           ))}
         </select>
-        <span style={{ position: 'absolute', right: '0.625rem', pointerEvents: 'none', fontSize: '0.6rem', color: 'var(--color-text-secondary)' }}>
+        <span
+          style={{
+            position: 'absolute',
+            right: '0.625rem',
+            pointerEvents: 'none',
+            fontSize: '0.6rem',
+            color: 'var(--color-text-secondary)',
+          }}
+        >
           ▾
         </span>
       </div>
@@ -299,7 +366,9 @@ function SalonLogoutButton() {
   }
 
   return (
-    <div style={{ padding: '0.5rem 1rem', borderTop: '1px solid var(--color-border)', flexShrink: 0 }}>
+    <div
+      style={{ padding: '0.5rem 1rem', borderTop: '1px solid var(--color-border)', flexShrink: 0 }}
+    >
       <button
         type="button"
         onClick={() => void handleLogout()}
@@ -316,7 +385,18 @@ function SalonLogoutButton() {
           color: 'var(--color-danger)',
         }}
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0 }}>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.75"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+          style={{ flexShrink: 0 }}
+        >
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
           <polyline points="16 17 21 12 16 7" />
           <line x1="21" y1="12" x2="9" y2="12" />
@@ -343,10 +423,17 @@ function SalonBrand({ name, roleLabel }: { name: string; roleLabel: string }) {
         justifyContent: 'center',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', marginBottom: '0.25rem' }}>
+      <div
+        style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', marginBottom: '0.25rem' }}
+      >
         <svg width="12" height="12" viewBox="0 0 22 22" fill="none" aria-hidden="true">
           <circle cx="11" cy="11" r="9.5" stroke="rgba(255,255,255,0.85)" strokeWidth="1.6" />
-          <path d="M7 11c0-2.21 1.79-4 4-4s4 1.79 4 4" stroke="rgba(255,255,255,0.85)" strokeWidth="1.6" strokeLinecap="round" />
+          <path
+            d="M7 11c0-2.21 1.79-4 4-4s4 1.79 4 4"
+            stroke="rgba(255,255,255,0.85)"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+          />
           <circle cx="11" cy="14" r="1.4" fill="rgba(255,255,255,0.85)" />
         </svg>
         <span
@@ -520,7 +607,11 @@ export function SalonShell({
             {salonName}
           </span>
           {pendingCount > 0 ? (
-            <NextLink href={`${basePath}/reservations`} className="admin-chip admin-chip-accent" style={{ textDecoration: 'none' }}>
+            <NextLink
+              href={`${basePath}/reservations`}
+              className="admin-chip admin-chip-accent"
+              style={{ textDecoration: 'none' }}
+            >
               {pendingCount > 99 ? '99+' : pendingCount}
             </NextLink>
           ) : null}

@@ -22,7 +22,7 @@ const DETAIL_SELECT = { ...SELECT, updatedAt: true } as const;
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ salonId: string; serviceId: string }> }
+  { params }: { params: Promise<{ salonId: string; serviceId: string }> },
 ) {
   const { salonId, serviceId } = await params;
   const ctx = await getSalonContext(req, salonId);
@@ -40,7 +40,7 @@ export async function GET(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ salonId: string; serviceId: string }> }
+  { params }: { params: Promise<{ salonId: string; serviceId: string }> },
 ) {
   const { salonId, serviceId } = await params;
   const ctx = await getSalonContext(req, salonId, 'SALON_ADMIN');
@@ -60,7 +60,10 @@ export async function PATCH(
 
   const parsed = updateServiceSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid input.', errors: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid input.', errors: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const input = parsed.data;
@@ -68,7 +71,10 @@ export async function PATCH(
   if (input.expectedUpdatedAt) {
     const expected = new Date(input.expectedUpdatedAt).getTime();
     if (expected !== current.updatedAt.getTime()) {
-      return NextResponse.json({ message: 'This service was changed by someone else. Reload and try again.' }, { status: 409 });
+      return NextResponse.json(
+        { message: 'This service was changed by someone else. Reload and try again.' },
+        { status: 409 },
+      );
     }
   }
 

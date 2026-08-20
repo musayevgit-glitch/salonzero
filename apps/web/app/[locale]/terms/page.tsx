@@ -22,7 +22,9 @@ export default async function TermsPage() {
     >
       {/* Header */}
       <div style={{ marginBottom: '2.5rem' }}>
-        <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#1e1b2e', marginBottom: '0.5rem' }}>
+        <h1
+          style={{ fontSize: '1.75rem', fontWeight: 800, color: '#1e1b2e', marginBottom: '0.5rem' }}
+        >
           {t('title')}
         </h1>
         <p style={{ fontSize: '0.85rem', color: '#7c6fa0' }}>{t('lastUpdated')}</p>
@@ -67,9 +69,7 @@ export default async function TermsPage() {
           border: '1px solid #e4d4f4',
         }}
       >
-        <p style={{ fontSize: '0.82rem', color: '#6b5d8a', textAlign: 'center' }}>
-          {t('footer')}
-        </p>
+        <p style={{ fontSize: '0.82rem', color: '#6b5d8a', textAlign: 'center' }}>{t('footer')}</p>
       </div>
     </main>
   );

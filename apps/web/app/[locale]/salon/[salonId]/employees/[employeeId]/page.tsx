@@ -168,7 +168,9 @@ export default function EmployeeDetailPage() {
       </Card>
 
       <Card className="max-w-lg">
-        <h2 className="text-lg font-semibold text-text-primary">{t('employees.eligibleServices')}</h2>
+        <h2 className="text-lg font-semibold text-text-primary">
+          {t('employees.eligibleServices')}
+        </h2>
         <div className="mt-4">
           <ServiceAssignment salonId={salonId} employeeId={employee.id} />
         </div>
@@ -200,9 +202,7 @@ export default function EmployeeDetailPage() {
         onOpenChange={setConfirmOpen}
         title={employee.isActive ? t('employees.deactivateTitle') : t('employees.activateTitle')}
         description={
-          employee.isActive
-            ? t('employees.deactivateDesc')
-            : t('employees.activateDesc')
+          employee.isActive ? t('employees.deactivateDesc') : t('employees.activateDesc')
         }
         confirmLabel={employee.isActive ? t('employees.deactivate') : t('employees.activate')}
         destructive={employee.isActive}

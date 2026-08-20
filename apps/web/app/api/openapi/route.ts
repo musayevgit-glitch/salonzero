@@ -152,7 +152,15 @@ const spec = {
         security: [],
         requestBody: {
           required: true,
-          content: { 'application/json': { schema: { type: 'object', required: ['email'], properties: { email: { type: 'string', format: 'email' } } } } },
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['email'],
+                properties: { email: { type: 'string', format: 'email' } },
+              },
+            },
+          },
         },
         responses: { 204: { description: 'Email sent (if address exists)' } },
       },
@@ -164,9 +172,23 @@ const spec = {
         security: [],
         requestBody: {
           required: true,
-          content: { 'application/json': { schema: { type: 'object', required: ['token', 'password'], properties: { token: { type: 'string' }, password: { type: 'string', minLength: 8 } } } } },
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['token', 'password'],
+                properties: {
+                  token: { type: 'string' },
+                  password: { type: 'string', minLength: 8 },
+                },
+              },
+            },
+          },
         },
-        responses: { 204: { description: 'Password reset' }, 400: { description: 'Invalid or expired token' } },
+        responses: {
+          204: { description: 'Password reset' },
+          400: { description: 'Invalid or expired token' },
+        },
       },
     },
     '/api/auth/my-salons': {
@@ -201,7 +223,10 @@ const spec = {
         summary: 'Get public salon detail by slug',
         security: [],
         parameters: [{ in: 'path', name: 'slug', required: true, schema: { type: 'string' } }],
-        responses: { 200: { description: 'Salon detail with services, employees, categories' }, 404: { description: 'Not found' } },
+        responses: {
+          200: { description: 'Salon detail with services, employees, categories' },
+          404: { description: 'Not found' },
+        },
       },
     },
     '/api/public/salons/{slug}/availability': {
@@ -211,7 +236,12 @@ const spec = {
         security: [],
         parameters: [
           { in: 'path', name: 'slug', required: true, schema: { type: 'string' } },
-          { in: 'query', name: 'date', required: true, schema: { type: 'string', format: 'date', example: '2026-08-10' } },
+          {
+            in: 'query',
+            name: 'date',
+            required: true,
+            schema: { type: 'string', format: 'date', example: '2026-08-10' },
+          },
           { in: 'query', name: 'serviceId', required: true, schema: { type: 'string' } },
           { in: 'query', name: 'employeeId', schema: { type: 'string' } },
         ],
@@ -238,14 +268,24 @@ const spec = {
       get: {
         tags: ['Customer'],
         summary: 'Get current user profile',
-        responses: { 200: { description: 'User profile' }, 401: { description: 'Not authenticated' } },
+        responses: {
+          200: { description: 'User profile' },
+          401: { description: 'Not authenticated' },
+        },
       },
       patch: {
         tags: ['Customer'],
         summary: 'Update current user profile',
         requestBody: {
           required: true,
-          content: { 'application/json': { schema: { type: 'object', properties: { fullName: { type: 'string' }, phone: { type: 'string' } } } } },
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: { fullName: { type: 'string' }, phone: { type: 'string' } },
+              },
+            },
+          },
         },
         responses: { 200: { description: 'Updated profile' } },
       },
@@ -266,7 +306,10 @@ const spec = {
         tags: ['Customer'],
         summary: 'Get a specific reservation (customer)',
         parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string' } }],
-        responses: { 200: { description: 'Reservation detail' }, 404: { description: 'Not found' } },
+        responses: {
+          200: { description: 'Reservation detail' },
+          404: { description: 'Not found' },
+        },
       },
     },
 
@@ -286,7 +329,11 @@ const spec = {
                   salonId: { type: 'string' },
                   serviceId: { type: 'string' },
                   employeeId: { type: 'string', nullable: true },
-                  startAt: { type: 'string', format: 'date-time', example: '2026-08-10T10:00:00.000Z' },
+                  startAt: {
+                    type: 'string',
+                    format: 'date-time',
+                    example: '2026-08-10T10:00:00.000Z',
+                  },
                   guestName: { type: 'string', description: 'For unauthenticated bookings' },
                   guestPhone: { type: 'string' },
                   notes: { type: 'string' },
@@ -295,7 +342,10 @@ const spec = {
             },
           },
         },
-        responses: { 201: { description: 'Reservation created' }, 409: { description: 'Slot not available' } },
+        responses: {
+          201: { description: 'Reservation created' },
+          409: { description: 'Slot not available' },
+        },
       },
     },
     '/api/reservations/{id}/cancel': {
@@ -303,7 +353,10 @@ const spec = {
         tags: ['Reservations'],
         summary: 'Cancel a reservation (customer)',
         parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string' } }],
-        responses: { 200: { description: 'Cancelled' }, 404: { description: 'Not found or not yours' } },
+        responses: {
+          200: { description: 'Cancelled' },
+          404: { description: 'Not found or not yours' },
+        },
       },
     },
 
@@ -314,7 +367,11 @@ const spec = {
         summary: 'List salons (superadmin sees all; members see their own)',
         parameters: [
           { in: 'query', name: 'search', schema: { type: 'string' } },
-          { in: 'query', name: 'status', schema: { type: 'string', enum: ['ACTIVE', 'SUSPENDED'] } },
+          {
+            in: 'query',
+            name: 'status',
+            schema: { type: 'string', enum: ['ACTIVE', 'SUSPENDED'] },
+          },
           { in: 'query', name: 'page', schema: { type: 'integer', default: 1 } },
           { in: 'query', name: 'pageSize', schema: { type: 'integer', default: 20 } },
         ],
@@ -356,7 +413,22 @@ const spec = {
         parameters: [{ in: 'path', name: 'salonId', required: true, schema: { type: 'string' } }],
         requestBody: {
           required: true,
-          content: { 'application/json': { schema: { type: 'object', properties: { name: { type: 'string' }, city: { type: 'string' }, timezone: { type: 'string' }, description: { type: 'string' }, addressLine: { type: 'string' }, phone: { type: 'string' }, email: { type: 'string' } } } } },
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  name: { type: 'string' },
+                  city: { type: 'string' },
+                  timezone: { type: 'string' },
+                  description: { type: 'string' },
+                  addressLine: { type: 'string' },
+                  phone: { type: 'string' },
+                  email: { type: 'string' },
+                },
+              },
+            },
+          },
         },
         responses: { 200: { description: 'Updated salon' } },
       },
@@ -366,7 +438,10 @@ const spec = {
         tags: ['Salons'],
         summary: 'Suspend salon (superadmin only)',
         parameters: [{ in: 'path', name: 'salonId', required: true, schema: { type: 'string' } }],
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object' } } } },
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { type: 'object' } } },
+        },
         responses: { 200: { description: 'Suspended' } },
       },
     },
@@ -375,7 +450,10 @@ const spec = {
         tags: ['Salons'],
         summary: 'Restore suspended salon (superadmin only)',
         parameters: [{ in: 'path', name: 'salonId', required: true, schema: { type: 'string' } }],
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object' } } } },
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { type: 'object' } } },
+        },
         responses: { 200: { description: 'Restored' } },
       },
     },
@@ -437,7 +515,18 @@ const spec = {
         parameters: [{ in: 'path', name: 'salonId', required: true, schema: { type: 'string' } }],
         requestBody: {
           required: true,
-          content: { 'application/json': { schema: { type: 'object', required: ['fullName'], properties: { fullName: { type: 'string' }, bio: { type: 'string', nullable: true } } } } },
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['fullName'],
+                properties: {
+                  fullName: { type: 'string' },
+                  bio: { type: 'string', nullable: true },
+                },
+              },
+            },
+          },
         },
         responses: { 201: { description: 'Employee created' } },
       },
@@ -459,7 +548,21 @@ const spec = {
           { in: 'path', name: 'salonId', required: true, schema: { type: 'string' } },
           { in: 'path', name: 'employeeId', required: true, schema: { type: 'string' } },
         ],
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', properties: { fullName: { type: 'string' }, bio: { type: 'string', nullable: true }, serviceIds: { type: 'array', items: { type: 'string' } } } } } } },
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  fullName: { type: 'string' },
+                  bio: { type: 'string', nullable: true },
+                  serviceIds: { type: 'array', items: { type: 'string' } },
+                },
+              },
+            },
+          },
+        },
         responses: { 200: { description: 'Updated employee' } },
       },
     },
@@ -471,7 +574,10 @@ const spec = {
           { in: 'path', name: 'salonId', required: true, schema: { type: 'string' } },
           { in: 'path', name: 'employeeId', required: true, schema: { type: 'string' } },
         ],
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object' } } } },
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { type: 'object' } } },
+        },
         responses: { 200: { description: 'Activated' } },
       },
     },
@@ -483,7 +589,10 @@ const spec = {
           { in: 'path', name: 'salonId', required: true, schema: { type: 'string' } },
           { in: 'path', name: 'employeeId', required: true, schema: { type: 'string' } },
         ],
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object' } } } },
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { type: 'object' } } },
+        },
         responses: { 200: { description: 'Deactivated' } },
       },
     },
@@ -506,7 +615,18 @@ const spec = {
           { in: 'path', name: 'salonId', required: true, schema: { type: 'string' } },
           { in: 'path', name: 'employeeId', required: true, schema: { type: 'string' } },
         ],
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', required: ['objectKey'], properties: { objectKey: { type: 'string' } } } } } },
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['objectKey'],
+                properties: { objectKey: { type: 'string' } },
+              },
+            },
+          },
+        },
         responses: { 201: { description: 'Portfolio item created' } },
       },
     },
@@ -520,7 +640,18 @@ const spec = {
         ],
         requestBody: {
           required: true,
-          content: { 'application/json': { schema: { type: 'object', required: ['mimeType', 'sizeBytes'], properties: { mimeType: { type: 'string', enum: ['image/jpeg', 'image/png', 'image/webp'] }, sizeBytes: { type: 'integer' } } } } },
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['mimeType', 'sizeBytes'],
+                properties: {
+                  mimeType: { type: 'string', enum: ['image/jpeg', 'image/png', 'image/webp'] },
+                  sizeBytes: { type: 'integer' },
+                },
+              },
+            },
+          },
         },
         responses: { 200: { description: 'Presigned PUT URL + objectKey' } },
       },
@@ -534,7 +665,17 @@ const spec = {
           { in: 'path', name: 'employeeId', required: true, schema: { type: 'string' } },
           { in: 'path', name: 'itemId', required: true, schema: { type: 'string' } },
         ],
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', properties: { caption: { type: 'string', nullable: true } } } } } },
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: { caption: { type: 'string', nullable: true } },
+              },
+            },
+          },
+        },
         responses: { 200: { description: 'Updated' } },
       },
       delete: {
@@ -556,7 +697,18 @@ const spec = {
           { in: 'path', name: 'salonId', required: true, schema: { type: 'string' } },
           { in: 'path', name: 'employeeId', required: true, schema: { type: 'string' } },
         ],
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', required: ['itemIds'], properties: { itemIds: { type: 'array', items: { type: 'string' } } } } } } },
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['itemIds'],
+                properties: { itemIds: { type: 'array', items: { type: 'string' } } },
+              },
+            },
+          },
+        },
         responses: { 200: { description: 'Reordered' } },
       },
     },
@@ -588,7 +740,14 @@ const spec = {
                 properties: {
                   entries: {
                     type: 'array',
-                    items: { type: 'object', properties: { weekday: { type: 'integer', minimum: 0, maximum: 6 }, startMinuteOfDay: { type: 'integer' }, endMinuteOfDay: { type: 'integer' } } },
+                    items: {
+                      type: 'object',
+                      properties: {
+                        weekday: { type: 'integer', minimum: 0, maximum: 6 },
+                        startMinuteOfDay: { type: 'integer' },
+                        endMinuteOfDay: { type: 'integer' },
+                      },
+                    },
                   },
                 },
               },
@@ -615,7 +774,22 @@ const spec = {
           { in: 'path', name: 'salonId', required: true, schema: { type: 'string' } },
           { in: 'path', name: 'employeeId', required: true, schema: { type: 'string' } },
         ],
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', properties: { weekday: { type: 'integer' }, startMinuteOfDay: { type: 'integer' }, endMinuteOfDay: { type: 'integer' }, label: { type: 'string' } } } } } },
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  weekday: { type: 'integer' },
+                  startMinuteOfDay: { type: 'integer' },
+                  endMinuteOfDay: { type: 'integer' },
+                  label: { type: 'string' },
+                },
+              },
+            },
+          },
+        },
         responses: { 201: { description: 'Break created' } },
       },
     },
@@ -636,7 +810,21 @@ const spec = {
           { in: 'path', name: 'salonId', required: true, schema: { type: 'string' } },
           { in: 'path', name: 'employeeId', required: true, schema: { type: 'string' } },
         ],
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', properties: { startAt: { type: 'string', format: 'date-time' }, endAt: { type: 'string', format: 'date-time' }, reason: { type: 'string' } } } } } },
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  startAt: { type: 'string', format: 'date-time' },
+                  endAt: { type: 'string', format: 'date-time' },
+                  reason: { type: 'string' },
+                },
+              },
+            },
+          },
+        },
         responses: { 201: { description: 'Time-off created' } },
       },
     },
@@ -653,7 +841,18 @@ const spec = {
         tags: ['Salon · Services'],
         summary: 'Create service category',
         parameters: [{ in: 'path', name: 'salonId', required: true, schema: { type: 'string' } }],
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', required: ['name'], properties: { name: { type: 'string' } } } } } },
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['name'],
+                properties: { name: { type: 'string' } },
+              },
+            },
+          },
+        },
         responses: { 201: { description: 'Category created' } },
       },
     },
@@ -665,7 +864,14 @@ const spec = {
           { in: 'path', name: 'salonId', required: true, schema: { type: 'string' } },
           { in: 'path', name: 'categoryId', required: true, schema: { type: 'string' } },
         ],
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', properties: { name: { type: 'string' } } } } } },
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { type: 'object', properties: { name: { type: 'string' } } },
+            },
+          },
+        },
         responses: { 200: { description: 'Updated' } },
       },
       delete: {
@@ -704,7 +910,10 @@ const spec = {
                   name: { type: 'string' },
                   description: { type: 'string', nullable: true },
                   categoryId: { type: 'string', nullable: true },
-                  priceAmount: { type: 'integer', description: 'Price in cents/minor currency unit' },
+                  priceAmount: {
+                    type: 'integer',
+                    description: 'Price in cents/minor currency unit',
+                  },
                   currency: { type: 'string', example: 'AZN' },
                   durationMinutes: { type: 'integer' },
                   bufferMinutes: { type: 'integer', default: 0 },
@@ -733,7 +942,21 @@ const spec = {
           { in: 'path', name: 'salonId', required: true, schema: { type: 'string' } },
           { in: 'path', name: 'serviceId', required: true, schema: { type: 'string' } },
         ],
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', properties: { name: { type: 'string' }, priceAmount: { type: 'integer' }, durationMinutes: { type: 'integer' } } } } } },
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  name: { type: 'string' },
+                  priceAmount: { type: 'integer' },
+                  durationMinutes: { type: 'integer' },
+                },
+              },
+            },
+          },
+        },
         responses: { 200: { description: 'Updated' } },
       },
     },
@@ -745,7 +968,10 @@ const spec = {
           { in: 'path', name: 'salonId', required: true, schema: { type: 'string' } },
           { in: 'path', name: 'serviceId', required: true, schema: { type: 'string' } },
         ],
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object' } } } },
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { type: 'object' } } },
+        },
         responses: { 200: { description: 'Activated' } },
       },
     },
@@ -757,7 +983,10 @@ const spec = {
           { in: 'path', name: 'salonId', required: true, schema: { type: 'string' } },
           { in: 'path', name: 'serviceId', required: true, schema: { type: 'string' } },
         ],
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object' } } } },
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { type: 'object' } } },
+        },
         responses: { 200: { description: 'Deactivated' } },
       },
     },
@@ -833,7 +1062,10 @@ const spec = {
           { in: 'path', name: 'salonId', required: true, schema: { type: 'string' } },
           { in: 'path', name: 'reservationId', required: true, schema: { type: 'string' } },
         ],
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object' } } } },
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { type: 'object' } } },
+        },
         responses: { 200: { description: 'Confirmed' } },
       },
     },
@@ -845,7 +1077,14 @@ const spec = {
           { in: 'path', name: 'salonId', required: true, schema: { type: 'string' } },
           { in: 'path', name: 'reservationId', required: true, schema: { type: 'string' } },
         ],
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', properties: { reason: { type: 'string' } } } } } },
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { type: 'object', properties: { reason: { type: 'string' } } },
+            },
+          },
+        },
         responses: { 200: { description: 'Cancelled' } },
       },
     },
@@ -857,7 +1096,10 @@ const spec = {
           { in: 'path', name: 'salonId', required: true, schema: { type: 'string' } },
           { in: 'path', name: 'reservationId', required: true, schema: { type: 'string' } },
         ],
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object' } } } },
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { type: 'object' } } },
+        },
         responses: { 200: { description: 'Rejected' } },
       },
     },
@@ -869,7 +1111,10 @@ const spec = {
           { in: 'path', name: 'salonId', required: true, schema: { type: 'string' } },
           { in: 'path', name: 'reservationId', required: true, schema: { type: 'string' } },
         ],
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object' } } } },
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { type: 'object' } } },
+        },
         responses: { 200: { description: 'Checked in' } },
       },
     },
@@ -881,7 +1126,10 @@ const spec = {
           { in: 'path', name: 'salonId', required: true, schema: { type: 'string' } },
           { in: 'path', name: 'reservationId', required: true, schema: { type: 'string' } },
         ],
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object' } } } },
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { type: 'object' } } },
+        },
         responses: { 200: { description: 'Completed' } },
       },
     },
@@ -893,7 +1141,10 @@ const spec = {
           { in: 'path', name: 'salonId', required: true, schema: { type: 'string' } },
           { in: 'path', name: 'reservationId', required: true, schema: { type: 'string' } },
         ],
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object' } } } },
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { type: 'object' } } },
+        },
         responses: { 200: { description: 'No-show recorded' } },
       },
     },
@@ -905,7 +1156,18 @@ const spec = {
           { in: 'path', name: 'salonId', required: true, schema: { type: 'string' } },
           { in: 'path', name: 'reservationId', required: true, schema: { type: 'string' } },
         ],
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', required: ['startAt'], properties: { startAt: { type: 'string', format: 'date-time' } } } } } },
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['startAt'],
+                properties: { startAt: { type: 'string', format: 'date-time' } },
+              },
+            },
+          },
+        },
         responses: { 200: { description: 'Rescheduled' } },
       },
     },
@@ -949,8 +1211,16 @@ const spec = {
         summary: 'List all users',
         parameters: [
           { in: 'query', name: 'search', schema: { type: 'string' } },
-          { in: 'query', name: 'role', schema: { type: 'string', enum: ['SUPERADMIN', 'STYLIST', 'CUSTOMER'] } },
-          { in: 'query', name: 'status', schema: { type: 'string', enum: ['ACTIVE', 'SUSPENDED'] } },
+          {
+            in: 'query',
+            name: 'role',
+            schema: { type: 'string', enum: ['SUPERADMIN', 'STYLIST', 'CUSTOMER'] },
+          },
+          {
+            in: 'query',
+            name: 'status',
+            schema: { type: 'string', enum: ['ACTIVE', 'SUSPENDED'] },
+          },
           { in: 'query', name: 'page', schema: { type: 'integer', default: 1 } },
         ],
         responses: { 200: { description: 'Paginated users' } },
@@ -967,7 +1237,17 @@ const spec = {
         tags: ['Superadmin · Overview'],
         summary: 'Update user (suspend/activate)',
         parameters: [{ in: 'path', name: 'userId', required: true, schema: { type: 'string' } }],
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', properties: { status: { type: 'string', enum: ['ACTIVE', 'SUSPENDED'] } } } } } },
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: { status: { type: 'string', enum: ['ACTIVE', 'SUSPENDED'] } },
+              },
+            },
+          },
+        },
         responses: { 200: { description: 'Updated user' } },
       },
     },
@@ -1005,14 +1285,32 @@ const spec = {
       get: {
         tags: ['Superadmin · Stylists'],
         summary: 'Get stylist detail',
-        parameters: [{ in: 'path', name: 'employeeId', required: true, schema: { type: 'string' } }],
+        parameters: [
+          { in: 'path', name: 'employeeId', required: true, schema: { type: 'string' } },
+        ],
         responses: { 200: { description: 'Stylist detail with portfolio, schedule, services' } },
       },
       patch: {
         tags: ['Superadmin · Stylists'],
         summary: 'Update stylist',
-        parameters: [{ in: 'path', name: 'employeeId', required: true, schema: { type: 'string' } }],
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', properties: { isActive: { type: 'boolean' }, fullName: { type: 'string' }, bio: { type: 'string', nullable: true } } } } } },
+        parameters: [
+          { in: 'path', name: 'employeeId', required: true, schema: { type: 'string' } },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  isActive: { type: 'boolean' },
+                  fullName: { type: 'string' },
+                  bio: { type: 'string', nullable: true },
+                },
+              },
+            },
+          },
+        },
         responses: { 200: { description: 'Updated' } },
       },
     },
@@ -1020,21 +1318,52 @@ const spec = {
       post: {
         tags: ['Superadmin · Stylists'],
         summary: 'Request presigned URL for stylist profile photo',
-        parameters: [{ in: 'path', name: 'employeeId', required: true, schema: { type: 'string' } }],
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', required: ['mimeType', 'sizeBytes'], properties: { mimeType: { type: 'string', enum: ['image/jpeg', 'image/png', 'image/webp'] }, sizeBytes: { type: 'integer' } } } } } },
+        parameters: [
+          { in: 'path', name: 'employeeId', required: true, schema: { type: 'string' } },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['mimeType', 'sizeBytes'],
+                properties: {
+                  mimeType: { type: 'string', enum: ['image/jpeg', 'image/png', 'image/webp'] },
+                  sizeBytes: { type: 'integer' },
+                },
+              },
+            },
+          },
+        },
         responses: { 200: { description: 'Presigned PUT URL + objectKey' } },
       },
       patch: {
         tags: ['Superadmin · Stylists'],
         summary: 'Confirm stylist photo upload',
-        parameters: [{ in: 'path', name: 'employeeId', required: true, schema: { type: 'string' } }],
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', required: ['objectKey'], properties: { objectKey: { type: 'string' } } } } } },
+        parameters: [
+          { in: 'path', name: 'employeeId', required: true, schema: { type: 'string' } },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['objectKey'],
+                properties: { objectKey: { type: 'string' } },
+              },
+            },
+          },
+        },
         responses: { 200: { description: 'photoUrl saved' } },
       },
       delete: {
         tags: ['Superadmin · Stylists'],
         summary: 'Remove stylist profile photo',
-        parameters: [{ in: 'path', name: 'employeeId', required: true, schema: { type: 'string' } }],
+        parameters: [
+          { in: 'path', name: 'employeeId', required: true, schema: { type: 'string' } },
+        ],
         responses: { 204: { description: 'Removed' } },
       },
     },
@@ -1042,21 +1371,53 @@ const spec = {
       get: {
         tags: ['Superadmin · Stylists'],
         summary: 'List stylist portfolio (superadmin)',
-        parameters: [{ in: 'path', name: 'employeeId', required: true, schema: { type: 'string' } }],
+        parameters: [
+          { in: 'path', name: 'employeeId', required: true, schema: { type: 'string' } },
+        ],
         responses: { 200: { description: 'Portfolio items' } },
       },
       post: {
         tags: ['Superadmin · Stylists'],
         summary: 'Request upload URL OR confirm new portfolio item',
-        parameters: [{ in: 'path', name: 'employeeId', required: true, schema: { type: 'string' } }],
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', description: 'mimeType+sizeBytes = request URL; objectKey = confirm upload', properties: { mimeType: { type: 'string' }, sizeBytes: { type: 'integer' }, objectKey: { type: 'string' } } } } } },
+        parameters: [
+          { in: 'path', name: 'employeeId', required: true, schema: { type: 'string' } },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                description: 'mimeType+sizeBytes = request URL; objectKey = confirm upload',
+                properties: {
+                  mimeType: { type: 'string' },
+                  sizeBytes: { type: 'integer' },
+                  objectKey: { type: 'string' },
+                },
+              },
+            },
+          },
+        },
         responses: { 200: { description: 'Upload target OR 201 item created' } },
       },
       patch: {
         tags: ['Superadmin · Stylists'],
         summary: 'Reorder portfolio items',
-        parameters: [{ in: 'path', name: 'employeeId', required: true, schema: { type: 'string' } }],
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', required: ['itemIds'], properties: { itemIds: { type: 'array', items: { type: 'string' } } } } } } },
+        parameters: [
+          { in: 'path', name: 'employeeId', required: true, schema: { type: 'string' } },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['itemIds'],
+                properties: { itemIds: { type: 'array', items: { type: 'string' } } },
+              },
+            },
+          },
+        },
         responses: { 200: { description: 'Reordered' } },
       },
     },
@@ -1068,7 +1429,17 @@ const spec = {
           { in: 'path', name: 'employeeId', required: true, schema: { type: 'string' } },
           { in: 'path', name: 'itemId', required: true, schema: { type: 'string' } },
         ],
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', properties: { caption: { type: 'string', nullable: true } } } } } },
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: { caption: { type: 'string', nullable: true } },
+              },
+            },
+          },
+        },
         responses: { 200: { description: 'Updated' } },
       },
       delete: {
@@ -1105,7 +1476,22 @@ const spec = {
         tags: ['Superadmin · Services'],
         summary: 'Update service (isActive, name, price, etc.)',
         parameters: [{ in: 'path', name: 'serviceId', required: true, schema: { type: 'string' } }],
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', properties: { isActive: { type: 'boolean' }, name: { type: 'string' }, priceAmount: { type: 'integer' }, durationMinutes: { type: 'integer' } } } } } },
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  isActive: { type: 'boolean' },
+                  name: { type: 'string' },
+                  priceAmount: { type: 'integer' },
+                  durationMinutes: { type: 'integer' },
+                },
+              },
+            },
+          },
+        },
         responses: { 200: { description: 'Updated' } },
       },
     },
@@ -1114,14 +1500,39 @@ const spec = {
         tags: ['Superadmin · Salons'],
         summary: 'Request presigned URL for salon cover photo',
         parameters: [{ in: 'path', name: 'salonId', required: true, schema: { type: 'string' } }],
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', required: ['mimeType', 'sizeBytes'], properties: { mimeType: { type: 'string', enum: ['image/jpeg', 'image/png', 'image/webp'] }, sizeBytes: { type: 'integer' } } } } } },
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['mimeType', 'sizeBytes'],
+                properties: {
+                  mimeType: { type: 'string', enum: ['image/jpeg', 'image/png', 'image/webp'] },
+                  sizeBytes: { type: 'integer' },
+                },
+              },
+            },
+          },
+        },
         responses: { 200: { description: 'Presigned URL + objectKey' } },
       },
       patch: {
         tags: ['Superadmin · Salons'],
         summary: 'Confirm cover photo upload',
         parameters: [{ in: 'path', name: 'salonId', required: true, schema: { type: 'string' } }],
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', required: ['objectKey'], properties: { objectKey: { type: 'string' } } } } } },
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['objectKey'],
+                properties: { objectKey: { type: 'string' } },
+              },
+            },
+          },
+        },
         responses: { 200: { description: 'coverUrl saved' } },
       },
       delete: {
@@ -1136,14 +1547,39 @@ const spec = {
         tags: ['Superadmin · Salons'],
         summary: 'Request presigned URL for salon logo',
         parameters: [{ in: 'path', name: 'salonId', required: true, schema: { type: 'string' } }],
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', required: ['mimeType', 'sizeBytes'], properties: { mimeType: { type: 'string', enum: ['image/jpeg', 'image/png', 'image/webp'] }, sizeBytes: { type: 'integer' } } } } } },
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['mimeType', 'sizeBytes'],
+                properties: {
+                  mimeType: { type: 'string', enum: ['image/jpeg', 'image/png', 'image/webp'] },
+                  sizeBytes: { type: 'integer' },
+                },
+              },
+            },
+          },
+        },
         responses: { 200: { description: 'Presigned URL + objectKey' } },
       },
       patch: {
         tags: ['Superadmin · Salons'],
         summary: 'Confirm logo upload',
         parameters: [{ in: 'path', name: 'salonId', required: true, schema: { type: 'string' } }],
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', required: ['objectKey'], properties: { objectKey: { type: 'string' } } } } } },
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['objectKey'],
+                properties: { objectKey: { type: 'string' } },
+              },
+            },
+          },
+        },
         responses: { 200: { description: 'logoUrl saved' } },
       },
       delete: {
@@ -1172,7 +1608,9 @@ const spec = {
           { in: 'query', name: 'from', schema: { type: 'string', format: 'date' } },
           { in: 'query', name: 'to', schema: { type: 'string', format: 'date' } },
         ],
-        responses: { 200: { description: 'Totals, reservation breakdown, revenue, completion rate' } },
+        responses: {
+          200: { description: 'Totals, reservation breakdown, revenue, completion rate' },
+        },
       },
     },
     '/api/superadmin/reports/salons': {

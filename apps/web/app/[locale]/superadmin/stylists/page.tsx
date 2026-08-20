@@ -1,8 +1,20 @@
 'use client';
 
 import {
-  Badge, ConfirmDialog, DropdownMenu, EmptyState, ErrorState, Input, Link,
-  MobileRecordList, Pagination, PermissionDeniedState, Select, Skeleton, Table, useToast,
+  Badge,
+  ConfirmDialog,
+  DropdownMenu,
+  EmptyState,
+  ErrorState,
+  Input,
+  Link,
+  MobileRecordList,
+  Pagination,
+  PermissionDeniedState,
+  Select,
+  Skeleton,
+  Table,
+  useToast,
 } from '@salonomia/ui';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -11,13 +23,31 @@ import { FilterBar } from '../../../_components/admin/FilterBar';
 import { LinkButton } from '../../../_components/admin/LinkButton';
 import { PageHeader } from '../../../_components/admin/PageHeader';
 
-interface Salon { id: string; name: string; }
-interface StylistListItem {
-  id: string; fullName: string; bio: string | null; photoUrl: string | null;
-  isActive: boolean; createdAt: string; salonId: string; salonName: string;
+interface Salon {
+  id: string;
+  name: string;
 }
-interface StylistListResponse { items: StylistListItem[]; total: number; page: number; pageSize: number; }
-type LoadState = { kind: 'loading' } | { kind: 'permission-denied' } | { kind: 'error'; message: string } | { kind: 'ready'; data: StylistListResponse };
+interface StylistListItem {
+  id: string;
+  fullName: string;
+  bio: string | null;
+  photoUrl: string | null;
+  isActive: boolean;
+  createdAt: string;
+  salonId: string;
+  salonName: string;
+}
+interface StylistListResponse {
+  items: StylistListItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+type LoadState =
+  | { kind: 'loading' }
+  | { kind: 'permission-denied' }
+  | { kind: 'error'; message: string }
+  | { kind: 'ready'; data: StylistListResponse };
 
 export default function SuperadminStylistsPage() {
   const router = useRouter();
@@ -32,7 +62,9 @@ export default function SuperadminStylistsPage() {
   const [actionBusy, setActionBusy] = useState(false);
 
   useEffect(() => {
-    apiFetch<{ items: Salon[] }>('/salons?pageSize=200').then((r) => setSalons(r.items)).catch(() => {});
+    apiFetch<{ items: Salon[] }>('/salons?pageSize=200')
+      .then((r) => setSalons(r.items))
+      .catch(() => {});
   }, []);
 
   function load() {
@@ -44,9 +76,18 @@ export default function SuperadminStylistsPage() {
     apiFetch<StylistListResponse>(`/superadmin/stylists?${query}`)
       .then((data) => setState({ kind: 'ready', data }))
       .catch((err: unknown) => {
-        if (err instanceof ApiError && err.status === 401) { router.replace('/login?returnTo=/superadmin/stylists'); return; }
-        if (err instanceof ApiError && (err.status === 404 || err.status === 403)) { setState({ kind: 'permission-denied' }); return; }
-        setState({ kind: 'error', message: err instanceof ApiError ? err.message : 'Xəta baş verdi.' });
+        if (err instanceof ApiError && err.status === 401) {
+          router.replace('/login?returnTo=/superadmin/stylists');
+          return;
+        }
+        if (err instanceof ApiError && (err.status === 404 || err.status === 403)) {
+          setState({ kind: 'permission-denied' });
+          return;
+        }
+        setState({
+          kind: 'error',
+          message: err instanceof ApiError ? err.message : 'Xəta baş verdi.',
+        });
       });
   }
 
@@ -57,7 +98,8 @@ export default function SuperadminStylistsPage() {
     setActionBusy(true);
     try {
       await apiFetch(`/superadmin/stylists/${actionStylist.id}`, {
-        method: 'PATCH', body: JSON.stringify({ isActive: !actionStylist.isActive }),
+        method: 'PATCH',
+        body: JSON.stringify({ isActive: !actionStylist.isActive }),
       });
       showToast(actionStylist.isActive ? 'Stilist deaktiv edildi' : 'Stilist aktivləşdirildi');
       setActionStylist(null);
@@ -69,14 +111,25 @@ export default function SuperadminStylistsPage() {
     }
   }
 
-  if (state.kind === 'loading') return (
-    <main className="dashboard-page">
-      <Skeleton className="h-10 w-full max-w-md" />
-      <Skeleton className="h-64 w-full" />
-    </main>
-  );
-  if (state.kind === 'permission-denied') return <main className="dashboard-page"><PermissionDeniedState /></main>;
-  if (state.kind === 'error') return <main className="dashboard-page"><ErrorState title="Stilistlər yüklənmədi" description={state.message} /></main>;
+  if (state.kind === 'loading')
+    return (
+      <main className="dashboard-page">
+        <Skeleton className="h-10 w-full max-w-md" />
+        <Skeleton className="h-64 w-full" />
+      </main>
+    );
+  if (state.kind === 'permission-denied')
+    return (
+      <main className="dashboard-page">
+        <PermissionDeniedState />
+      </main>
+    );
+  if (state.kind === 'error')
+    return (
+      <main className="dashboard-page">
+        <ErrorState title="Stilistlər yüklənmədi" description={state.message} />
+      </main>
+    );
 
   const { items, total, pageSize } = state.data;
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
@@ -91,14 +144,42 @@ export default function SuperadminStylistsPage() {
 
       <FilterBar
         search={
-          <Input placeholder="Ad ilə axtar" value={search} onChange={(e) => { setPage(1); setSearch(e.target.value); }} aria-label="Stilist axtar" />
+          <Input
+            placeholder="Ad ilə axtar"
+            value={search}
+            onChange={(e) => {
+              setPage(1);
+              setSearch(e.target.value);
+            }}
+            aria-label="Stilist axtar"
+          />
         }
       >
-        <Select value={salonFilter} onChange={(e) => { setPage(1); setSalonFilter(e.target.value); }} aria-label="Salon filtri" className="sm:max-w-52">
+        <Select
+          value={salonFilter}
+          onChange={(e) => {
+            setPage(1);
+            setSalonFilter(e.target.value);
+          }}
+          aria-label="Salon filtri"
+          className="sm:max-w-52"
+        >
           <option value="">Bütün salonlar</option>
-          {salons.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+          {salons.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.name}
+            </option>
+          ))}
         </Select>
-        <Select value={status} onChange={(e) => { setPage(1); setStatus(e.target.value as '' | 'ACTIVE' | 'INACTIVE'); }} aria-label="Status filtri" className="sm:max-w-44">
+        <Select
+          value={status}
+          onChange={(e) => {
+            setPage(1);
+            setStatus(e.target.value as '' | 'ACTIVE' | 'INACTIVE');
+          }}
+          aria-label="Status filtri"
+          className="sm:max-w-44"
+        >
           <option value="">Bütün statuslar</option>
           <option value="ACTIVE">Aktiv</option>
           <option value="INACTIVE">Deaktiv</option>
@@ -112,19 +193,25 @@ export default function SuperadminStylistsPage() {
           <Table
             columns={[
               {
-                key: 'fullName', header: 'Stilist',
+                key: 'fullName',
+                header: 'Stilist',
                 render: (r: StylistListItem) => (
                   <div className="flex items-center gap-3">
-                    {r.photoUrl
-                      ? <img src={r.photoUrl} alt={r.fullName} className="h-9 w-9 flex-shrink-0 rounded-full object-cover border border-border" />
-                      : (
-                        <span className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-surface border border-border text-sm font-bold text-text-secondary">
-                          {r.fullName.slice(0, 1).toUpperCase()}
-                        </span>
-                      )
-                    }
+                    {r.photoUrl ? (
+                      <img
+                        src={r.photoUrl}
+                        alt={r.fullName}
+                        className="h-9 w-9 flex-shrink-0 rounded-full object-cover border border-border"
+                      />
+                    ) : (
+                      <span className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-surface border border-border text-sm font-bold text-text-secondary">
+                        {r.fullName.slice(0, 1).toUpperCase()}
+                      </span>
+                    )}
                     <div className="min-w-0">
-                      <Link href={`/superadmin/stylists/${r.id}`} className="font-medium">{r.fullName}</Link>
+                      <Link href={`/superadmin/stylists/${r.id}`} className="font-medium">
+                        {r.fullName}
+                      </Link>
                       <p className="text-xs text-text-secondary truncate">
                         <Link href={`/superadmin/salons/${r.salonId}`}>{r.salonName}</Link>
                       </p>
@@ -132,18 +219,56 @@ export default function SuperadminStylistsPage() {
                   </div>
                 ),
               },
-              { key: 'bio', header: 'Bioqrafiya', render: (r: StylistListItem) => <span className="text-sm text-text-secondary line-clamp-1 max-w-[200px]">{r.bio ?? '—'}</span> },
-              { key: 'status', header: 'Status', render: (r: StylistListItem) => <Badge tone={r.isActive ? 'success' : 'neutral'}>{r.isActive ? 'Aktiv' : 'Deaktiv'}</Badge> },
-              { key: 'createdAt', header: 'Əlavə edilib', render: (r: StylistListItem) => new Date(r.createdAt).toLocaleDateString('az-AZ') },
               {
-                key: 'actions', header: '',
+                key: 'bio',
+                header: 'Bioqrafiya',
+                render: (r: StylistListItem) => (
+                  <span className="text-sm text-text-secondary line-clamp-1 max-w-[200px]">
+                    {r.bio ?? '—'}
+                  </span>
+                ),
+              },
+              {
+                key: 'status',
+                header: 'Status',
+                render: (r: StylistListItem) => (
+                  <Badge tone={r.isActive ? 'success' : 'neutral'}>
+                    {r.isActive ? 'Aktiv' : 'Deaktiv'}
+                  </Badge>
+                ),
+              },
+              {
+                key: 'createdAt',
+                header: 'Əlavə edilib',
+                render: (r: StylistListItem) => new Date(r.createdAt).toLocaleDateString('az-AZ'),
+              },
+              {
+                key: 'actions',
+                header: '',
                 render: (r: StylistListItem) => (
                   <DropdownMenu
-                    trigger={<button className="rounded p-1 text-text-secondary hover:bg-surface" aria-label="Əməliyyatlar">⋮</button>}
+                    trigger={
+                      <button
+                        className="rounded p-1 text-text-secondary hover:bg-surface"
+                        aria-label="Əməliyyatlar"
+                      >
+                        ⋮
+                      </button>
+                    }
                     items={[
-                      { label: 'Profilə keç', onSelect: () => router.push(`/superadmin/stylists/${r.id}`) },
-                      { label: 'Redaktə et', onSelect: () => router.push(`/superadmin/stylists/${r.id}/edit`) },
-                      { label: r.isActive ? 'Deaktiv et' : 'Aktivləşdir', onSelect: () => setActionStylist(r), destructive: r.isActive },
+                      {
+                        label: 'Profilə keç',
+                        onSelect: () => router.push(`/superadmin/stylists/${r.id}`),
+                      },
+                      {
+                        label: 'Redaktə et',
+                        onSelect: () => router.push(`/superadmin/stylists/${r.id}/edit`),
+                      },
+                      {
+                        label: r.isActive ? 'Deaktiv et' : 'Aktivləşdir',
+                        onSelect: () => setActionStylist(r),
+                        destructive: r.isActive,
+                      },
                     ]}
                   />
                 ),
@@ -157,12 +282,18 @@ export default function SuperadminStylistsPage() {
             getRowKey={(r) => r.id}
             renderPrimary={(r) => (
               <div>
-                <Link href={`/superadmin/stylists/${r.id}`} className="font-medium">{r.fullName}</Link>
+                <Link href={`/superadmin/stylists/${r.id}`} className="font-medium">
+                  {r.fullName}
+                </Link>
                 <p className="text-xs text-text-secondary">{r.salonName}</p>
               </div>
             )}
             renderSecondary={(r) => r.bio ?? ''}
-            renderAction={(r) => <Badge tone={r.isActive ? 'success' : 'neutral'}>{r.isActive ? 'Aktiv' : 'Deaktiv'}</Badge>}
+            renderAction={(r) => (
+              <Badge tone={r.isActive ? 'success' : 'neutral'}>
+                {r.isActive ? 'Aktiv' : 'Deaktiv'}
+              </Badge>
+            )}
           />
         </>
       )}
@@ -173,10 +304,16 @@ export default function SuperadminStylistsPage() {
         <ConfirmDialog
           open
           onOpenChange={(o) => !o && setActionStylist(null)}
-          title={actionStylist.isActive ? 'Stilisti deaktiv etmək istəyirsiniz?' : 'Stilisti aktivləşdirmək istəyirsiniz?'}
-          description={actionStylist.isActive
-            ? `${actionStylist.fullName} müştərilər tərəfindən görünməyəcək.`
-            : `${actionStylist.fullName} yenidən onlayn bronlamaya açılacaq.`}
+          title={
+            actionStylist.isActive
+              ? 'Stilisti deaktiv etmək istəyirsiniz?'
+              : 'Stilisti aktivləşdirmək istəyirsiniz?'
+          }
+          description={
+            actionStylist.isActive
+              ? `${actionStylist.fullName} müştərilər tərəfindən görünməyəcək.`
+              : `${actionStylist.fullName} yenidən onlayn bronlamaya açılacaq.`
+          }
           confirmLabel={actionStylist.isActive ? 'Deaktiv et' : 'Aktivləşdir'}
           destructive={actionStylist.isActive}
           confirming={actionBusy}

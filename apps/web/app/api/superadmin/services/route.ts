@@ -33,7 +33,10 @@ export async function GET(req: NextRequest) {
     salonId?: string;
     categoryId?: string;
     isActive?: boolean;
-    OR?: Array<{ name?: { contains: string; mode: 'insensitive' }; salon?: { name: { contains: string; mode: 'insensitive' } } }>;
+    OR?: Array<{
+      name?: { contains: string; mode: 'insensitive' };
+      salon?: { name: { contains: string; mode: 'insensitive' } };
+    }>;
   };
   const where: WhereClause = {};
 
@@ -99,11 +102,18 @@ export async function POST(req: NextRequest) {
   if (check instanceof NextResponse) return check;
 
   let body: unknown;
-  try { body = await req.json(); } catch { return badRequest('Invalid JSON.'); }
+  try {
+    body = await req.json();
+  } catch {
+    return badRequest('Invalid JSON.');
+  }
 
   const parsed = createServiceSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid input.', errors: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid input.', errors: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const { salonId, categoryId, ...rest } = parsed.data;

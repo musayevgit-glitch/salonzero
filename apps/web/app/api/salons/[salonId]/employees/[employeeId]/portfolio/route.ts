@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../../../lib/server/prisma';
-import { getSalonContext, isSalonContextError } from '../../../../../../../lib/server/salon-context';
+import {
+  getSalonContext,
+  isSalonContextError,
+} from '../../../../../../../lib/server/salon-context';
 import { badRequest, notFound } from '../../../../../../../lib/server/auth';
 import { getStorageAdapter } from '../../../../../../../lib/server/storage';
 import { confirmPortfolioItemSchema, MAX_PORTFOLIO_UPLOAD_BYTES } from '@salonomia/validation';
@@ -20,7 +23,7 @@ async function toDetail(item: {
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ salonId: string; employeeId: string }> }
+  { params }: { params: Promise<{ salonId: string; employeeId: string }> },
 ) {
   const { salonId, employeeId } = await params;
   const ctx = await getSalonContext(req, salonId);
@@ -43,7 +46,7 @@ export async function GET(
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ salonId: string; employeeId: string }> }
+  { params }: { params: Promise<{ salonId: string; employeeId: string }> },
 ) {
   const { salonId, employeeId } = await params;
   const ctx = await getSalonContext(req, salonId, 'SALON_ADMIN');
@@ -64,7 +67,10 @@ export async function POST(
 
   const parsed = confirmPortfolioItemSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid input.', errors: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid input.', errors: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const input = parsed.data;

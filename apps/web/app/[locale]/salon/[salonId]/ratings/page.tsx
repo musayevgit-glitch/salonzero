@@ -100,8 +100,16 @@ export default function SalonRatingsPage() {
   const columns = [
     { key: 'stars', header: t('colStars'), render: (r: RatingRow) => <Stars value={r.stars} /> },
     { key: 'customer', header: t('colCustomer'), render: (r: RatingRow) => r.customerName },
-    { key: 'service', header: t('colService'), render: (r: RatingRow) => r.serviceName ?? t('noComment') },
-    { key: 'stylist', header: t('colStylist'), render: (r: RatingRow) => r.stylistName ?? t('noComment') },
+    {
+      key: 'service',
+      header: t('colService'),
+      render: (r: RatingRow) => r.serviceName ?? t('noComment'),
+    },
+    {
+      key: 'stylist',
+      header: t('colStylist'),
+      render: (r: RatingRow) => r.stylistName ?? t('noComment'),
+    },
     {
       key: 'visit',
       header: t('colVisitDate'),

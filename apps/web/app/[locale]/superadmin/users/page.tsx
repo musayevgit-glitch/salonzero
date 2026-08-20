@@ -289,9 +289,7 @@ export default function SuperadminUsersPage() {
                   <div className="flex flex-wrap gap-1">
                     {row.isSuperadmin && <Badge tone="neutral">Superadmin</Badge>}
                     {row.isStylist && (
-                      <Badge tone="warning">
-                        Usta ({row.salonName ?? 'Salon'})
-                      </Badge>
+                      <Badge tone="warning">Usta ({row.salonName ?? 'Salon'})</Badge>
                     )}
                     {row.memberships.map((m) => (
                       <Badge key={m.salonId} tone="success">
@@ -321,8 +319,7 @@ export default function SuperadminUsersPage() {
               {
                 key: 'createdAt',
                 header: 'Qeydiyyat',
-                render: (row: UserListItem) =>
-                  new Date(row.createdAt).toLocaleDateString('az-AZ'),
+                render: (row: UserListItem) => new Date(row.createdAt).toLocaleDateString('az-AZ'),
               },
               {
                 key: 'actions',
@@ -462,8 +459,7 @@ export default function SuperadminUsersPage() {
                       className="flex items-center justify-between gap-2 rounded-[var(--radius-sm)] bg-surface px-3 py-2"
                     >
                       <span className="text-sm text-text-primary">
-                        {m.salonName} —{' '}
-                        {m.role === 'SALON_ADMIN' ? 'Salon admini' : 'Menecer'}
+                        {m.salonName} — {m.role === 'SALON_ADMIN' ? 'Salon admini' : 'Menecer'}
                       </span>
                       <Button
                         variant="destructive"
@@ -492,9 +488,7 @@ export default function SuperadminUsersPage() {
                 disabled={salons === null}
                 aria-label="Salon seçin"
               >
-                <option value="">
-                  {salons === null ? 'Yüklənir…' : 'Salon seçin'}
-                </option>
+                <option value="">{salons === null ? 'Yüklənir…' : 'Salon seçin'}</option>
                 {(salons ?? []).map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.name}

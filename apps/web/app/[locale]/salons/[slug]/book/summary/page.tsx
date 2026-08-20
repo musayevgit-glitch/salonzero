@@ -21,15 +21,29 @@ function formatDateLocale(iso: string, timezone: string, locale: string) {
 
 function formatTimeLocale(iso: string, timezone: string, locale: string) {
   return new Intl.DateTimeFormat(locale, {
-    hour: '2-digit', minute: '2-digit', timeZone: timezone, hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: timezone,
+    hour12: false,
   }).format(new Date(iso));
 }
 
 function ShieldIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path d="M8 2L3 4.5v4.5c0 2.76 2.24 4.5 5 5 2.76-.5 5-2.24 5-5V4.5L8 2z" stroke="#7c3aed" strokeWidth="1.2" strokeLinejoin="round" />
-      <path d="M6 8l1.5 1.5L11 7" stroke="#7c3aed" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M8 2L3 4.5v4.5c0 2.76 2.24 4.5 5 5 2.76-.5 5-2.24 5-5V4.5L8 2z"
+        stroke="#7c3aed"
+        strokeWidth="1.2"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M6 8l1.5 1.5L11 7"
+        stroke="#7c3aed"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -45,9 +59,27 @@ function InfoIcon() {
 
 function Row({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', padding: '0.75rem 0', borderBottom: '1px solid #f3e8ff' }}>
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        gap: '1rem',
+        padding: '0.75rem 0',
+        borderBottom: '1px solid #f3e8ff',
+      }}
+    >
       <span style={{ fontSize: '0.85rem', color: '#7c6fa0', flexShrink: 0 }}>{label}</span>
-      <span style={{ fontSize: '0.85rem', color: '#1e1b2e', fontWeight: bold ? 700 : 500, textAlign: 'right' }}>{value}</span>
+      <span
+        style={{
+          fontSize: '0.85rem',
+          color: '#1e1b2e',
+          fontWeight: bold ? 700 : 500,
+          textAlign: 'right',
+        }}
+      >
+        {value}
+      </span>
     </div>
   );
 }
@@ -110,12 +142,29 @@ export default function SummaryStep() {
               onClick={handleContinue}
             />
           ) : (
-            <div style={{ height: 52, borderRadius: 14, background: '#f0e8e0', animation: 'pulse 1.5s ease-in-out infinite' }} />
+            <div
+              style={{
+                height: 52,
+                borderRadius: 14,
+                background: '#f0e8e0',
+                animation: 'pulse 1.5s ease-in-out infinite',
+              }}
+            />
           )}
           {authChecked && !isAuthenticated && (
-            <p style={{ textAlign: 'center', fontSize: '0.72rem', color: '#7c6fa0', marginTop: '0.6rem' }}>
+            <p
+              style={{
+                textAlign: 'center',
+                fontSize: '0.72rem',
+                color: '#7c6fa0',
+                marginTop: '0.6rem',
+              }}
+            >
               {tAuth('noAccount')}{' '}
-              <a href={`/register?returnTo=${encodeURIComponent(confirmHref)}`} style={{ color: '#7c3aed', fontWeight: 600, textDecoration: 'none' }}>
+              <a
+                href={`/register?returnTo=${encodeURIComponent(confirmHref)}`}
+                style={{ color: '#7c3aed', fontWeight: 600, textDecoration: 'none' }}
+              >
                 {tAuth('register')}
               </a>
             </p>
@@ -134,7 +183,14 @@ export default function SummaryStep() {
           boxShadow: '0 2px 8px rgba(30,27,46,0.06)',
         }}
       >
-        <h2 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#1e1b2e', marginBottom: '0.25rem' }}>
+        <h2
+          style={{
+            fontSize: '0.95rem',
+            fontWeight: 700,
+            color: '#1e1b2e',
+            marginBottom: '0.25rem',
+          }}
+        >
           {t('bookingDetails')}
         </h2>
 
@@ -164,18 +220,41 @@ export default function SummaryStep() {
           boxShadow: '0 1px 4px rgba(30,27,46,0.04)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+        <div
+          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}
+        >
           <ShieldIcon />
-          <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1e1b2e' }}>Rezervasiya qaydaları</h3>
+          <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1e1b2e' }}>
+            Rezervasiya qaydaları
+          </h3>
         </div>
-        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+        <ul
+          style={{
+            listStyle: 'none',
+            padding: 0,
+            margin: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.45rem',
+          }}
+        >
           {[
             'Rezervasiya təsdiqi salon admini tərəfindən ediləcək.',
             'Gözləmədə statusu ilə yaradılır.',
             '24 saat qalmış ləğv edilərsə qeyd edilə bilər.',
             'Gecikməsi halında rezervasiya ləğv oluna bilər.',
           ].map((rule) => (
-            <li key={rule} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.4rem', fontSize: '0.78rem', color: '#6b5d8a', lineHeight: 1.5 }}>
+            <li
+              key={rule}
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '0.4rem',
+                fontSize: '0.78rem',
+                color: '#6b5d8a',
+                lineHeight: 1.5,
+              }}
+            >
               <span style={{ marginTop: '0.2rem', flexShrink: 0, color: '#7c3aed' }}>•</span>
               {rule}
             </li>
@@ -204,7 +283,15 @@ export default function SummaryStep() {
       </div>
 
       {/* Payment note */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0 0.25rem', marginBottom: '0.5rem' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.4rem',
+          padding: '0 0.25rem',
+          marginBottom: '0.5rem',
+        }}
+      >
         <InfoIcon />
         <p style={{ fontSize: '0.75rem', color: '#7c6fa0' }}>{t('paymentNote')}</p>
       </div>

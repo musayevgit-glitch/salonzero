@@ -62,48 +62,48 @@ export default async function ResultPage({
 
   return (
     <PageLayout isAuthenticated={isAuthenticated} activeNav="reservations">
-      <div 
-        style={{ 
-          maxWidth: 550, 
-          margin: '3rem auto 5rem auto', 
-          background: 'white', 
-          borderRadius: 24, 
-          border: '1px solid #e4d4f4', 
+      <div
+        style={{
+          maxWidth: 550,
+          margin: '3rem auto 5rem auto',
+          background: 'white',
+          borderRadius: 24,
+          border: '1px solid #e4d4f4',
           padding: '2.5rem 2rem',
           textAlign: 'center',
-          boxShadow: '0 10px 30px rgba(30,27,46,0.03)'
+          boxShadow: '0 10px 30px rgba(30,27,46,0.03)',
         }}
       >
         {/* Success Icon */}
-        <div 
-          style={{ 
-            width: 80, 
-            height: 80, 
-            borderRadius: '50%', 
-            background: isPending ? 'rgba(201, 164, 96, 0.12)' : 'rgba(76, 175, 80, 0.12)', 
+        <div
+          style={{
+            width: 80,
+            height: 80,
+            borderRadius: '50%',
+            background: isPending ? 'rgba(201, 164, 96, 0.12)' : 'rgba(76, 175, 80, 0.12)',
             color: isPending ? '#7c3aed' : '#4caf50',
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center', 
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             margin: '0 auto 1.5rem auto',
-            fontSize: '2rem'
+            fontSize: '2rem',
           }}
         >
           {isPending ? '🕐' : '✓'}
         </div>
 
-        <h1 
-          style={{ 
-            fontFamily: "'Playfair Display', Georgia, serif", 
-            fontSize: '1.75rem', 
-            fontWeight: 700, 
+        <h1
+          style={{
+            fontFamily: "'Playfair Display', Georgia, serif",
+            fontSize: '1.75rem',
+            fontWeight: 700,
             color: '#1e1b2e',
-            margin: '0 0 0.5rem 0'
+            margin: '0 0 0.5rem 0',
           }}
         >
           {isPending ? t('successTitle') : t('successTitleConfirmed')}
         </h1>
-        
+
         <p style={{ fontSize: '0.9rem', color: '#7c6fa0', lineHeight: 1.6, margin: '0 0 2rem 0' }}>
           {isPending
             ? t('successPendingMsg', { salonName: reservation.salon.name })
@@ -111,40 +111,87 @@ export default async function ResultPage({
         </p>
 
         {/* Details Card */}
-        <div 
-          style={{ 
+        <div
+          style={{
             background: '#f9f6f3',
             borderRadius: 16,
-            border: '1px solid #e4d4f4', 
-            padding: '1.25rem 1.5rem', 
+            border: '1px solid #e4d4f4',
+            padding: '1.25rem 1.5rem',
             textAlign: 'left',
-            marginBottom: '2rem'
+            marginBottom: '2rem',
           }}
         >
-          <p style={{ margin: '0 0 1rem 0', fontSize: '0.8rem', fontWeight: 700, color: '#1e1b2e', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #e4d4f4', paddingBottom: '0.5rem' }}>
+          <p
+            style={{
+              margin: '0 0 1rem 0',
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              color: '#1e1b2e',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+              borderBottom: '1px solid #e4d4f4',
+              paddingBottom: '0.5rem',
+            }}
+          >
             {t('bookingDetails')}
           </p>
-          
-          <dl style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.88rem', margin: 0 }}>
+
+          <dl
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.75rem',
+              fontSize: '0.88rem',
+              margin: 0,
+            }}
+          >
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
               <dt style={{ color: '#7c6fa0' }}>{t('salon')}</dt>
-              <dd style={{ fontWeight: 600, color: '#1e1b2e', textAlign: 'right' }}>{reservation.salon.name}</dd>
+              <dd style={{ fontWeight: 600, color: '#1e1b2e', textAlign: 'right' }}>
+                {reservation.salon.name}
+              </dd>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
               <dt style={{ color: '#7c6fa0' }}>{t('serviceName')}</dt>
-              <dd style={{ fontWeight: 600, color: '#1e1b2e', textAlign: 'right' }}>{reservation.service.name}</dd>
+              <dd style={{ fontWeight: 600, color: '#1e1b2e', textAlign: 'right' }}>
+                {reservation.service.name}
+              </dd>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
               <dt style={{ color: '#7c6fa0' }}>{t('stylist')}</dt>
-              <dd style={{ fontWeight: 600, color: '#1e1b2e', textAlign: 'right' }}>{reservation.employee?.fullName ?? t('anyStylist')}</dd>
+              <dd style={{ fontWeight: 600, color: '#1e1b2e', textAlign: 'right' }}>
+                {reservation.employee?.fullName ?? t('anyStylist')}
+              </dd>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
-              <dt style={{ color: '#7c6fa0' }}>{t('date')}/{t('time')}</dt>
-              <dd style={{ fontWeight: 600, color: '#1e1b2e', textAlign: 'right' }}>{formatDateTimeLocale(reservation.startAt, reservation.salon.timezone, locale)}</dd>
+              <dt style={{ color: '#7c6fa0' }}>
+                {t('date')}/{t('time')}
+              </dt>
+              <dd style={{ fontWeight: 600, color: '#1e1b2e', textAlign: 'right' }}>
+                {formatDateTimeLocale(reservation.startAt, reservation.salon.timezone, locale)}
+              </dd>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', borderTop: '1px dashed #e4d4f4', paddingTop: '0.75rem', marginTop: '0.25rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                gap: '1rem',
+                borderTop: '1px dashed #e4d4f4',
+                paddingTop: '0.75rem',
+                marginTop: '0.25rem',
+              }}
+            >
               <dt style={{ color: '#7c6fa0', fontWeight: 600 }}>{t('amountToPay')}</dt>
-              <dd style={{ fontWeight: 700, color: '#7c3aed', fontSize: '1.05rem', textAlign: 'right' }}>{formatMoney(reservation.priceAmount)}</dd>
+              <dd
+                style={{
+                  fontWeight: 700,
+                  color: '#7c3aed',
+                  fontSize: '1.05rem',
+                  textAlign: 'right',
+                }}
+              >
+                {formatMoney(reservation.priceAmount)}
+              </dd>
             </div>
           </dl>
         </div>
@@ -166,12 +213,12 @@ export default async function ResultPage({
               fontWeight: 600,
               textDecoration: 'none',
               boxShadow: '0 4px 15px rgba(92,61,40,0.2)',
-              transition: 'opacity 0.2s'
+              transition: 'opacity 0.2s',
             }}
           >
             {t('viewMyBookings')}
           </Link>
-          
+
           <Link
             href={`/salons/${slug}`}
             style={{
@@ -182,7 +229,7 @@ export default async function ResultPage({
               color: '#7c6fa0',
               fontWeight: 600,
               textDecoration: 'none',
-              transition: 'color 0.2s'
+              transition: 'color 0.2s',
             }}
           >
             {t('backToSalon')}

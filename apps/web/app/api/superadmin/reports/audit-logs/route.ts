@@ -11,7 +11,7 @@ function sanitizeMetadata(value: unknown): unknown {
     Object.entries(value as Record<string, unknown>).map(([key, val]) => [
       key,
       SENSITIVE_METADATA_KEY.test(key) ? '[REDACTED]' : val,
-    ])
+    ]),
   );
 }
 
@@ -31,7 +31,10 @@ export async function GET(req: NextRequest) {
   });
 
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid query parameters.', errors: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid query parameters.', errors: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const query = parsed.data;
@@ -54,7 +57,9 @@ export async function GET(req: NextRequest) {
     prisma.auditLog.count({ where }),
   ]);
 
-  const actorIds = [...new Set(items.map((l: { actorUserId: string | null }) => l.actorUserId).filter(Boolean))] as string[];
+  const actorIds = [
+    ...new Set(items.map((l: { actorUserId: string | null }) => l.actorUserId).filter(Boolean)),
+  ] as string[];
   const actors =
     actorIds.length > 0
       ? await prisma.user.findMany({
@@ -62,13 +67,26 @@ export async function GET(req: NextRequest) {
           select: { id: true, email: true, fullName: true },
         })
       : [];
-  const actorMap = Object.fromEntries(actors.map((a: { id: string; email: string; fullName: string }) => [a.id, a]));
+  const actorMap = Object.fromEntries(
+    actors.map((a: { id: string; email: string; fullName: string }) => [a.id, a]),
+  );
 
-  const sanitizedItems = items.map((l: { id: string; action: string; targetType: string; targetId: string | null; salonId: string | null; actorUserId: string | null; metadata: unknown; createdAt: Date }) => ({
-    ...l,
-    metadata: sanitizeMetadata(l.metadata),
-    actor: l.actorUserId ? (actorMap[l.actorUserId] ?? null) : null,
-  }));
+  const sanitizedItems = items.map(
+    (l: {
+      id: string;
+      action: string;
+      targetType: string;
+      targetId: string | null;
+      salonId: string | null;
+      actorUserId: string | null;
+      metadata: unknown;
+      createdAt: Date;
+    }) => ({
+      ...l,
+      metadata: sanitizeMetadata(l.metadata),
+      actor: l.actorUserId ? (actorMap[l.actorUserId] ?? null) : null,
+    }),
+  );
 
   return NextResponse.json({
     items: sanitizedItems,

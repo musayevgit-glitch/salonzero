@@ -27,7 +27,13 @@ export default function ReportsLayout({ children }: { children: ReactNode }) {
         }}
       >
         <nav
-          style={{ display: 'flex', gap: '0.25rem', overflowX: 'auto', maxWidth: 1440, margin: '0 auto' }}
+          style={{
+            display: 'flex',
+            gap: '0.25rem',
+            overflowX: 'auto',
+            maxWidth: 1440,
+            margin: '0 auto',
+          }}
           aria-label="Hesabat növləri"
         >
           {TABS.map((tab) => {

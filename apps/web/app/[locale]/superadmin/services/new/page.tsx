@@ -1,12 +1,25 @@
 'use client';
 
-import { Alert, Breadcrumbs, Button, Card, FormField, Input, Select, Textarea, useToast } from '@salonomia/ui';
+import {
+  Alert,
+  Breadcrumbs,
+  Button,
+  Card,
+  FormField,
+  Input,
+  Select,
+  Textarea,
+  useToast,
+} from '@salonomia/ui';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 import { apiFetch, ApiError } from '../../../../../lib/api-client';
 import { fetchAllSalons, type SalonOption } from '../../../../../lib/fetch-all-salons';
 
-interface Category { id: string; name: string; }
+interface Category {
+  id: string;
+  name: string;
+}
 
 function NewServiceForm() {
   const router = useRouter();
@@ -55,7 +68,11 @@ function NewServiceForm() {
   }, []);
 
   useEffect(() => {
-    if (!salonId) { setCategories([]); setCategoryId(''); return; }
+    if (!salonId) {
+      setCategories([]);
+      setCategoryId('');
+      return;
+    }
     let cancelled = false;
     // This endpoint returns a bare array, not a paginated envelope.
     apiFetch<Category[]>(`/salons/${salonId}/service-categories`)
@@ -73,11 +90,20 @@ function NewServiceForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (submitting) return;
-    if (!salonId) { setError('Salon seçilməlidir.'); return; }
+    if (!salonId) {
+      setError('Salon seçilməlidir.');
+      return;
+    }
     const price = parseInt(priceAmount);
-    if (isNaN(price) || price < 0) { setError('Düzgün qiymət daxil edin (qəpik ilə, məs: 1500 = 15.00).'); return; }
+    if (isNaN(price) || price < 0) {
+      setError('Düzgün qiymət daxil edin (qəpik ilə, məs: 1500 = 15.00).');
+      return;
+    }
     const dur = parseInt(durationMinutes);
-    if (isNaN(dur) || dur < 5) { setError('Müddət ən az 5 dəqiqə olmalıdır.'); return; }
+    if (isNaN(dur) || dur < 5) {
+      setError('Müddət ən az 5 dəqiqə olmalıdır.');
+      return;
+    }
 
     setSubmitting(true);
     setError(null);
@@ -107,15 +133,25 @@ function NewServiceForm() {
 
   return (
     <main className="dashboard-page">
-      <Breadcrumbs items={[{ label: 'Xidmətlər', href: '/superadmin/services' }, { label: 'Yeni xidmət' }]} />
+      <Breadcrumbs
+        items={[{ label: 'Xidmətlər', href: '/superadmin/services' }, { label: 'Yeni xidmət' }]}
+      />
       <Card style={{ maxWidth: 560 }}>
-        <h1 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1.5rem' }}>Yeni xidmət yarat</h1>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }} noValidate>
+        <h1 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1.5rem' }}>
+          Yeni xidmət yarat
+        </h1>
+        <form
+          onSubmit={handleSubmit}
+          style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
+          noValidate
+        >
           {error && <Alert tone="danger" title={error} />}
 
           <FormField
             label="Salon"
-            description={lockedSalonId ? 'Salon əvvəlcədən seçilib və dəyişdirilə bilməz.' : undefined}
+            description={
+              lockedSalonId ? 'Salon əvvəlcədən seçilib və dəyişdirilə bilməz.' : undefined
+            }
           >
             {(p) => (
               <Select
@@ -140,24 +176,50 @@ function NewServiceForm() {
 
           <FormField label="Kateqoriya" optional>
             {(p) => (
-              <Select {...p} value={categoryId} onChange={(e) => setCategoryId(e.target.value)} disabled={!salonId}>
+              <Select
+                {...p}
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+                disabled={!salonId}
+              >
                 <option value="">Kateqoriya seçin (isteğe bağlı)</option>
-                {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
               </Select>
             )}
           </FormField>
 
           <FormField label="Xidmət adı">
-            {(p) => <Input {...p} required value={name} onChange={(e) => setName(e.target.value)} />}
+            {(p) => (
+              <Input {...p} required value={name} onChange={(e) => setName(e.target.value)} />
+            )}
           </FormField>
 
           <FormField label="Açıqlama" optional>
-            {(p) => <Textarea {...p} value={description} onChange={(e) => setDescription(e.target.value)} />}
+            {(p) => (
+              <Textarea
+                {...p}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+            )}
           </FormField>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <FormField label="Qiymət (qəpik)" description="Məs: 1500 = 15.00 AZN">
-              {(p) => <Input {...p} type="number" min="0" required value={priceAmount} onChange={(e) => setPriceAmount(e.target.value)} />}
+              {(p) => (
+                <Input
+                  {...p}
+                  type="number"
+                  min="0"
+                  required
+                  value={priceAmount}
+                  onChange={(e) => setPriceAmount(e.target.value)}
+                />
+              )}
             </FormField>
             <FormField label="Valyuta">
               {(p) => (
@@ -172,23 +234,48 @@ function NewServiceForm() {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <FormField label="Müddət (dəq)">
-              {(p) => <Input {...p} type="number" min="5" max="480" required value={durationMinutes} onChange={(e) => setDurationMinutes(e.target.value)} />}
+              {(p) => (
+                <Input
+                  {...p}
+                  type="number"
+                  min="5"
+                  max="480"
+                  required
+                  value={durationMinutes}
+                  onChange={(e) => setDurationMinutes(e.target.value)}
+                />
+              )}
             </FormField>
             <FormField label="Bufer (dəq)" optional description="Xidmətdən sonra boş vaxt">
-              {(p) => <Input {...p} type="number" min="0" max="120" value={bufferMinutes} onChange={(e) => setBufferMinutes(e.target.value)} />}
+              {(p) => (
+                <Input
+                  {...p}
+                  type="number"
+                  min="0"
+                  max="120"
+                  value={bufferMinutes}
+                  onChange={(e) => setBufferMinutes(e.target.value)}
+                />
+              )}
             </FormField>
           </div>
 
           <FormField label="Status">
             {(p) => (
-              <Select {...p} value={isActive ? 'ACTIVE' : 'INACTIVE'} onChange={(e) => setIsActive(e.target.value === 'ACTIVE')}>
+              <Select
+                {...p}
+                value={isActive ? 'ACTIVE' : 'INACTIVE'}
+                onChange={(e) => setIsActive(e.target.value === 'ACTIVE')}
+              >
                 <option value="ACTIVE">Aktiv</option>
                 <option value="INACTIVE">Deaktiv</option>
               </Select>
             )}
           </FormField>
 
-          <Button type="submit" loading={submitting} disabled={submitting}>Xidmət yarat</Button>
+          <Button type="submit" loading={submitting} disabled={submitting}>
+            Xidmət yarat
+          </Button>
         </form>
       </Card>
     </main>

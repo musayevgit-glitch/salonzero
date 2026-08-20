@@ -1,11 +1,24 @@
 'use client';
 
-import { Alert, Breadcrumbs, Button, Card, FormField, Input, Select, Textarea, useToast } from '@salonomia/ui';
+import {
+  Alert,
+  Breadcrumbs,
+  Button,
+  Card,
+  FormField,
+  Input,
+  Select,
+  Textarea,
+  useToast,
+} from '@salonomia/ui';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { apiFetch, ApiError } from '../../../../../lib/api-client';
 
-interface Salon { id: string; name: string; }
+interface Salon {
+  id: string;
+  name: string;
+}
 
 export default function NewStylistPage() {
   const router = useRouter();
@@ -26,8 +39,14 @@ export default function NewStylistPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (submitting) return;
-    if (!salonId) { setError('Salon seçilməlidir.'); return; }
-    if (!fullName.trim()) { setError('Ad daxil edilməlidir.'); return; }
+    if (!salonId) {
+      setError('Salon seçilməlidir.');
+      return;
+    }
+    if (!fullName.trim()) {
+      setError('Ad daxil edilməlidir.');
+      return;
+    }
     setSubmitting(true);
     setError(null);
     try {
@@ -46,30 +65,53 @@ export default function NewStylistPage() {
 
   return (
     <main className="dashboard-page">
-      <Breadcrumbs items={[{ label: 'Stilistlər', href: '/superadmin/stylists' }, { label: 'Yeni stilist' }]} />
+      <Breadcrumbs
+        items={[{ label: 'Stilistlər', href: '/superadmin/stylists' }, { label: 'Yeni stilist' }]}
+      />
       <Card style={{ maxWidth: 520 }}>
-        <h1 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1.5rem' }}>Yeni stilist yarat</h1>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }} noValidate>
+        <h1 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1.5rem' }}>
+          Yeni stilist yarat
+        </h1>
+        <form
+          onSubmit={handleSubmit}
+          style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
+          noValidate
+        >
           {error && <Alert tone="danger" title={error} />}
 
           <FormField label="Salon">
             {(p) => (
               <Select {...p} required value={salonId} onChange={(e) => setSalonId(e.target.value)}>
                 <option value="">Salon seçin...</option>
-                {salons.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                {salons.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
               </Select>
             )}
           </FormField>
 
           <FormField label="Ad Soyad">
-            {(p) => <Input {...p} required value={fullName} onChange={(e) => setFullName(e.target.value)} />}
+            {(p) => (
+              <Input
+                {...p}
+                required
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+              />
+            )}
           </FormField>
 
           <FormField label="Bioqrafiya" optional>
-            {(p) => <Textarea {...p} rows={3} value={bio} onChange={(e) => setBio(e.target.value)} />}
+            {(p) => (
+              <Textarea {...p} rows={3} value={bio} onChange={(e) => setBio(e.target.value)} />
+            )}
           </FormField>
 
-          <Button type="submit" loading={submitting} disabled={submitting}>Stilist yarat</Button>
+          <Button type="submit" loading={submitting} disabled={submitting}>
+            Stilist yarat
+          </Button>
         </form>
       </Card>
     </main>

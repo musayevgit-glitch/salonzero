@@ -5,7 +5,12 @@ import { prisma } from '../../../../lib/server/prisma';
 import { ReservationStatus } from '@salonomia/database';
 
 const LIST_SELECT = {
-  id: true, status: true, startAt: true, endAt: true, priceAmount: true, currency: true,
+  id: true,
+  status: true,
+  startAt: true,
+  endAt: true,
+  priceAmount: true,
+  currency: true,
   service: { select: { name: true, durationMinutes: true } },
   employee: { select: { fullName: true } },
   salon: { select: { name: true, slug: true } },
@@ -22,10 +27,19 @@ export async function GET(req: NextRequest) {
   }
 
   const { page, pageSize, status } = parsed.data;
-  const where = { customerId: payload.sub, ...(status ? { status: status as ReservationStatus } : {}) };
+  const where = {
+    customerId: payload.sub,
+    ...(status ? { status: status as ReservationStatus } : {}),
+  };
 
   const [items, total] = await Promise.all([
-    prisma.reservation.findMany({ where, select: LIST_SELECT, orderBy: { startAt: 'desc' }, skip: (page - 1) * pageSize, take: pageSize }),
+    prisma.reservation.findMany({
+      where,
+      select: LIST_SELECT,
+      orderBy: { startAt: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
     prisma.reservation.count({ where }),
   ]);
 

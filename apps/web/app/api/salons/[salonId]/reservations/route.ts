@@ -20,10 +20,7 @@ const STAFF_RESERVATION_SELECT = {
   customer: { select: { email: true } },
 } as const;
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ salonId: string }> }
-) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ salonId: string }> }) {
   const { salonId } = await params;
   const ctx = await getSalonContext(req, salonId);
   if (isSalonContextError(ctx)) return ctx;
@@ -42,7 +39,10 @@ export async function GET(
   });
 
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid query parameters.', errors: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid query parameters.', errors: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const query = parsed.data;

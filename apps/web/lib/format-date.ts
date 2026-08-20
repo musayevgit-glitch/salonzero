@@ -76,11 +76,7 @@ function isAz(locale: string): boolean {
 }
 
 /** e.g. az -> "8 avqust 2026, Cümə"; en -> "Friday, 8 August 2026" */
-export function formatLongDate(
-  value: string | Date,
-  locale: string,
-  timeZone?: string,
-): string {
+export function formatLongDate(value: string | Date, locale: string, timeZone?: string): string {
   const date = typeof value === 'string' ? new Date(value) : value;
   if (Number.isNaN(date.getTime())) return '';
   if (isAz(locale)) {
@@ -97,11 +93,7 @@ export function formatLongDate(
 }
 
 /** e.g. az -> "8 avqust 2026" */
-export function formatDateOnly(
-  value: string | Date,
-  locale: string,
-  timeZone?: string,
-): string {
+export function formatDateOnly(value: string | Date, locale: string, timeZone?: string): string {
   const date = typeof value === 'string' ? new Date(value) : value;
   if (Number.isNaN(date.getTime())) return '';
   if (isAz(locale)) {
@@ -117,11 +109,7 @@ export function formatDateOnly(
 }
 
 /** 24-hour clock, e.g. "14:30". */
-export function formatTime(
-  value: string | Date,
-  locale: string,
-  timeZone?: string,
-): string {
+export function formatTime(value: string | Date, locale: string, timeZone?: string): string {
   const date = typeof value === 'string' ? new Date(value) : value;
   if (Number.isNaN(date.getTime())) return '';
   const p = partsInZone(date, timeZone);

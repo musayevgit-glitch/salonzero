@@ -79,7 +79,10 @@ export default function NewServicePage() {
   return (
     <main className="dashboard-page">
       <Breadcrumbs
-        items={[{ label: t('services.title'), href: `/salon/${salonId}/services` }, { label: t('services.new') }]}
+        items={[
+          { label: t('services.title'), href: `/salon/${salonId}/services` },
+          { label: t('services.new') },
+        ]}
       />
       <Card className="max-w-lg">
         <h1 className="text-xl font-semibold text-text-primary">{t('services.newTitle')}</h1>

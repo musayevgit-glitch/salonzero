@@ -293,10 +293,7 @@ export default function SalonReservationsPage() {
           <Button variant="secondary" onClick={() => shiftWeek(-1)} aria-label="Əvvəlki həftə">
             ← Əvvəlki
           </Button>
-          <Button
-            variant="secondary"
-            onClick={() => setSelectedDate(toLocalDateInput(new Date()))}
-          >
+          <Button variant="secondary" onClick={() => setSelectedDate(toLocalDateInput(new Date()))}>
             Bu gün
           </Button>
           <Button variant="secondary" onClick={() => shiftWeek(1)} aria-label="Növbəti həftə">
@@ -322,7 +319,11 @@ export default function SalonReservationsPage() {
                 setPage(1);
               }}
             >
-              {mode === 'today' ? t('reservations.today') : mode === 'day' ? t('reservations.day') : t('reservations.week')}
+              {mode === 'today'
+                ? t('reservations.today')
+                : mode === 'day'
+                  ? t('reservations.day')
+                  : t('reservations.week')}
             </Button>
           ))}
           {viewMode !== 'today' ? (
@@ -333,7 +334,9 @@ export default function SalonReservationsPage() {
                 setSelectedDate(e.target.value);
                 setPage(1);
               }}
-              aria-label={viewMode === 'week' ? 'Any day in the target week' : t('reservations.day')}
+              aria-label={
+                viewMode === 'week' ? 'Any day in the target week' : t('reservations.day')
+              }
               className="w-auto"
             />
           ) : null}

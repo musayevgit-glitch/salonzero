@@ -29,7 +29,10 @@ export async function POST(req: NextRequest) {
 
   const parsed = createHoldSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid input.', errors: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid input.', errors: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const { employeeId, salonId, startAt: startAtStr, endAt: endAtStr } = parsed.data;
@@ -57,7 +60,10 @@ export async function POST(req: NextRequest) {
     },
   });
   if (conflictingReservation > 0) {
-    return NextResponse.json({ message: 'This time slot is no longer available.' }, { status: 409 });
+    return NextResponse.json(
+      { message: 'This time slot is no longer available.' },
+      { status: 409 },
+    );
   }
 
   // Check for active conflicting holds
@@ -72,7 +78,10 @@ export async function POST(req: NextRequest) {
     },
   });
   if (conflictingHold > 0) {
-    return NextResponse.json({ message: 'This time slot is temporarily held by another customer.' }, { status: 409 });
+    return NextResponse.json(
+      { message: 'This time slot is temporarily held by another customer.' },
+      { status: 409 },
+    );
   }
 
   // Drop this customer's earlier holds for the salon so stepping back and forth through the
@@ -84,5 +93,8 @@ export async function POST(req: NextRequest) {
     select: { id: true, expiresAt: true },
   });
 
-  return NextResponse.json({ id: hold.id, expiresAt: hold.expiresAt.toISOString() }, { status: 201 });
+  return NextResponse.json(
+    { id: hold.id, expiresAt: hold.expiresAt.toISOString() },
+    { status: 201 },
+  );
 }

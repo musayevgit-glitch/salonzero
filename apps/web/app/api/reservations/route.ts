@@ -16,7 +16,10 @@ function canonicalJson(value: unknown): string {
   if (value === null || typeof value !== 'object') return JSON.stringify(value);
   if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
   const r = value as Record<string, unknown>;
-  return `{${Object.keys(r).sort().map((k) => `${JSON.stringify(k)}:${canonicalJson(r[k])}`).join(',')}}`;
+  return `{${Object.keys(r)
+    .sort()
+    .map((k) => `${JSON.stringify(k)}:${canonicalJson(r[k])}`)
+    .join(',')}}`;
 }
 
 function hashPayload(payload: Record<string, unknown>): string {
@@ -24,8 +27,18 @@ function hashPayload(payload: Record<string, unknown>): string {
 }
 
 const RESERVATION_SELECT = {
-  id: true, salonId: true, serviceId: true, employeeId: true, status: true,
-  startAt: true, endAt: true, priceAmount: true, currency: true, customerNote: true, guestName: true, createdAt: true,
+  id: true,
+  salonId: true,
+  serviceId: true,
+  employeeId: true,
+  status: true,
+  startAt: true,
+  endAt: true,
+  priceAmount: true,
+  currency: true,
+  customerNote: true,
+  guestName: true,
+  createdAt: true,
 } as const;
 
 export async function POST(req: NextRequest) {
@@ -41,7 +54,10 @@ export async function POST(req: NextRequest) {
 
   const parsed = createReservationSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid input.', errors: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid input.', errors: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const input = parsed.data;
@@ -49,8 +65,11 @@ export async function POST(req: NextRequest) {
   const now = new Date();
 
   const idempotencyPayloadHash = hashPayload({
-    salonId: input.salonId, serviceId: input.serviceId,
-    employeeId: input.employeeId ?? null, startAt: input.startAt, customerNote: input.customerNote ?? null,
+    salonId: input.salonId,
+    serviceId: input.serviceId,
+    employeeId: input.employeeId ?? null,
+    startAt: input.startAt,
+    customerNote: input.customerNote ?? null,
   });
 
   // Idempotency check — deduplicate double submits.
@@ -62,37 +81,71 @@ export async function POST(req: NextRequest) {
     if (existing.idempotencyExpiresAt && existing.idempotencyExpiresAt < now) {
       return NextResponse.json({ message: 'This idempotency key has expired.' }, { status: 409 });
     }
-    if (existing.idempotencyPayloadHash && existing.idempotencyPayloadHash !== idempotencyPayloadHash) {
-      return NextResponse.json({ message: 'This idempotency key was already used for a different request.' }, { status: 409 });
+    if (
+      existing.idempotencyPayloadHash &&
+      existing.idempotencyPayloadHash !== idempotencyPayloadHash
+    ) {
+      return NextResponse.json(
+        { message: 'This idempotency key was already used for a different request.' },
+        { status: 409 },
+      );
     }
     const { idempotencyPayloadHash: _h, idempotencyExpiresAt: _e, ...reservation } = existing;
     return NextResponse.json(reservation, { status: 201 });
   }
 
-  const salon = await prisma.salon.findFirst({ where: { id: input.salonId, status: 'ACTIVE' }, select: { id: true, timezone: true } });
+  const salon = await prisma.salon.findFirst({
+    where: { id: input.salonId, status: 'ACTIVE' },
+    select: { id: true, timezone: true },
+  });
   if (!salon) return NextResponse.json({ message: 'Salon not found.' }, { status: 404 });
 
   const service = await prisma.service.findFirst({
     where: { id: input.serviceId, salonId: salon.id, isActive: true },
-    select: { id: true, durationMinutes: true, bufferMinutes: true, priceAmount: true, currency: true },
+    select: {
+      id: true,
+      durationMinutes: true,
+      bufferMinutes: true,
+      priceAmount: true,
+      currency: true,
+    },
   });
-  if (!service) return NextResponse.json({ message: 'This service is not available at this salon.' }, { status: 400 });
+  if (!service)
+    return NextResponse.json(
+      { message: 'This service is not available at this salon.' },
+      { status: 400 },
+    );
 
   const bookingPolicy = await prisma.bookingPolicy.findUnique({ where: { salonId: salon.id } });
-  if (!bookingPolicy) return NextResponse.json({ message: 'This salon is not configured for booking.' }, { status: 400 });
+  if (!bookingPolicy)
+    return NextResponse.json(
+      { message: 'This salon is not configured for booking.' },
+      { status: 400 },
+    );
 
   const startAt = new Date(input.startAt);
   const endAt = new Date(startAt.getTime() + service.durationMinutes * 60_000);
-  const blockedUntil = new Date(startAt.getTime() + (service.durationMinutes + service.bufferMinutes) * 60_000);
+  const blockedUntil = new Date(
+    startAt.getTime() + (service.durationMinutes + service.bufferMinutes) * 60_000,
+  );
 
   // Find eligible employees.
   const employeeWhere = {
-    salonId: salon.id, isActive: true,
+    salonId: salon.id,
+    isActive: true,
     eligibleServices: { some: { serviceId: service.id } },
     ...(input.employeeId ? { id: input.employeeId } : {}),
   };
-  const candidates = await prisma.employeeProfile.findMany({ where: employeeWhere, select: { id: true }, orderBy: { id: 'asc' } });
-  if (candidates.length === 0) return NextResponse.json({ message: 'No eligible stylist is available for this service.' }, { status: 400 });
+  const candidates = await prisma.employeeProfile.findMany({
+    where: employeeWhere,
+    select: { id: true },
+    orderBy: { id: 'asc' },
+  });
+  if (candidates.length === 0)
+    return NextResponse.json(
+      { message: 'No eligible stylist is available for this service.' },
+      { status: 400 },
+    );
 
   // Re-verify availability for each candidate, pick first available.
   const windowStart = new Date(startAt.getTime() - 24 * 60 * 60_000);
@@ -100,28 +153,41 @@ export async function POST(req: NextRequest) {
   let chosenEmployeeId: string | null = null;
 
   for (const candidate of candidates) {
-    const [workingSchedule, breaks, timeOff, blockingReservations, activeHolds] = await Promise.all([
-      prisma.workingSchedule.findMany({ where: { employeeId: candidate.id } }),
-      prisma.break.findMany({ where: { employeeId: candidate.id } }),
-      prisma.timeOff.findMany({ where: { employeeId: candidate.id, startAt: { lt: windowEnd }, endAt: { gt: windowStart } } }),
-      prisma.reservation.findMany({
-        where: { employeeId: candidate.id, status: { in: [...ACTIVE_STATUSES] }, startAt: { lt: windowEnd }, blockedUntil: { gt: windowStart } },
-        select: { startAt: true, endAt: true, blockedUntil: true },
-      }),
-      // A hold this same customer placed while walking through the booking steps must NOT block
-      // their own reservation. Before `heldByUserId` existed every hold looked like a competitor's,
-      // so the customer's own date/time-step hold made availability re-checking fail and every
-      // booking ended in a 409 "slot unavailable" — reservations could not be created at all.
-      prisma.slotHold.findMany({
-        where: {
-          employeeId: candidate.id,
-          startAt: { lt: endAt },
-          endAt: { gt: startAt },
-          ...blockingHoldFilter(now, customerId),
-        },
-        select: { startAt: true, endAt: true },
-      }),
-    ]);
+    const [workingSchedule, breaks, timeOff, blockingReservations, activeHolds] = await Promise.all(
+      [
+        prisma.workingSchedule.findMany({ where: { employeeId: candidate.id } }),
+        prisma.break.findMany({ where: { employeeId: candidate.id } }),
+        prisma.timeOff.findMany({
+          where: {
+            employeeId: candidate.id,
+            startAt: { lt: windowEnd },
+            endAt: { gt: windowStart },
+          },
+        }),
+        prisma.reservation.findMany({
+          where: {
+            employeeId: candidate.id,
+            status: { in: [...ACTIVE_STATUSES] },
+            startAt: { lt: windowEnd },
+            blockedUntil: { gt: windowStart },
+          },
+          select: { startAt: true, endAt: true, blockedUntil: true },
+        }),
+        // A hold this same customer placed while walking through the booking steps must NOT block
+        // their own reservation. Before `heldByUserId` existed every hold looked like a competitor's,
+        // so the customer's own date/time-step hold made availability re-checking fail and every
+        // booking ended in a 409 "slot unavailable" — reservations could not be created at all.
+        prisma.slotHold.findMany({
+          where: {
+            employeeId: candidate.id,
+            startAt: { lt: endAt },
+            endAt: { gt: startAt },
+            ...blockingHoldFilter(now, customerId),
+          },
+          select: { startAt: true, endAt: true },
+        }),
+      ],
+    );
 
     const allBlockingReservations = [
       ...blockingReservations,
@@ -129,12 +195,27 @@ export async function POST(req: NextRequest) {
     ];
 
     const available = isEmployeeSlotAvailable({
-      employee: { employeeId: candidate.id, isActive: true, isEligibleForService: true, workingSchedule, breaks, timeOff, blockingReservations: allBlockingReservations },
-      salonTimezone: salon.timezone, now, candidateStart: startAt,
-      serviceDurationMinutes: service.durationMinutes, bufferMinutes: service.bufferMinutes,
-      minNoticeMinutes: bookingPolicy.minNoticeMinutes, maxAdvanceDays: bookingPolicy.maxAdvanceDays,
+      employee: {
+        employeeId: candidate.id,
+        isActive: true,
+        isEligibleForService: true,
+        workingSchedule,
+        breaks,
+        timeOff,
+        blockingReservations: allBlockingReservations,
+      },
+      salonTimezone: salon.timezone,
+      now,
+      candidateStart: startAt,
+      serviceDurationMinutes: service.durationMinutes,
+      bufferMinutes: service.bufferMinutes,
+      minNoticeMinutes: bookingPolicy.minNoticeMinutes,
+      maxAdvanceDays: bookingPolicy.maxAdvanceDays,
     });
-    if (available) { chosenEmployeeId = candidate.id; break; }
+    if (available) {
+      chosenEmployeeId = candidate.id;
+      break;
+    }
   }
 
   if (!chosenEmployeeId) return NextResponse.json({ message: SLOT_UNAVAILABLE }, { status: 409 });
@@ -144,15 +225,27 @@ export async function POST(req: NextRequest) {
   try {
     const created = await prisma.$transaction(async (tx) => {
       const conflicting = await tx.reservation.count({
-        where: { employeeId: chosenEmployeeId!, status: { in: [...ACTIVE_STATUSES] }, startAt: { lt: blockedUntil }, blockedUntil: { gt: startAt } },
+        where: {
+          employeeId: chosenEmployeeId!,
+          status: { in: [...ACTIVE_STATUSES] },
+          startAt: { lt: blockedUntil },
+          blockedUntil: { gt: startAt },
+        },
       });
       if (conflicting > 0) throw new Error('SLOT_CONFLICT');
 
       const reservation = await tx.reservation.create({
         data: {
-          salonId: salon.id, serviceId: service.id, employeeId: chosenEmployeeId!,
-          customerId, status, startAt, endAt, blockedUntil,
-          priceAmount: service.priceAmount, currency: service.currency,
+          salonId: salon.id,
+          serviceId: service.id,
+          employeeId: chosenEmployeeId!,
+          customerId,
+          status,
+          startAt,
+          endAt,
+          blockedUntil,
+          priceAmount: service.priceAmount,
+          currency: service.currency,
           customerNote: input.customerNote ?? null,
           idempotencyKey: input.idempotencyKey,
           idempotencyPayloadHash,
@@ -161,21 +254,47 @@ export async function POST(req: NextRequest) {
         select: RESERVATION_SELECT,
       });
 
-      await tx.reservationStatusHistory.create({ data: { reservationId: reservation.id, fromStatus: null, toStatus: status, changedByUserId: customerId } });
-      await tx.notification.create({ data: { userId: customerId, type: status === 'CONFIRMED' ? 'reservation.confirmed' : 'reservation.pending_customer', payload: { reservationId: reservation.id } } });
+      await tx.reservationStatusHistory.create({
+        data: {
+          reservationId: reservation.id,
+          fromStatus: null,
+          toStatus: status,
+          changedByUserId: customerId,
+        },
+      });
+      await tx.notification.create({
+        data: {
+          userId: customerId,
+          type: status === 'CONFIRMED' ? 'reservation.confirmed' : 'reservation.pending_customer',
+          payload: { reservationId: reservation.id },
+        },
+      });
 
       return reservation;
     });
 
-    await recordAudit({ actorUserId: customerId, action: 'reservation.created', targetType: 'Reservation', targetId: created.id, salonId: salon.id });
+    await recordAudit({
+      actorUserId: customerId,
+      action: 'reservation.created',
+      targetType: 'Reservation',
+      targetId: created.id,
+      salonId: salon.id,
+    });
     return NextResponse.json(created, { status: 201 });
   } catch (err) {
     const msg = err instanceof Error ? err.message : '';
-    if (msg === 'SLOT_CONFLICT' || msg.includes('reservation_no_overlap_per_employee') || msg.includes('deadlock')) {
+    if (
+      msg === 'SLOT_CONFLICT' ||
+      msg.includes('reservation_no_overlap_per_employee') ||
+      msg.includes('deadlock')
+    ) {
       return NextResponse.json({ message: SLOT_UNAVAILABLE }, { status: 409 });
     }
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
-      return NextResponse.json({ message: 'Duplicate request. The reservation may already exist.' }, { status: 409 });
+      return NextResponse.json(
+        { message: 'Duplicate request. The reservation may already exist.' },
+        { status: 409 },
+      );
     }
     throw err;
   }

@@ -88,9 +88,27 @@ export function PageHeader({
         borderBottom: '1px solid #e4d4f4',
       }}
     >
-      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 1.25rem', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div
+        style={{
+          maxWidth: 1280,
+          margin: '0 auto',
+          padding: '0 1.25rem',
+          height: 64,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
         <a href="/" style={{ textDecoration: 'none' }}>
-          <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.2rem', fontWeight: 700, letterSpacing: '0.05em', color: '#1e1b2e' }}>
+          <span
+            style={{
+              fontFamily: "'Playfair Display', Georgia, serif",
+              fontSize: '1.2rem',
+              fontWeight: 700,
+              letterSpacing: '0.05em',
+              color: '#1e1b2e',
+            }}
+          >
             SALONOMIA
           </span>
         </a>
@@ -120,7 +138,12 @@ export function PageHeader({
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
               <circle cx="7" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.3" />
-              <path d="M2 12.5c0-2.76 2.24-5 5-5s5 2.24 5 5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+              <path
+                d="M2 12.5c0-2.76 2.24-5 5-5s5 2.24 5 5"
+                stroke="currentColor"
+                strokeWidth="1.3"
+                strokeLinecap="round"
+              />
             </svg>
             {isAuthenticated ? t('account') : t('login')}
           </a>
@@ -135,9 +158,19 @@ export function PageHeader({
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
               {menuOpen ? (
-                <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+                <path
+                  d="M5 5l10 10M15 5L5 15"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  strokeLinecap="round"
+                />
               ) : (
-                <path d="M3 6h14M3 10h14M3 14h14" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+                <path
+                  d="M3 6h14M3 10h14M3 14h14"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  strokeLinecap="round"
+                />
               )}
             </svg>
           </button>
@@ -290,13 +323,47 @@ export function PageHeader({
 export function PageFooter() {
   const t = useTranslations('common');
   return (
-    <footer style={{ background: 'white', borderTop: '1px solid #e4d4f4', padding: '1.5rem 1.25rem', marginTop: 'auto' }}>
-      <div style={{ maxWidth: 1280, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
+    <footer
+      style={{
+        background: 'white',
+        borderTop: '1px solid #e4d4f4',
+        padding: '1.5rem 1.25rem',
+        marginTop: 'auto',
+      }}
+    >
+      <div
+        style={{
+          maxWidth: 1280,
+          margin: '0 auto',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '0.75rem',
+        }}
+      >
         <div>
-          <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '0.95rem', fontWeight: 700, letterSpacing: '0.05em', color: '#1e1b2e' }}>
+          <span
+            style={{
+              fontFamily: "'Playfair Display', Georgia, serif",
+              fontSize: '0.95rem',
+              fontWeight: 700,
+              letterSpacing: '0.05em',
+              color: '#1e1b2e',
+            }}
+          >
             SALONOMIA
           </span>
-          <div style={{ fontSize: '0.6rem', color: '#7c3aed', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: '2px' }}>
+          <div
+            style={{
+              fontSize: '0.6rem',
+              color: '#7c3aed',
+              fontWeight: 600,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              marginTop: '2px',
+            }}
+          >
             {t('tagline')}
           </div>
         </div>
@@ -321,9 +388,19 @@ export function PageLayout({
   maxWidth?: number;
 }) {
   return (
-    <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', background: 'white' }}>
+    <div
+      style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', background: 'white' }}
+    >
       <PageHeader isAuthenticated={isAuthenticated} activeNav={activeNav} />
-      <main style={{ flex: 1, maxWidth, margin: '0 auto', width: '100%', padding: '1.5rem 1.25rem 2rem' }}>
+      <main
+        style={{
+          flex: 1,
+          maxWidth,
+          margin: '0 auto',
+          width: '100%',
+          padding: '1.5rem 1.25rem 2rem',
+        }}
+      >
         {children}
       </main>
       <PageFooter />

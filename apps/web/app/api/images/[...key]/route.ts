@@ -3,10 +3,7 @@ import { getStorageAdapter } from '../../../../lib/server/storage';
 
 // Proxy image serving: generates a fresh signed URL and redirects.
 // Stored URLs never expire — the signing happens on every request.
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: Promise<{ key: string[] }> },
-) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ key: string[] }> }) {
   const { key } = await params;
   const objectKey = key.join('/');
 

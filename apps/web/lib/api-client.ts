@@ -1,6 +1,7 @@
 'use client';
 
-const API_URL = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000');
+const API_URL =
+  typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000');
 
 function readCookie(name: string): string | null {
   if (typeof document === 'undefined') return null;
@@ -66,7 +67,10 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
 }
 
 // For multipart/form-data uploads — does NOT set Content-Type (browser sets it with boundary)
-export async function apiFetchFormData<T = void>(path: string, init: RequestInit & { body?: FormData }): Promise<T> {
+export async function apiFetchFormData<T = void>(
+  path: string,
+  init: RequestInit & { body?: FormData },
+): Promise<T> {
   const csrfToken = readCookie('csrfToken');
   const apiPath = path.startsWith('/api') ? path : `/api${path}`;
   const res = await fetch(`${API_URL}${apiPath}`, {
@@ -79,7 +83,9 @@ export async function apiFetchFormData<T = void>(path: string, init: RequestInit
   });
 
   if (!res.ok) {
-    const body = await res.json().catch(() => ({ message: 'Something went wrong. Please try again.' }));
+    const body = await res
+      .json()
+      .catch(() => ({ message: 'Something went wrong. Please try again.' }));
     if (res.status === 401) handleUnauthorized();
     throw new ApiError(res.status, body.message ?? 'Something went wrong. Please try again.', body);
   }

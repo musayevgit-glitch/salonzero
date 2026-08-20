@@ -12,7 +12,10 @@ export async function GET(req: NextRequest) {
   const raw = Object.fromEntries(req.nextUrl.searchParams.entries());
   const parsed = listNotificationsQuerySchema.safeParse(raw);
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid query.', errors: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid query.', errors: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const { page, pageSize, unreadOnly } = parsed.data;

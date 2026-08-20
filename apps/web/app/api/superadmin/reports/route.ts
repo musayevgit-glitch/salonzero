@@ -25,7 +25,10 @@ export async function GET(req: NextRequest) {
 
   const parsed = salonReportQuerySchema.safeParse(searchParams);
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid query parameters.', errors: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid query parameters.', errors: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const query = parsed.data;
@@ -56,14 +59,29 @@ export async function GET(req: NextRequest) {
   });
   const salonMap = Object.fromEntries(salons.map((s) => [s.id, s]));
 
-  const byStatusMap = Object.fromEntries(byStatus.map((r: { status: string; _count: { id: number } }) => [r.status, r._count.id]));
+  const byStatusMap = Object.fromEntries(
+    byStatus.map((r: { status: string; _count: { id: number } }) => [r.status, r._count.id]),
+  );
 
-  const bySalon = salonRows.map((r: { salonId: string; currency: string; _count: { id: number }; _sum: { priceAmount: number | null } }) => ({
-    salon: salonMap[r.salonId] ?? { id: r.salonId, name: 'Unknown', slug: '' },
-    currency: r.currency,
-    confirmedCount: r._count.id,
-    confirmedRevenue: r._sum.priceAmount ?? 0,
-  }));
+  const bySalon = salonRows.map(
+    (r: {
+      salonId: string;
+      currency: string;
+      _count: { id: number };
+      _sum: { priceAmount: number | null };
+    }) => ({
+      salon: salonMap[r.salonId] ?? { id: r.salonId, name: 'Unknown', slug: '' },
+      currency: r.currency,
+      confirmedCount: r._count.id,
+      confirmedRevenue: r._sum.priceAmount ?? 0,
+    }),
+  );
 
-  return NextResponse.json({ total, byStatus: byStatusMap, bySalon, from: query.from, to: query.to });
+  return NextResponse.json({
+    total,
+    byStatus: byStatusMap,
+    bySalon,
+    from: query.from,
+    to: query.to,
+  });
 }

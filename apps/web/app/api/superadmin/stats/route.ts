@@ -6,7 +6,9 @@ function dayBoundaries(offsetDays = 0) {
   const d = new Date();
   d.setDate(d.getDate() + offsetDays);
   const start = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 0, 0, 0, 0));
-  const end = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 23, 59, 59, 999));
+  const end = new Date(
+    Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 23, 59, 59, 999),
+  );
   return { start, end };
 }
 
@@ -14,7 +16,17 @@ function weekBoundaries() {
   const now = new Date();
   const day = now.getUTCDay();
   const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - day));
-  const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + (6 - day), 23, 59, 59, 999));
+  const end = new Date(
+    Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate() + (6 - day),
+      23,
+      59,
+      59,
+      999,
+    ),
+  );
   return { start, end };
 }
 

@@ -52,7 +52,14 @@ export function StylistCard({ employee, salonName, salonSlug }: Props) {
         }}
       >
         {/* Top: avatar + name/salon */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem', padding: '1rem 1rem 0.75rem' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.875rem',
+            padding: '1rem 1rem 0.75rem',
+          }}
+        >
           {/* Profile photo */}
           <div
             style={{
@@ -75,7 +82,14 @@ export function StylistCard({ employee, salonName, salonSlug }: Props) {
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
             ) : (
-              <span style={{ fontSize: '1.15rem', fontWeight: 700, color: '#5b21b6', letterSpacing: '0.02em' }}>
+              <span
+                style={{
+                  fontSize: '1.15rem',
+                  fontWeight: 700,
+                  color: '#5b21b6',
+                  letterSpacing: '0.02em',
+                }}
+              >
                 {getInitials(employee.fullName)}
               </span>
             )}
@@ -83,7 +97,15 @@ export function StylistCard({ employee, salonName, salonSlug }: Props) {
 
           {/* Name + salon */}
           <div style={{ minWidth: 0 }}>
-            <p style={{ margin: 0, fontWeight: 700, fontSize: '0.95rem', color: '#1e1b2e', lineHeight: 1.3 }}>
+            <p
+              style={{
+                margin: 0,
+                fontWeight: 700,
+                fontSize: '0.95rem',
+                color: '#1e1b2e',
+                lineHeight: 1.3,
+              }}
+            >
               {employee.fullName}
             </p>
             <p style={{ margin: '0.2rem 0 0', fontSize: '0.78rem', color: '#7c6fa0' }}>
@@ -94,13 +116,23 @@ export function StylistCard({ employee, salonName, salonSlug }: Props) {
 
         {/* 3 sample images */}
         {sampleImgs.length > 0 && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2, margin: '0 0 0.75rem' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: 2,
+              margin: '0 0 0.75rem',
+            }}
+          >
             {sampleImgs.map((item, i) => (
               <button
                 key={item.id}
                 type="button"
                 aria-label={item.caption ?? `${t('portfolioTitle')} ${i + 1}`}
-                onClick={() => { setModalIndex(i); setModalOpen(true); }}
+                onClick={() => {
+                  setModalIndex(i);
+                  setModalOpen(true);
+                }}
                 style={{
                   padding: 0,
                   border: 'none',
@@ -130,7 +162,10 @@ export function StylistCard({ employee, salonName, salonSlug }: Props) {
           {employee.portfolio.length > 0 && (
             <button
               type="button"
-              onClick={() => { setModalIndex(0); setModalOpen(true); }}
+              onClick={() => {
+                setModalIndex(0);
+                setModalOpen(true);
+              }}
               style={{
                 flex: 1,
                 padding: '0.55rem 0',
@@ -148,10 +183,42 @@ export function StylistCard({ employee, salonName, salonSlug }: Props) {
               }}
             >
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                <rect x="1" y="1" width="5" height="5" rx="1.5" stroke="#7c3aed" strokeWidth="1.3" />
-                <rect x="8" y="1" width="5" height="5" rx="1.5" stroke="#7c3aed" strokeWidth="1.3" />
-                <rect x="1" y="8" width="5" height="5" rx="1.5" stroke="#7c3aed" strokeWidth="1.3" />
-                <rect x="8" y="8" width="5" height="5" rx="1.5" stroke="#7c3aed" strokeWidth="1.3" />
+                <rect
+                  x="1"
+                  y="1"
+                  width="5"
+                  height="5"
+                  rx="1.5"
+                  stroke="#7c3aed"
+                  strokeWidth="1.3"
+                />
+                <rect
+                  x="8"
+                  y="1"
+                  width="5"
+                  height="5"
+                  rx="1.5"
+                  stroke="#7c3aed"
+                  strokeWidth="1.3"
+                />
+                <rect
+                  x="1"
+                  y="8"
+                  width="5"
+                  height="5"
+                  rx="1.5"
+                  stroke="#7c3aed"
+                  strokeWidth="1.3"
+                />
+                <rect
+                  x="8"
+                  y="8"
+                  width="5"
+                  height="5"
+                  rx="1.5"
+                  stroke="#7c3aed"
+                  strokeWidth="1.3"
+                />
               </svg>
               {t('portfolioTitle')}
             </button>
@@ -175,7 +242,12 @@ export function StylistCard({ employee, salonName, salonSlug }: Props) {
           >
             <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
               <rect x="1" y="3" width="11" height="9" rx="1.5" stroke="white" strokeWidth="1.2" />
-              <path d="M4 3V2a2 2 0 0 1 4 0v1" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
+              <path
+                d="M4 3V2a2 2 0 0 1 4 0v1"
+                stroke="white"
+                strokeWidth="1.2"
+                strokeLinecap="round"
+              />
             </svg>
             {t('bookStylist')}
           </a>
@@ -214,27 +286,74 @@ export function StylistCard({ employee, salonName, salonSlug }: Props) {
             }}
           >
             {/* Modal header */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem 1.25rem', borderBottom: '1px solid #e4d4f4' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '1rem 1.25rem',
+                borderBottom: '1px solid #e4d4f4',
+              }}
+            >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                <div style={{ width: 36, height: 36, borderRadius: '50%', overflow: 'hidden', background: '#f3e8ff', border: '1.5px solid #e4d4f4', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {profileImg
-                    ? <img src={profileImg} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    : <span style={{ fontWeight: 700, fontSize: '0.8rem', color: '#5b21b6' }}>{getInitials(employee.fullName)}</span>
-                  }
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: '50%',
+                    overflow: 'hidden',
+                    background: '#f3e8ff',
+                    border: '1.5px solid #e4d4f4',
+                    flexShrink: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {profileImg ? (
+                    <img
+                      src={profileImg}
+                      alt=""
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                  ) : (
+                    <span style={{ fontWeight: 700, fontSize: '0.8rem', color: '#5b21b6' }}>
+                      {getInitials(employee.fullName)}
+                    </span>
+                  )}
                 </div>
                 <div>
-                  <p style={{ margin: 0, fontWeight: 700, fontSize: '0.9rem', color: '#1e1b2e' }}>{employee.fullName}</p>
-                  <p style={{ margin: 0, fontSize: '0.72rem', color: '#6b5d8a' }}>{t('portfolioTitle')}</p>
+                  <p style={{ margin: 0, fontWeight: 700, fontSize: '0.9rem', color: '#1e1b2e' }}>
+                    {employee.fullName}
+                  </p>
+                  <p style={{ margin: 0, fontSize: '0.72rem', color: '#6b5d8a' }}>
+                    {t('portfolioTitle')}
+                  </p>
                 </div>
               </div>
               <button
                 type="button"
                 aria-label={t('close')}
                 onClick={() => setModalOpen(false)}
-                style={{ background: '#f3e8ff', border: 'none', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                style={{
+                  background: '#f3e8ff',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: 32,
+                  height: 32,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
               >
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M2 2l10 10M12 2L2 12" stroke="#7c3aed" strokeWidth="1.8" strokeLinecap="round" />
+                  <path
+                    d="M2 2l10 10M12 2L2 12"
+                    stroke="#7c3aed"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                  />
                 </svg>
               </button>
             </div>
@@ -250,14 +369,28 @@ export function StylistCard({ employee, salonName, salonSlug }: Props) {
 
             {/* Caption */}
             {employee.portfolio[modalIndex]?.caption && (
-              <p style={{ margin: 0, padding: '0.75rem 1.25rem 0', fontSize: '0.82rem', color: '#6b5d8a' }}>
+              <p
+                style={{
+                  margin: 0,
+                  padding: '0.75rem 1.25rem 0',
+                  fontSize: '0.82rem',
+                  color: '#6b5d8a',
+                }}
+              >
                 {employee.portfolio[modalIndex].caption}
               </p>
             )}
 
             {/* Thumbnails */}
             {employee.portfolio.length > 1 && (
-              <div style={{ display: 'flex', gap: '0.4rem', padding: '0.75rem 1.25rem 1.25rem', overflowX: 'auto' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '0.4rem',
+                  padding: '0.75rem 1.25rem 1.25rem',
+                  overflowX: 'auto',
+                }}
+              >
                 {employee.portfolio.map((item, i) => (
                   <button
                     key={item.id}
@@ -277,7 +410,16 @@ export function StylistCard({ employee, salonName, salonSlug }: Props) {
                       background: 'none',
                     }}
                   >
-                    <img src={item.imageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                    <img
+                      src={item.imageUrl}
+                      alt=""
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        display: 'block',
+                      }}
+                    />
                   </button>
                 ))}
               </div>

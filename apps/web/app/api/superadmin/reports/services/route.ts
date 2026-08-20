@@ -14,7 +14,8 @@ export async function GET(req: NextRequest) {
   if (check instanceof NextResponse) return check;
 
   const { searchParams } = req.nextUrl;
-  const from = searchParams.get('from') ?? new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
+  const from =
+    searchParams.get('from') ?? new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
   const to = searchParams.get('to') ?? new Date().toISOString().slice(0, 10);
   const salonId = searchParams.get('salonId') ?? '';
   const start = new Date(`${from}T00:00:00.000Z`);
@@ -55,21 +56,31 @@ export async function GET(req: NextRequest) {
     }),
     prisma.reservation.groupBy({
       by: ['serviceId'],
-      where: { serviceId: { in: svcIds }, status: ReservationStatus.COMPLETED, startAt: { gte: start, lte: end } },
+      where: {
+        serviceId: { in: svcIds },
+        status: ReservationStatus.COMPLETED,
+        startAt: { gte: start, lte: end },
+      },
       _count: { id: true },
     }),
     prisma.reservation.groupBy({
       by: ['serviceId'],
       where: {
         serviceId: { in: svcIds },
-        status: { in: [ReservationStatus.CANCELLED_BY_CUSTOMER, ReservationStatus.CANCELLED_BY_SALON] },
+        status: {
+          in: [ReservationStatus.CANCELLED_BY_CUSTOMER, ReservationStatus.CANCELLED_BY_SALON],
+        },
         startAt: { gte: start, lte: end },
       },
       _count: { id: true },
     }),
     prisma.reservation.groupBy({
       by: ['serviceId', 'currency'],
-      where: { serviceId: { in: svcIds }, status: { in: REVENUE_STATUSES }, startAt: { gte: start, lte: end } },
+      where: {
+        serviceId: { in: svcIds },
+        status: { in: REVENUE_STATUSES },
+        startAt: { gte: start, lte: end },
+      },
       _sum: { priceAmount: true },
     }),
   ]);
@@ -87,7 +98,8 @@ export async function GET(req: NextRequest) {
 
   const rows = services.map((s) => {
     const total = (totalMap[s.id] as { _count: { id: number } } | undefined)?._count.id ?? 0;
-    const completed = (completedMap[s.id] as { _count: { id: number } } | undefined)?._count.id ?? 0;
+    const completed =
+      (completedMap[s.id] as { _count: { id: number } } | undefined)?._count.id ?? 0;
     const cancelled = (cancelMap[s.id] as { _count: { id: number } } | undefined)?._count.id ?? 0;
     const rev = revenueMap[s.id];
     return {

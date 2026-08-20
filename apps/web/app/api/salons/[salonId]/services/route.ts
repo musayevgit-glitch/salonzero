@@ -20,10 +20,7 @@ const SELECT = {
 
 const DETAIL_SELECT = { ...SELECT, updatedAt: true } as const;
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ salonId: string }> }
-) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ salonId: string }> }) {
   const { salonId } = await params;
   const ctx = await getSalonContext(req, salonId);
   if (isSalonContextError(ctx)) return ctx;
@@ -34,13 +31,21 @@ export async function GET(
   const parsed = listServicesQuerySchema.safeParse({
     page: searchParams.page ? Number(searchParams.page) : undefined,
     pageSize: searchParams.pageSize ? Number(searchParams.pageSize) : undefined,
-    isActive: searchParams.isActive === 'true' ? true : searchParams.isActive === 'false' ? false : undefined,
+    isActive:
+      searchParams.isActive === 'true'
+        ? true
+        : searchParams.isActive === 'false'
+          ? false
+          : undefined,
     categoryId: searchParams.categoryId || undefined,
     search: searchParams.search || undefined,
   });
 
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid query parameters.', errors: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid query parameters.', errors: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const query = parsed.data;
@@ -68,10 +73,7 @@ export async function GET(
   return NextResponse.json({ items, total, page, pageSize });
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ salonId: string }> }
-) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ salonId: string }> }) {
   const { salonId } = await params;
   const ctx = await getSalonContext(req, salonId, 'SALON_ADMIN');
   if (isSalonContextError(ctx)) return ctx;
@@ -85,7 +87,10 @@ export async function POST(
 
   const parsed = createServiceSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid input.', errors: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid input.', errors: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const input = parsed.data;

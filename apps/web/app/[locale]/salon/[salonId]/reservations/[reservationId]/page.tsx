@@ -185,7 +185,9 @@ export default function ReservationDetailPage() {
       <Breadcrumbs
         items={[
           { label: t('reservations.title'), href: `/salon/${salonId}/reservations` },
-          { label: reservation.customer?.email ?? reservation.guestName ?? t('reservations.title') },
+          {
+            label: reservation.customer?.email ?? reservation.guestName ?? t('reservations.title'),
+          },
         ]}
       />
 
@@ -285,8 +287,19 @@ export default function ReservationDetailPage() {
       {/* ── Status history timeline ── */}
       {reservation.statusHistory && reservation.statusHistory.length > 0 ? (
         <Card className="max-w-lg">
-          <h2 className="text-base font-semibold text-text-primary mb-4">{t('reservations.statusHistory')}</h2>
-          <ol style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 0 }}>
+          <h2 className="text-base font-semibold text-text-primary mb-4">
+            {t('reservations.statusHistory')}
+          </h2>
+          <ol
+            style={{
+              listStyle: 'none',
+              padding: 0,
+              margin: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 0,
+            }}
+          >
             {reservation.statusHistory.map((entry, i) => (
               <li
                 key={entry.id}
@@ -297,7 +310,15 @@ export default function ReservationDetailPage() {
                 }}
               >
                 {/* Timeline dot + line */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, width: '1rem' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    flexShrink: 0,
+                    width: '1rem',
+                  }}
+                >
                   <div
                     style={{
                       width: '0.5rem',
@@ -321,7 +342,13 @@ export default function ReservationDetailPage() {
                 </div>
                 {/* Content */}
                 <div style={{ flex: 1, paddingBottom: '0.25rem' }}>
-                  <p style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-primary)' }}>
+                  <p
+                    style={{
+                      fontSize: '0.875rem',
+                      fontWeight: 500,
+                      color: 'var(--color-text-primary)',
+                    }}
+                  >
                     {entry.fromStatus ? (
                       <span>
                         <span style={{ color: 'var(--color-text-secondary)' }}>
@@ -332,17 +359,32 @@ export default function ReservationDetailPage() {
                     ) : null}
                     {STATUS_LABEL[entry.toStatus] ?? entry.toStatus}
                   </p>
-                  <p style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', marginTop: '0.125rem' }}>
+                  <p
+                    style={{
+                      fontSize: '0.75rem',
+                      color: 'var(--color-text-secondary)',
+                      marginTop: '0.125rem',
+                    }}
+                  >
                     {new Date(entry.createdAt).toLocaleString(undefined, {
                       month: 'short',
                       day: 'numeric',
                       hour: '2-digit',
                       minute: '2-digit',
                     })}
-                    {entry.changedByUser ? ` · ${entry.changedByUser.fullName}` : ` · ${t('reservations.system')}`}
+                    {entry.changedByUser
+                      ? ` · ${entry.changedByUser.fullName}`
+                      : ` · ${t('reservations.system')}`}
                   </p>
                   {entry.reason ? (
-                    <p style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', marginTop: '0.125rem', fontStyle: 'italic' }}>
+                    <p
+                      style={{
+                        fontSize: '0.75rem',
+                        color: 'var(--color-text-secondary)',
+                        marginTop: '0.125rem',
+                        fontStyle: 'italic',
+                      }}
+                    >
                       "{entry.reason}"
                     </p>
                   ) : null}

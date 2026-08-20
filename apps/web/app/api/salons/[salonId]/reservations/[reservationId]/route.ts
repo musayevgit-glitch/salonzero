@@ -32,7 +32,7 @@ const STAFF_RESERVATION_SELECT = {
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ salonId: string; reservationId: string }> }
+  { params }: { params: Promise<{ salonId: string; reservationId: string }> },
 ) {
   const { salonId, reservationId } = await params;
   const ctx = await getSalonContext(req, salonId);

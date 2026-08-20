@@ -14,7 +14,8 @@ export async function GET(req: NextRequest) {
   if (check instanceof NextResponse) return check;
 
   const { searchParams } = req.nextUrl;
-  const from = searchParams.get('from') ?? new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
+  const from =
+    searchParams.get('from') ?? new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
   const to = searchParams.get('to') ?? new Date().toISOString().slice(0, 10);
   const start = new Date(`${from}T00:00:00.000Z`);
   const end = new Date(`${to}T23:59:59.999Z`);
@@ -63,7 +64,9 @@ export async function GET(req: NextRequest) {
       by: ['salonId'],
       where: {
         salonId: { in: salonIds },
-        status: { in: [ReservationStatus.CANCELLED_BY_CUSTOMER, ReservationStatus.CANCELLED_BY_SALON] },
+        status: {
+          in: [ReservationStatus.CANCELLED_BY_CUSTOMER, ReservationStatus.CANCELLED_BY_SALON],
+        },
         startAt: { gte: start, lte: end },
       },
       _count: { id: true },
@@ -82,7 +85,8 @@ export async function GET(req: NextRequest) {
   const resByS = Object.fromEntries(reservationGroups.map((r) => [r.salonId, r._count.id]));
   const cancelByS = Object.fromEntries(cancelGroups.map((r) => [r.salonId, r._count.id]));
   const noShowByS = Object.fromEntries(noShowGroups.map((r) => [r.salonId, r._count.id]));
-  const revenueByS: Record<string, { amount: number; currency: string; confirmedCount: number }> = {};
+  const revenueByS: Record<string, { amount: number; currency: string; confirmedCount: number }> =
+    {};
   for (const r of revenueGroups) {
     revenueByS[r.salonId] = {
       amount: r._sum.priceAmount ?? 0,

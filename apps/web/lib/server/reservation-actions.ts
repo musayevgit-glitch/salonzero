@@ -1,16 +1,10 @@
 export type StaffReservationAction =
-  | 'confirm'
-  | 'reject'
-  | 'reschedule'
-  | 'cancel'
-  | 'checkIn'
-  | 'complete'
-  | 'noShow';
+  'confirm' | 'reject' | 'reschedule' | 'cancel' | 'checkIn' | 'complete' | 'noShow';
 
 export function computeStaffAvailableActions(
   status: string,
   endAt: Date,
-  now: Date
+  now: Date,
 ): StaffReservationAction[] {
   switch (status) {
     case 'PENDING':

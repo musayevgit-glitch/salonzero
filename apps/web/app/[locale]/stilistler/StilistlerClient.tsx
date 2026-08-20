@@ -99,17 +99,44 @@ export function StilistlerClient({ stylists }: { stylists: Stylist[] }) {
     <div style={{ position: 'relative' }}>
       {/* Page heading */}
       <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '2.5rem', fontWeight: 700, color: '#1e1b2e', margin: '0 0 1rem 0' }}>
+        <h1
+          style={{
+            fontFamily: "'Playfair Display', Georgia, serif",
+            fontSize: '2.5rem',
+            fontWeight: 700,
+            color: '#1e1b2e',
+            margin: '0 0 1rem 0',
+          }}
+        >
           {t('title')}
         </h1>
         <p style={{ color: '#7c6fa0', fontSize: '1rem', margin: 0 }}>{t('pageSubtitle')}</p>
       </div>
 
       {/* Filter panel */}
-      <div style={{ background: 'white', borderRadius: 16, border: '1px solid #e4d4f4', padding: '1.5rem', marginBottom: '2.5rem' }}>
+      <div
+        style={{
+          background: 'white',
+          borderRadius: 16,
+          border: '1px solid #e4d4f4',
+          padding: '1.5rem',
+          marginBottom: '2.5rem',
+        }}
+      >
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'flex-end' }}>
-          <div style={{ flex: '1 1 220px', display: 'flex', flexDirection: 'column', gap: '0.4rem', minWidth: 0 }}>
-            <label htmlFor="stylist-search" style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e1b2e' }}>
+          <div
+            style={{
+              flex: '1 1 220px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.4rem',
+              minWidth: 0,
+            }}
+          >
+            <label
+              htmlFor="stylist-search"
+              style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e1b2e' }}
+            >
               {t('searchLabel')}
             </label>
             <input
@@ -120,7 +147,17 @@ export function StilistlerClient({ stylists }: { stylists: Stylist[] }) {
               placeholder={t('searchPlaceholder')}
               autoComplete="off"
               className="sz-filter-input"
-              style={{ height: 44, boxSizing: 'border-box', padding: '0 1rem', borderRadius: 10, border: '1px solid #e4d4f4', outline: 'none', fontSize: '0.9rem', fontFamily: 'inherit', width: '100%' }}
+              style={{
+                height: 44,
+                boxSizing: 'border-box',
+                padding: '0 1rem',
+                borderRadius: 10,
+                border: '1px solid #e4d4f4',
+                outline: 'none',
+                fontSize: '0.9rem',
+                fontFamily: 'inherit',
+                width: '100%',
+              }}
             />
           </div>
 
@@ -137,7 +174,10 @@ export function StilistlerClient({ stylists }: { stylists: Stylist[] }) {
               />
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                <label htmlFor="stylist-city" style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e1b2e' }}>
+                <label
+                  htmlFor="stylist-city"
+                  style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e1b2e' }}
+                >
                   {t('cityLabel')}
                 </label>
                 <input
@@ -147,7 +187,17 @@ export function StilistlerClient({ stylists }: { stylists: Stylist[] }) {
                   onChange={(e) => setCity(e.target.value)}
                   placeholder={t('cityPlaceholder')}
                   className="sz-filter-input"
-                  style={{ height: 44, boxSizing: 'border-box', padding: '0 1rem', borderRadius: 10, border: '1px solid #e4d4f4', outline: 'none', fontSize: '0.9rem', fontFamily: 'inherit', width: '100%' }}
+                  style={{
+                    height: 44,
+                    boxSizing: 'border-box',
+                    padding: '0 1rem',
+                    borderRadius: 10,
+                    border: '1px solid #e4d4f4',
+                    outline: 'none',
+                    fontSize: '0.9rem',
+                    fontFamily: 'inherit',
+                    width: '100%',
+                  }}
                 />
               </div>
             )}
@@ -174,7 +224,10 @@ export function StilistlerClient({ stylists }: { stylists: Stylist[] }) {
 
       {/* Results count */}
       {stylists.length > 0 && (
-        <p aria-live="polite" style={{ color: '#7c6fa0', fontSize: '0.9rem', margin: '0 0 1.5rem 0' }}>
+        <p
+          aria-live="polite"
+          style={{ color: '#7c6fa0', fontSize: '0.9rem', margin: '0 0 1.5rem 0' }}
+        >
           {t('foundCount', { count: filtered.length })}
         </p>
       )}
@@ -188,7 +241,15 @@ export function StilistlerClient({ stylists }: { stylists: Stylist[] }) {
           <p>{t('notFoundDesc')}</p>
         </div>
       ) : (
-        <div className="stylist-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
+        <div
+          className="stylist-grid"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+            gap: '1.5rem',
+            marginBottom: '3rem',
+          }}
+        >
           {filtered.map((s, idx) => {
             const hasPortfolio = s.portfolio && s.portfolio.length > 0;
             const coverImage = hasPortfolio
@@ -244,13 +305,46 @@ export function StilistlerClient({ stylists }: { stylists: Stylist[] }) {
                   </div>
                 </div>
 
-                <div style={{ padding: '2rem 1.25rem 1.25rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <div
+                  style={{
+                    padding: '2rem 1.25rem 1.25rem',
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.75rem',
+                  }}
+                >
                   <div>
-                    <h3 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.15rem', color: '#1e1b2e', margin: '0 0 0.2rem', fontWeight: 700 }}>
+                    <h3
+                      style={{
+                        fontFamily: "'Playfair Display', Georgia, serif",
+                        fontSize: '1.15rem',
+                        color: '#1e1b2e',
+                        margin: '0 0 0.2rem',
+                        fontWeight: 700,
+                      }}
+                    >
                       {s.fullName}
                     </h3>
-                    <p style={{ fontSize: '0.8rem', color: '#6b5d8a', margin: 0, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                    <p
+                      style={{
+                        fontSize: '0.8rem',
+                        color: '#6b5d8a',
+                        margin: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.25rem',
+                      }}
+                    >
+                      <svg
+                        width="11"
+                        height="11"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        aria-hidden="true"
+                      >
                         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                         <circle cx="12" cy="10" r="3" />
                       </svg>
@@ -260,30 +354,71 @@ export function StilistlerClient({ stylists }: { stylists: Stylist[] }) {
                   </div>
 
                   {s.bio && (
-                    <p style={{ fontSize: '0.85rem', color: '#6b5d8a', lineHeight: 1.5, margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    <p
+                      style={{
+                        fontSize: '0.85rem',
+                        color: '#6b5d8a',
+                        lineHeight: 1.5,
+                        margin: 0,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                      }}
+                    >
                       {s.bio}
                     </p>
                   )}
 
                   {hasPortfolio && (
-                    <p style={{ fontSize: '0.78rem', color: '#7c3aed', fontWeight: 500, margin: 0 }}>
+                    <p
+                      style={{ fontSize: '0.78rem', color: '#7c3aed', fontWeight: 500, margin: 0 }}
+                    >
                       {t('portfolioCount', { count: s.portfolio.length })}
                     </p>
                   )}
 
-                  <div style={{ marginTop: 'auto', paddingTop: '0.75rem', display: 'flex', gap: '0.5rem' }}>
+                  <div
+                    style={{
+                      marginTop: 'auto',
+                      paddingTop: '0.75rem',
+                      display: 'flex',
+                      gap: '0.5rem',
+                    }}
+                  >
                     <button
                       type="button"
                       onClick={() => setSelectedStylist(s)}
                       className="sz-outline-btn"
-                      style={{ flex: 1, padding: '0.6rem', background: 'white', border: '1.5px solid #e4d4f4', color: '#1e1b2e', borderRadius: 10, fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}
+                      style={{
+                        flex: 1,
+                        padding: '0.6rem',
+                        background: 'white',
+                        border: '1.5px solid #e4d4f4',
+                        color: '#1e1b2e',
+                        borderRadius: 10,
+                        fontSize: '0.85rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        fontFamily: 'inherit',
+                      }}
                     >
                       {t('viewPortfolio')}
                     </button>
                     <Link
                       href={bookingHref(s)}
                       className="sz-primary-btn"
-                      style={{ flex: 1, padding: '0.6rem 1rem', background: '#7c3aed', color: 'white', borderRadius: 10, fontSize: '0.85rem', fontWeight: 600, textDecoration: 'none', textAlign: 'center' }}
+                      style={{
+                        flex: 1,
+                        padding: '0.6rem 1rem',
+                        background: '#7c3aed',
+                        color: 'white',
+                        borderRadius: 10,
+                        fontSize: '0.85rem',
+                        fontWeight: 600,
+                        textDecoration: 'none',
+                        textAlign: 'center',
+                      }}
                     >
                       {t('bookStylist')}
                     </Link>
@@ -298,14 +433,35 @@ export function StilistlerClient({ stylists }: { stylists: Stylist[] }) {
       {/* Portfolio Modal */}
       {selectedStylist && (
         <div
-          style={{ position: 'fixed', inset: 0, background: 'rgba(30,27,46,0.6)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '1rem' }}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(30,27,46,0.6)',
+            backdropFilter: 'blur(6px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 100,
+            padding: '1rem',
+          }}
           onClick={() => setSelectedStylist(null)}
         >
           <div
             role="dialog"
             aria-modal="true"
             aria-label={`${selectedStylist.fullName} — ${t('portfolioTitle')}`}
-            style={{ background: 'white', width: '100%', maxWidth: 600, maxHeight: '90dvh', borderRadius: 20, boxShadow: '0 20px 50px rgba(30,27,46,0.25)', overflow: 'hidden', display: 'flex', flexDirection: 'column', position: 'relative' }}
+            style={{
+              background: 'white',
+              width: '100%',
+              maxWidth: 600,
+              maxHeight: '90dvh',
+              borderRadius: 20,
+              boxShadow: '0 20px 50px rgba(30,27,46,0.25)',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              position: 'relative',
+            }}
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -313,17 +469,58 @@ export function StilistlerClient({ stylists }: { stylists: Stylist[] }) {
               type="button"
               aria-label={t('close')}
               onClick={() => setSelectedStylist(null)}
-              style={{ position: 'absolute', top: 14, right: 14, width: 30, height: 30, borderRadius: '50%', background: 'rgba(30,27,46,0.7)', color: 'white', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10, fontSize: '0.85rem' }}
+              style={{
+                position: 'absolute',
+                top: 14,
+                right: 14,
+                width: 30,
+                height: 30,
+                borderRadius: '50%',
+                background: 'rgba(30,27,46,0.7)',
+                color: 'white',
+                border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                zIndex: 10,
+                fontSize: '0.85rem',
+              }}
             >
               ✕
             </button>
 
             <div style={{ padding: '1.75rem 2rem 1.25rem', borderBottom: '1px solid #e4d4f4' }}>
-              <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.6rem', color: '#1e1b2e', margin: '0 0 0.25rem', fontWeight: 700 }}>
+              <h2
+                style={{
+                  fontFamily: "'Playfair Display', Georgia, serif",
+                  fontSize: '1.6rem',
+                  color: '#1e1b2e',
+                  margin: '0 0 0.25rem',
+                  fontWeight: 700,
+                }}
+              >
                 {selectedStylist.fullName}
               </h2>
-              <p style={{ fontSize: '0.85rem', color: '#6b5d8a', margin: '0 0 1rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <p
+                style={{
+                  fontSize: '0.85rem',
+                  color: '#6b5d8a',
+                  margin: '0 0 1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.3rem',
+                }}
+              >
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  aria-hidden="true"
+                >
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                   <circle cx="12" cy="10" r="3" />
                 </svg>
@@ -331,27 +528,80 @@ export function StilistlerClient({ stylists }: { stylists: Stylist[] }) {
                 {selectedStylist.salon.city ? ` · ${selectedStylist.salon.city}` : ''}
               </p>
               {selectedStylist.bio && (
-                <div style={{ fontSize: '0.9rem', color: '#6b5d8a', lineHeight: 1.6, background: '#faf5ff', padding: '0.85rem 1rem', borderRadius: 10, border: '1px solid #e4d4f4' }}>
+                <div
+                  style={{
+                    fontSize: '0.9rem',
+                    color: '#6b5d8a',
+                    lineHeight: 1.6,
+                    background: '#faf5ff',
+                    padding: '0.85rem 1rem',
+                    borderRadius: 10,
+                    border: '1px solid #e4d4f4',
+                  }}
+                >
                   {selectedStylist.bio}
                 </div>
               )}
             </div>
 
             <div style={{ padding: '1.5rem 2rem 2rem', overflowY: 'auto', flex: 1 }}>
-              <h3 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.15rem', color: '#1e1b2e', margin: '0 0 1rem', fontWeight: 700 }}>
+              <h3
+                style={{
+                  fontFamily: "'Playfair Display', Georgia, serif",
+                  fontSize: '1.15rem',
+                  color: '#1e1b2e',
+                  margin: '0 0 1rem',
+                  fontWeight: 700,
+                }}
+              >
                 {t('portfolioTitle')}
               </h3>
               {!selectedStylist.portfolio || selectedStylist.portfolio.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '2.5rem 1rem', borderRadius: 12, border: '1px dashed #e4d4f4', color: '#7c6fa0' }}>
+                <div
+                  style={{
+                    textAlign: 'center',
+                    padding: '2.5rem 1rem',
+                    borderRadius: 12,
+                    border: '1px dashed #e4d4f4',
+                    color: '#7c6fa0',
+                  }}
+                >
                   {t('portfolioEmpty')}
                 </div>
               ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '0.75rem' }}>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+                    gap: '0.75rem',
+                  }}
+                >
                   {selectedStylist.portfolio.map((item) => (
-                    <div key={item.id} style={{ borderRadius: 10, border: '1px solid #e4d4f4', overflow: 'hidden' }}>
-                      <div style={{ aspectRatio: '1', backgroundImage: `url(${item.imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+                    <div
+                      key={item.id}
+                      style={{ borderRadius: 10, border: '1px solid #e4d4f4', overflow: 'hidden' }}
+                    >
+                      <div
+                        style={{
+                          aspectRatio: '1',
+                          backgroundImage: `url(${item.imageUrl})`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center',
+                        }}
+                      />
                       {item.caption && (
-                        <p style={{ fontSize: '0.75rem', color: '#6b5d8a', margin: 0, padding: '0.4rem 0.5rem', textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        <p
+                          style={{
+                            fontSize: '0.75rem',
+                            color: '#6b5d8a',
+                            margin: 0,
+                            padding: '0.4rem 0.5rem',
+                            textAlign: 'center',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                          }}
+                        >
                           {item.caption}
                         </p>
                       )}
@@ -361,19 +611,47 @@ export function StilistlerClient({ stylists }: { stylists: Stylist[] }) {
               )}
             </div>
 
-            <div style={{ padding: '1rem 2rem calc(1rem + env(safe-area-inset-bottom))', borderTop: '1px solid #e4d4f4', display: 'flex', gap: '0.75rem' }}>
+            <div
+              style={{
+                padding: '1rem 2rem calc(1rem + env(safe-area-inset-bottom))',
+                borderTop: '1px solid #e4d4f4',
+                display: 'flex',
+                gap: '0.75rem',
+              }}
+            >
               <button
                 type="button"
                 onClick={() => setSelectedStylist(null)}
                 className="sz-outline-btn"
-                style={{ flex: 1, padding: '0.8rem', background: 'white', border: '1.5px solid #e4d4f4', color: '#6b5d8a', borderRadius: 10, fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}
+                style={{
+                  flex: 1,
+                  padding: '0.8rem',
+                  background: 'white',
+                  border: '1.5px solid #e4d4f4',
+                  color: '#6b5d8a',
+                  borderRadius: 10,
+                  fontSize: '0.9rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                }}
               >
                 {tc('cancel')}
               </button>
               <Link
                 href={bookingHref(selectedStylist)}
                 className="sz-primary-btn"
-                style={{ flex: 2, padding: '0.8rem', background: '#7c3aed', color: 'white', borderRadius: 10, fontSize: '0.9rem', fontWeight: 600, textDecoration: 'none', textAlign: 'center' }}
+                style={{
+                  flex: 2,
+                  padding: '0.8rem',
+                  background: '#7c3aed',
+                  color: 'white',
+                  borderRadius: 10,
+                  fontSize: '0.9rem',
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                  textAlign: 'center',
+                }}
               >
                 {t('bookStylist')}
               </Link>

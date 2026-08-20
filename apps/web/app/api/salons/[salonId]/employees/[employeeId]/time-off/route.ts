@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../../../lib/server/prisma';
-import { getSalonContext, isSalonContextError } from '../../../../../../../lib/server/salon-context';
+import {
+  getSalonContext,
+  isSalonContextError,
+} from '../../../../../../../lib/server/salon-context';
 import { badRequest, notFound } from '../../../../../../../lib/server/auth';
 import { createTimeOffSchema } from '@salonomia/validation';
 import { recordAudit } from '../../../../../../../lib/server/audit';
@@ -9,7 +12,7 @@ const ACTIVE_RESERVATION_STATUSES = ['PENDING', 'CONFIRMED', 'CHECKED_IN'] as co
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ salonId: string; employeeId: string }> }
+  { params }: { params: Promise<{ salonId: string; employeeId: string }> },
 ) {
   const { salonId, employeeId } = await params;
   const ctx = await getSalonContext(req, salonId);
@@ -32,7 +35,7 @@ export async function GET(
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ salonId: string; employeeId: string }> }
+  { params }: { params: Promise<{ salonId: string; employeeId: string }> },
 ) {
   const { salonId, employeeId } = await params;
   const ctx = await getSalonContext(req, salonId, 'SALON_ADMIN');
@@ -53,7 +56,10 @@ export async function POST(
 
   const parsed = createTimeOffSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid input.', errors: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid input.', errors: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const input = parsed.data;
@@ -64,7 +70,10 @@ export async function POST(
     where: { employeeId, startAt: { lt: endAt }, endAt: { gt: startAt } },
   });
   if (overlappingTimeOff) {
-    return NextResponse.json({ message: 'This overlaps an existing time-off period for this employee.' }, { status: 409 });
+    return NextResponse.json(
+      { message: 'This overlaps an existing time-off period for this employee.' },
+      { status: 409 },
+    );
   }
 
   if (!input.acknowledgeConflicts) {
@@ -81,10 +90,14 @@ export async function POST(
     });
 
     if (conflicts.length > 0) {
-      return NextResponse.json({
-        message: 'This time-off period overlaps existing reservations. Review them and resubmit with acknowledgeConflicts to proceed.',
-        conflicts,
-      }, { status: 409 });
+      return NextResponse.json(
+        {
+          message:
+            'This time-off period overlaps existing reservations. Review them and resubmit with acknowledgeConflicts to proceed.',
+          conflicts,
+        },
+        { status: 409 },
+      );
     }
   }
 

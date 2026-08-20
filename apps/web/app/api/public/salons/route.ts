@@ -7,7 +7,10 @@ export async function GET(req: NextRequest) {
   const params = Object.fromEntries(req.nextUrl.searchParams.entries());
   const parsed = listPublicSalonsQuerySchema.safeParse(params);
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid query.', errors: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid query.', errors: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const query = parsed.data;
@@ -20,15 +23,26 @@ export async function GET(req: NextRequest) {
   const where: Prisma.SalonWhereInput = {
     status: 'ACTIVE',
     ...(query.search
-      ? { OR: [{ name: { contains: query.search, mode: 'insensitive' } }, { city: { contains: query.search, mode: 'insensitive' } }] }
+      ? {
+          OR: [
+            { name: { contains: query.search, mode: 'insensitive' } },
+            { city: { contains: query.search, mode: 'insensitive' } },
+          ],
+        }
       : {}),
     ...(query.city ? { city: { contains: query.city, mode: 'insensitive' } } : {}),
     ...(query.genderFocus ? { genderFocus: query.genderFocus } : {}),
-    ...(query.minPrice !== undefined || query.maxPrice !== undefined ? { services: { some: priceFilter } } : {}),
+    ...(query.minPrice !== undefined || query.maxPrice !== undefined
+      ? { services: { some: priceFilter } }
+      : {}),
   };
 
   const orderBy: Prisma.SalonOrderByWithRelationInput =
-    query.sort === 'name_desc' ? { name: 'desc' } : query.sort === 'newest' ? { createdAt: 'desc' } : { name: 'asc' };
+    query.sort === 'name_desc'
+      ? { name: 'desc' }
+      : query.sort === 'newest'
+        ? { createdAt: 'desc' }
+        : { name: 'asc' };
 
   const [rows, total] = await Promise.all([
     prisma.salon.findMany({
@@ -37,9 +51,20 @@ export async function GET(req: NextRequest) {
       skip: (query.page - 1) * query.pageSize,
       take: query.pageSize,
       select: {
-        id: true, slug: true, name: true, description: true, city: true, genderFocus: true,
-        logoUrl: true, coverUrl: true,
-        services: { where: { isActive: true }, orderBy: { priceAmount: 'asc' }, take: 1, select: { priceAmount: true, currency: true } },
+        id: true,
+        slug: true,
+        name: true,
+        description: true,
+        city: true,
+        genderFocus: true,
+        logoUrl: true,
+        coverUrl: true,
+        services: {
+          where: { isActive: true },
+          orderBy: { priceAmount: 'asc' },
+          take: 1,
+          select: { priceAmount: true, currency: true },
+        },
         // Real service categories power the card chips — the cards must never invent labels.
         serviceCategories: {
           where: { isActive: true },
@@ -68,10 +93,18 @@ export async function GET(req: NextRequest) {
     items: rows.map((r) => {
       const rating = ratingBySalon.get(r.id);
       return {
-        id: r.id, slug: r.slug, name: r.name, description: r.description, city: r.city, genderFocus: r.genderFocus,
-        logoUrl: r.logoUrl, coverUrl: r.coverUrl,
+        id: r.id,
+        slug: r.slug,
+        name: r.name,
+        description: r.description,
+        city: r.city,
+        genderFocus: r.genderFocus,
+        logoUrl: r.logoUrl,
+        coverUrl: r.coverUrl,
         categories: r.serviceCategories.map((c) => c.name),
-        startingPrice: r.services[0] ? { amount: r.services[0].priceAmount, currency: r.services[0].currency } : null,
+        startingPrice: r.services[0]
+          ? { amount: r.services[0].priceAmount, currency: r.services[0].currency }
+          : null,
         avgRating: rating?._avg.stars ?? null,
         ratingCount: rating?._count._all ?? 0,
       };

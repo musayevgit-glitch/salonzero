@@ -7,7 +7,7 @@ import { recordAudit } from '../../../../../../lib/server/audit';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ salonId: string; categoryId: string }> }
+  { params }: { params: Promise<{ salonId: string; categoryId: string }> },
 ) {
   const { salonId, categoryId } = await params;
   const ctx = await getSalonContext(req, salonId);
@@ -23,7 +23,7 @@ export async function GET(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ salonId: string; categoryId: string }> }
+  { params }: { params: Promise<{ salonId: string; categoryId: string }> },
 ) {
   const { salonId, categoryId } = await params;
   const ctx = await getSalonContext(req, salonId, 'SALON_ADMIN');
@@ -43,7 +43,10 @@ export async function PATCH(
 
   const parsed = updateServiceCategorySchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid input.', errors: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid input.', errors: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const input = parsed.data;
@@ -51,7 +54,10 @@ export async function PATCH(
   if (input.expectedUpdatedAt) {
     const expected = new Date(input.expectedUpdatedAt).getTime();
     if (expected !== current.updatedAt.getTime()) {
-      return NextResponse.json({ message: 'This category was changed by someone else. Reload and try again.' }, { status: 409 });
+      return NextResponse.json(
+        { message: 'This category was changed by someone else. Reload and try again.' },
+        { status: 409 },
+      );
     }
   }
 
@@ -61,7 +67,10 @@ export async function PATCH(
       select: { id: true },
     });
     if (existing) {
-      return NextResponse.json({ message: 'A category with this name already exists.' }, { status: 409 });
+      return NextResponse.json(
+        { message: 'A category with this name already exists.' },
+        { status: 409 },
+      );
     }
   }
 

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../../../lib/server/prisma';
-import { getSalonContext, isSalonContextError } from '../../../../../../../lib/server/salon-context';
+import {
+  getSalonContext,
+  isSalonContextError,
+} from '../../../../../../../lib/server/salon-context';
 import { notFound } from '../../../../../../../lib/server/auth';
 import { recordAudit } from '../../../../../../../lib/server/audit';
 import { handleImageUpload } from '../../../../../../../lib/server/upload';
@@ -20,11 +23,7 @@ export async function POST(
   });
   if (!employee) return notFound();
 
-  const result = await handleImageUpload(
-    req,
-    `employees/${employeeId}/profile`,
-    5 * 1024 * 1024,
-  );
+  const result = await handleImageUpload(req, `employees/${employeeId}/profile`, 5 * 1024 * 1024);
   if (result instanceof NextResponse) return result;
 
   await prisma.employeeProfile.update({

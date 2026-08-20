@@ -27,20 +27,29 @@ export async function handleImageUpload(
   }
 
   if (file.size > maxBytes) {
-    return NextResponse.json({ message: `File exceeds ${Math.round(maxBytes / 1024 / 1024)} MB limit.` }, { status: 413 });
+    return NextResponse.json(
+      { message: `File exceeds ${Math.round(maxBytes / 1024 / 1024)} MB limit.` },
+      { status: 413 },
+    );
   }
 
   const mimeType = file.type;
   const ext = ALLOWED_MIME[mimeType];
   if (!ext) {
-    return NextResponse.json({ message: 'Only JPEG, PNG, and WEBP images are accepted.' }, { status: 415 });
+    return NextResponse.json(
+      { message: 'Only JPEG, PNG, and WEBP images are accepted.' },
+      { status: 415 },
+    );
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
 
   const detectedMime = detectImageMime(buffer.subarray(0, 12));
   if (!detectedMime || detectedMime !== mimeType) {
-    return NextResponse.json({ message: 'File content does not match its declared type.' }, { status: 415 });
+    return NextResponse.json(
+      { message: 'File content does not match its declared type.' },
+      { status: 415 },
+    );
   }
 
   const objectKey = `${keyPrefix}/${randomUUID()}.${ext}`;

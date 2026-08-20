@@ -40,17 +40,22 @@ export default async function StilistlerPage() {
 
   try {
     // 1. Fetch all salons
-    const salonsRes = await fetchPublicApi<{ items: PublicSalonListItem[] }>('/public/salons?pageSize=50', { noStore: true });
+    const salonsRes = await fetchPublicApi<{ items: PublicSalonListItem[] }>(
+      '/public/salons?pageSize=50',
+      { noStore: true },
+    );
 
     // 2. Fetch details for each salon to get their employees
     const details = await Promise.all(
       (salonsRes?.items || []).map(async (s) => {
         try {
-          return await fetchPublicApi<PublicSalonDetail>(`/public/salons/${s.slug}`, { noStore: true });
+          return await fetchPublicApi<PublicSalonDetail>(`/public/salons/${s.slug}`, {
+            noStore: true,
+          });
         } catch {
           return null;
         }
-      })
+      }),
     );
 
     // 3. Extract and combine stylists

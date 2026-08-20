@@ -44,7 +44,10 @@ export async function GET(
   if (check instanceof NextResponse) return check;
 
   const { serviceId } = await params;
-  const service = await prisma.service.findUnique({ where: { id: serviceId }, select: DETAIL_SELECT });
+  const service = await prisma.service.findUnique({
+    where: { id: serviceId },
+    select: DETAIL_SELECT,
+  });
   if (!service) return notFound();
 
   return NextResponse.json({
@@ -64,15 +67,25 @@ export async function PATCH(
   if (check instanceof NextResponse) return check;
 
   const { serviceId } = await params;
-  const current = await prisma.service.findUnique({ where: { id: serviceId }, select: { id: true, salonId: true, name: true } });
+  const current = await prisma.service.findUnique({
+    where: { id: serviceId },
+    select: { id: true, salonId: true, name: true },
+  });
   if (!current) return notFound();
 
   let body: unknown;
-  try { body = await req.json(); } catch { return badRequest('Invalid JSON.'); }
+  try {
+    body = await req.json();
+  } catch {
+    return badRequest('Invalid JSON.');
+  }
 
   const parsed = patchSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid input.', errors: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid input.', errors: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const data: Record<string, unknown> = {};

@@ -26,12 +26,29 @@ export default async function NotificationsPage({
 
   return (
     <PageLayout activeNav="account" isAuthenticated={true}>
-      <div style={{ maxWidth: 640, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      <div
+        style={{
+          maxWidth: 640,
+          margin: '0 auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '1.25rem',
+        }}
+      >
         <header>
-          <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '2rem', color: '#1e1b2e', margin: 0 }}>
+          <h1
+            style={{
+              fontFamily: "'Playfair Display', Georgia, serif",
+              fontSize: '2rem',
+              color: '#1e1b2e',
+              margin: 0,
+            }}
+          >
             {t('title')}
           </h1>
-          <p style={{ margin: '0.4rem 0 0', color: '#6b5d8a', fontSize: '0.9rem' }}>{t('subtitle')}</p>
+          <p style={{ margin: '0.4rem 0 0', color: '#6b5d8a', fontSize: '0.9rem' }}>
+            {t('subtitle')}
+          </p>
         </header>
 
         <NotificationsClient />

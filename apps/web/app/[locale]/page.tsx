@@ -40,7 +40,5 @@ export default async function HomePage() {
   // `total` is the count of ACTIVE salons the public API actually returns — no mock figures.
   const salonCount = salonsResult?.total ?? 0;
 
-  return (
-    <LandingPage isAuthenticated={isAuthenticated} salons={salons} salonCount={salonCount} />
-  );
+  return <LandingPage isAuthenticated={isAuthenticated} salons={salons} salonCount={salonCount} />;
 }

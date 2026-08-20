@@ -24,10 +24,7 @@ const updateSettingsSchema = z.object({
   rescheduleWindowHours: z.number().int().min(0).max(168).optional(),
 });
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ salonId: string }> }
-) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ salonId: string }> }) {
   const { salonId } = await params;
   const ctx = await getSalonContext(req, salonId, 'salon.settings.view');
   if (isSalonContextError(ctx)) return ctx;
@@ -63,7 +60,7 @@ export async function GET(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ salonId: string }> }
+  { params }: { params: Promise<{ salonId: string }> },
 ) {
   const { salonId } = await params;
   const ctx = await getSalonContext(req, salonId, 'salon.settings.manage');
@@ -78,7 +75,10 @@ export async function PATCH(
 
   const parsed = updateSettingsSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid input.', errors: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid input.', errors: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const input = parsed.data;
@@ -105,8 +105,10 @@ export async function PATCH(
     if (input.maxAdvanceDays !== undefined) policyData.maxAdvanceDays = input.maxAdvanceDays;
     if (input.bookingSlotIntervalMinutes !== undefined)
       policyData.bookingSlotIntervalMinutes = input.bookingSlotIntervalMinutes;
-    if (input.cancellationWindowHours !== undefined) policyData.cancellationWindowHours = input.cancellationWindowHours;
-    if (input.rescheduleWindowHours !== undefined) policyData.rescheduleWindowHours = input.rescheduleWindowHours;
+    if (input.cancellationWindowHours !== undefined)
+      policyData.cancellationWindowHours = input.cancellationWindowHours;
+    if (input.rescheduleWindowHours !== undefined)
+      policyData.rescheduleWindowHours = input.rescheduleWindowHours;
 
     if (Object.keys(policyData).length > 0) {
       await tx.bookingPolicy.upsert({

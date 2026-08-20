@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../../../lib/server/prisma';
-import { getSalonContext, isSalonContextError } from '../../../../../../../lib/server/salon-context';
+import {
+  getSalonContext,
+  isSalonContextError,
+} from '../../../../../../../lib/server/salon-context';
 import { badRequest, notFound } from '../../../../../../../lib/server/auth';
 import { createWorkingScheduleSchema } from '@salonomia/validation';
 import { recordAudit } from '../../../../../../../lib/server/audit';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ salonId: string; employeeId: string }> }
+  { params }: { params: Promise<{ salonId: string; employeeId: string }> },
 ) {
   const { salonId, employeeId } = await params;
   const ctx = await getSalonContext(req, salonId);
@@ -29,7 +32,7 @@ export async function GET(
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ salonId: string; employeeId: string }> }
+  { params }: { params: Promise<{ salonId: string; employeeId: string }> },
 ) {
   const { salonId, employeeId } = await params;
   const ctx = await getSalonContext(req, salonId, 'SALON_ADMIN');
@@ -53,7 +56,10 @@ export async function POST(
 
   const parsed = createWorkingScheduleSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid input.', errors: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid input.', errors: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const input = parsed.data;
@@ -64,7 +70,7 @@ export async function POST(
   const overlaps = sameDay.some(
     (existing) =>
       input.startMinuteOfDay < existing.endMinuteOfDay &&
-      existing.startMinuteOfDay < input.endMinuteOfDay
+      existing.startMinuteOfDay < input.endMinuteOfDay,
   );
   if (overlaps) {
     return badRequest('This interval overlaps an existing working-schedule entry for that day.');

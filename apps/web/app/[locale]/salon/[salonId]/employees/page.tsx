@@ -167,7 +167,11 @@ export default function SalonEmployeesPage() {
                   <Link href={`/salon/${salonId}/employees/${row.id}`}>{row.fullName}</Link>
                 ),
               },
-              { key: 'bio', header: t('employees.bio'), render: (row: EmployeeListItem) => row.bio ?? '—' },
+              {
+                key: 'bio',
+                header: t('employees.bio'),
+                render: (row: EmployeeListItem) => row.bio ?? '—',
+              },
               {
                 key: 'isActive',
                 header: t('employees.status'),

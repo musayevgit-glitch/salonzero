@@ -142,7 +142,9 @@ export default function ServicesPage() {
       <PageHeader
         title={t('services.title')}
         description={`${total} ${t('services.title').toLocaleLowerCase()}`}
-        actions={<LinkButton href={`/salon/${salonId}/services/new`}>+ {t('services.new')}</LinkButton>}
+        actions={
+          <LinkButton href={`/salon/${salonId}/services/new`}>+ {t('services.new')}</LinkButton>
+        }
       />
 
       <FilterBar
@@ -188,7 +190,10 @@ export default function ServicesPage() {
       </FilterBar>
 
       {items.length === 0 ? (
-        <EmptyState title={t('services.noServicesFound')} description={t('services.noServicesFoundDesc')} />
+        <EmptyState
+          title={t('services.noServicesFound')}
+          description={t('services.noServicesFoundDesc')}
+        />
       ) : (
         <>
           <Table

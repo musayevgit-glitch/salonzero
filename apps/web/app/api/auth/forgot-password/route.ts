@@ -27,7 +27,12 @@ export async function POST(req: NextRequest) {
     await prisma.passwordResetToken.create({
       data: { userId: user.id, tokenHash, expiresAt: new Date(Date.now() + PASSWORD_RESET_TTL_MS) },
     });
-    await recordAudit({ actorUserId: user.id, action: 'user.password_reset_requested', targetType: 'User', targetId: user.id });
+    await recordAudit({
+      actorUserId: user.id,
+      action: 'user.password_reset_requested',
+      targetType: 'User',
+      targetId: user.id,
+    });
   }
 
   return NextResponse.json({ ok: true });

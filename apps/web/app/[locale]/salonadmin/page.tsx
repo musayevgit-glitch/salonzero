@@ -39,7 +39,15 @@ export default function SalonadminPortalPage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#faf5ff' }}>
+      <div
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#faf5ff',
+        }}
+      >
         <p style={{ color: '#7c6fa0', fontSize: '0.95rem' }}>Yönləndirilir...</p>
       </div>
     );
@@ -48,7 +56,15 @@ export default function SalonadminPortalPage() {
   return (
     <PageLayout activeNav="account" isAuthenticated={true}>
       <div style={{ maxWidth: 500, margin: '4rem auto', textAlign: 'center', padding: '0 1rem' }}>
-        <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '2rem', fontWeight: 700, color: '#1e1b2e', marginBottom: '0.5rem' }}>
+        <h1
+          style={{
+            fontFamily: "'Playfair Display', Georgia, serif",
+            fontSize: '2rem',
+            fontWeight: 700,
+            color: '#1e1b2e',
+            marginBottom: '0.5rem',
+          }}
+        >
           Salon İdarəetmə Paneli
         </h1>
         <p style={{ color: '#7c6fa0', fontSize: '0.95rem', marginBottom: '2.5rem' }}>

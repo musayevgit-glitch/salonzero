@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../../../lib/server/prisma';
-import { getSalonContext, isSalonContextError } from '../../../../../../../lib/server/salon-context';
+import {
+  getSalonContext,
+  isSalonContextError,
+} from '../../../../../../../lib/server/salon-context';
 import { badRequest, notFound } from '../../../../../../../lib/server/auth';
 import { rescheduleReservationSchema } from '@salonomia/validation';
 import { isEmployeeSlotAvailable } from '../../../../../../../lib/server/availability';
@@ -8,8 +11,18 @@ import { recordAudit } from '../../../../../../../lib/server/audit';
 import { clearReservationReminders } from '../../../../../../../lib/server/notifications';
 
 const RESERVATION_SELECT = {
-  id: true, salonId: true, serviceId: true, employeeId: true, status: true,
-  startAt: true, endAt: true, priceAmount: true, currency: true, customerNote: true, guestName: true, createdAt: true,
+  id: true,
+  salonId: true,
+  serviceId: true,
+  employeeId: true,
+  status: true,
+  startAt: true,
+  endAt: true,
+  priceAmount: true,
+  currency: true,
+  customerNote: true,
+  guestName: true,
+  createdAt: true,
 } as const;
 
 const ACTIVE_STATUSES = ['PENDING', 'CONFIRMED', 'CHECKED_IN'] as const;
@@ -17,7 +30,7 @@ const SLOT_UNAVAILABLE_MESSAGE = 'This time is no longer available. Please choos
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ salonId: string; reservationId: string }> }
+  { params }: { params: Promise<{ salonId: string; reservationId: string }> },
 ) {
   const { salonId, reservationId } = await params;
   const ctx = await getSalonContext(req, salonId);
@@ -25,12 +38,22 @@ export async function POST(
 
   const current = await prisma.reservation.findFirst({
     where: { id: reservationId, salonId },
-    select: { id: true, status: true, salonId: true, employeeId: true, serviceId: true, startAt: true },
+    select: {
+      id: true,
+      status: true,
+      salonId: true,
+      employeeId: true,
+      serviceId: true,
+      startAt: true,
+    },
   });
   if (!current) return notFound();
 
   if (current.status !== 'PENDING' && current.status !== 'CONFIRMED') {
-    return NextResponse.json({ message: 'This reservation can no longer be rescheduled.' }, { status: 409 });
+    return NextResponse.json(
+      { message: 'This reservation can no longer be rescheduled.' },
+      { status: 409 },
+    );
   }
 
   let body: unknown;
@@ -42,7 +65,10 @@ export async function POST(
 
   const parsed = rescheduleReservationSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid input.', errors: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid input.', errors: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const input = parsed.data;
@@ -94,7 +120,11 @@ export async function POST(
     prisma.workingSchedule.findMany({ where: { employeeId: targetEmployeeId } }),
     prisma.break.findMany({ where: { employeeId: targetEmployeeId } }),
     prisma.timeOff.findMany({
-      where: { employeeId: targetEmployeeId, startAt: { lt: windowEnd }, endAt: { gt: windowStart } },
+      where: {
+        employeeId: targetEmployeeId,
+        startAt: { lt: windowEnd },
+        endAt: { gt: windowStart },
+      },
     }),
     prisma.reservation.findMany({
       where: {
@@ -193,6 +223,9 @@ export async function POST(
 
     return NextResponse.json(updated);
   } catch (err) {
-    return NextResponse.json({ message: 'This reservation was already updated by someone else.' }, { status: 409 });
+    return NextResponse.json(
+      { message: 'This reservation was already updated by someone else.' },
+      { status: 409 },
+    );
   }
 }

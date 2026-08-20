@@ -15,14 +15,28 @@ interface BookingPageShellProps {
 function ArrowLeftIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-      <path d="M11.5 14L6 9l5.5-5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M11.5 14L6 9l5.5-5"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
 
-export function BookingPageShell({ title, backHref, backLabel, children, footer }: BookingPageShellProps) {
+export function BookingPageShell({
+  title,
+  backHref,
+  backLabel,
+  children,
+  footer,
+}: BookingPageShellProps) {
   return (
-    <div style={{ minHeight: '100dvh', background: 'white', display: 'flex', flexDirection: 'column' }}>
+    <div
+      style={{ minHeight: '100dvh', background: 'white', display: 'flex', flexDirection: 'column' }}
+    >
       {/* Header */}
       <header
         style={{
@@ -116,9 +130,7 @@ export function BookingPageShell({ title, backHref, backLabel, children, footer 
             zIndex: 30,
           }}
         >
-          <div style={{ maxWidth: 600, margin: '0 auto' }}>
-            {footer}
-          </div>
+          <div style={{ maxWidth: 600, margin: '0 auto' }}>{footer}</div>
         </div>
       ) : null}
     </div>

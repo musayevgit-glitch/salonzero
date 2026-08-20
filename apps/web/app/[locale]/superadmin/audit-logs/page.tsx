@@ -119,7 +119,14 @@ export default function SuperadminAuditLogsPage() {
               description="Filtr parametrlərini dəyişib yenidən yoxlayın."
             />
           ) : (
-            <div className="data-table" style={{ overflowX: 'auto', opacity: loading ? 0.6 : 1, transition: 'opacity 0.15s ease' }}>
+            <div
+              className="data-table"
+              style={{
+                overflowX: 'auto',
+                opacity: loading ? 0.6 : 1,
+                transition: 'opacity 0.15s ease',
+              }}
+            >
               <table>
                 <thead>
                   <tr>
@@ -128,7 +135,9 @@ export default function SuperadminAuditLogsPage() {
                     <th scope="col">Obyekt</th>
                     <th scope="col">İcraçı</th>
                     <th scope="col">Salon</th>
-                    <th scope="col"><span className="sr-only">Metadata</span></th>
+                    <th scope="col">
+                      <span className="sr-only">Metadata</span>
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -145,7 +154,9 @@ export default function SuperadminAuditLogsPage() {
                           }).format(new Date(log.createdAt))}
                         </td>
                         <td>
-                          <code className="admin-chip admin-chip-accent font-mono">{log.action}</code>
+                          <code className="admin-chip admin-chip-accent font-mono">
+                            {log.action}
+                          </code>
                         </td>
                         <td className="text-text-secondary">
                           {log.targetType}{' '}

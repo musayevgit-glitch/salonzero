@@ -36,8 +36,20 @@ function StarIcon() {
 
 function LocationPinIcon() {
   return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" />
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      aria-hidden="true"
+    >
+      <path
+        d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
       <circle cx="12" cy="10" r="3" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
@@ -101,11 +113,34 @@ export function SalonCard({
           src={imageUrl}
           alt=""
           aria-hidden="true"
-          style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            position: 'absolute',
+            inset: 0,
+          }}
         />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0) 100%)' }} />
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'linear-gradient(to top, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0) 100%)',
+          }}
+        />
 
-        <div style={{ position: 'absolute', bottom: 12, left: 12, right: 12, display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 12,
+            left: 12,
+            right: 12,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            minWidth: 0,
+          }}
+        >
           {logoUrl ? (
             <img
               src={logoUrl}
@@ -159,9 +194,33 @@ export function SalonCard({
         </div>
       </div>
 
-      <div style={{ padding: '1.1rem 1.25rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '0.7rem', flex: 1 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#6b5d8a', fontSize: '0.85rem', minWidth: 0 }}>
+      <div
+        style={{
+          padding: '1.1rem 1.25rem 1.25rem',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.7rem',
+          flex: 1,
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '0.5rem',
+          }}
+        >
+          <span
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              color: '#6b5d8a',
+              fontSize: '0.85rem',
+              minWidth: 0,
+            }}
+          >
             <span style={{ color: '#7c3aed', display: 'flex', flexShrink: 0 }}>
               <LocationPinIcon />
             </span>
@@ -185,7 +244,16 @@ export function SalonCard({
         </div>
 
         {hasRating ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.8rem', color: '#4a3f6b', fontWeight: 600 }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.3rem',
+              fontSize: '0.8rem',
+              color: '#4a3f6b',
+              fontWeight: 600,
+            }}
+          >
             <StarIcon />
             <span>
               {tr('ratingWithCount', {

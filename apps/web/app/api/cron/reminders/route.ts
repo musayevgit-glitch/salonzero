@@ -39,10 +39,16 @@ const MARKS = [
  * request locale. Azerbaijani is the platform's default locale; the inbox prefers its own
  * translation for a known `type` and only falls back to this text.
  */
-function reminderCopy(reminderType: '1h' | '15m', salonName: string | null): { title: string; message: string } {
+function reminderCopy(
+  reminderType: '1h' | '15m',
+  salonName: string | null,
+): { title: string; message: string } {
   const where = salonName ? ` — ${salonName}` : '';
   return reminderType === '1h'
-    ? { title: `Rezervasiyanıza 1 saat qalıb${where}`, message: 'Görüşünüzə 1 saat qalıb. Vaxtında gəlməyi unutmayın.' }
+    ? {
+        title: `Rezervasiyanıza 1 saat qalıb${where}`,
+        message: 'Görüşünüzə 1 saat qalıb. Vaxtında gəlməyi unutmayın.',
+      }
     : { title: `Rezervasiyanıza 15 dəqiqə qalıb${where}`, message: 'Görüşünüzə 15 dəqiqə qalıb.' };
 }
 
@@ -108,7 +114,10 @@ export async function GET(req: NextRequest) {
       rows.push({
         userId: reservation.customerId,
         type: mark.type,
-        payload: buildNotificationPayload(reservation, { ...copy, reminderType: mark.reminderType }),
+        payload: buildNotificationPayload(reservation, {
+          ...copy,
+          reminderType: mark.reminderType,
+        }),
         scheduledAt: reservation.startAt,
       });
       // Guards against a second pass within the same invocation.

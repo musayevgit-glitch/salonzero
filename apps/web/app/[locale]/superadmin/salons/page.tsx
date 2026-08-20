@@ -65,18 +65,36 @@ export default function SuperadminSalonsPage() {
     if (status) query.set('status', status);
 
     apiFetch<SalonListResponse>(`/salons?${query.toString()}`)
-      .then((data) => { if (!cancelled) setState({ kind: 'ready', data }); })
+      .then((data) => {
+        if (!cancelled) setState({ kind: 'ready', data });
+      })
       .catch((err: unknown) => {
         if (cancelled) return;
-        if (err instanceof ApiError && err.status === 401) { router.replace('/login?returnTo=/superadmin/salons'); return; }
-        if (err instanceof ApiError && err.status === 404) { setState({ kind: 'permission-denied' }); return; }
-        setState({ kind: 'error', message: err instanceof ApiError ? err.message : 'Something went wrong.' });
+        if (err instanceof ApiError && err.status === 401) {
+          router.replace('/login?returnTo=/superadmin/salons');
+          return;
+        }
+        if (err instanceof ApiError && err.status === 404) {
+          setState({ kind: 'permission-denied' });
+          return;
+        }
+        setState({
+          kind: 'error',
+          message: err instanceof ApiError ? err.message : 'Something went wrong.',
+        });
       });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [debouncedSearch, status, page, router]);
 
-  if (state.kind === 'permission-denied') return <main className="dashboard-page"><PermissionDeniedState /></main>;
+  if (state.kind === 'permission-denied')
+    return (
+      <main className="dashboard-page">
+        <PermissionDeniedState />
+      </main>
+    );
 
   const data = state.kind === 'ready' ? state.data : null;
   const items = data?.items ?? [];
@@ -89,9 +107,7 @@ export default function SuperadminSalonsPage() {
       <PageHeader
         title="Salonlar"
         description={data ? `Cəmi ${total} salon` : 'Yüklənir…'}
-        actions={
-          <LinkButton href="/superadmin/salons/new">+ Yeni salon</LinkButton>
-        }
+        actions={<LinkButton href="/superadmin/salons/new">+ Yeni salon</LinkButton>}
       />
 
       <FilterBar
@@ -99,14 +115,20 @@ export default function SuperadminSalonsPage() {
           <Input
             placeholder="Ad və ya slug ilə axtar"
             value={search}
-            onChange={(e) => { setPage(1); setSearch(e.target.value); }}
+            onChange={(e) => {
+              setPage(1);
+              setSearch(e.target.value);
+            }}
             aria-label="Salon axtar"
           />
         }
       >
         <Select
           value={status}
-          onChange={(e) => { setPage(1); setStatus(e.target.value as typeof status); }}
+          onChange={(e) => {
+            setPage(1);
+            setStatus(e.target.value as typeof status);
+          }}
           aria-label="Status filtri"
           className="sm:max-w-44"
         >
@@ -131,16 +153,21 @@ export default function SuperadminSalonsPage() {
                 header: 'Salon',
                 render: (row: SalonListItem) => (
                   <div className="flex items-center gap-3">
-                    {row.logoUrl
-                      ? <img src={row.logoUrl} alt={row.name} className="h-8 w-8 rounded-full object-cover border border-border flex-shrink-0" />
-                      : (
-                        <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-surface border border-border text-xs font-bold text-text-secondary">
-                          {row.name.slice(0, 1)}
-                        </span>
-                      )
-                    }
+                    {row.logoUrl ? (
+                      <img
+                        src={row.logoUrl}
+                        alt={row.name}
+                        className="h-8 w-8 rounded-full object-cover border border-border flex-shrink-0"
+                      />
+                    ) : (
+                      <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-surface border border-border text-xs font-bold text-text-secondary">
+                        {row.name.slice(0, 1)}
+                      </span>
+                    )}
                     <div className="min-w-0">
-                      <Link href={`/superadmin/salons/${row.id}`} className="font-medium">{row.name}</Link>
+                      <Link href={`/superadmin/salons/${row.id}`} className="font-medium">
+                        {row.name}
+                      </Link>
                       <p className="text-xs text-text-secondary truncate">{row.slug}</p>
                     </div>
                   </div>
@@ -166,10 +193,23 @@ export default function SuperadminSalonsPage() {
                 header: '',
                 render: (row: SalonListItem) => (
                   <DropdownMenu
-                    trigger={<button className="rounded p-1 text-text-secondary hover:bg-surface" aria-label="Əməliyyatlar">⋮</button>}
+                    trigger={
+                      <button
+                        className="rounded p-1 text-text-secondary hover:bg-surface"
+                        aria-label="Əməliyyatlar"
+                      >
+                        ⋮
+                      </button>
+                    }
                     items={[
-                      { label: 'Detallar', onSelect: () => router.push(`/superadmin/salons/${row.id}`) },
-                      { label: 'Redaktə et', onSelect: () => router.push(`/superadmin/salons/${row.id}/edit`) },
+                      {
+                        label: 'Detallar',
+                        onSelect: () => router.push(`/superadmin/salons/${row.id}`),
+                      },
+                      {
+                        label: 'Redaktə et',
+                        onSelect: () => router.push(`/superadmin/salons/${row.id}/edit`),
+                      },
                     ]}
                   />
                 ),
@@ -184,7 +224,9 @@ export default function SuperadminSalonsPage() {
             renderPrimary={(row) => <Link href={`/superadmin/salons/${row.id}`}>{row.name}</Link>}
             renderSecondary={(row) => row.city ?? row.timezone}
             renderAction={(row) => (
-              <Badge tone={row.status === 'ACTIVE' ? 'success' : 'neutral'}>{row.status === 'ACTIVE' ? 'Aktiv' : 'Deaktiv'}</Badge>
+              <Badge tone={row.status === 'ACTIVE' ? 'success' : 'neutral'}>
+                {row.status === 'ACTIVE' ? 'Aktiv' : 'Deaktiv'}
+              </Badge>
             )}
           />
         </>

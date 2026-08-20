@@ -70,7 +70,10 @@ export function ServiceAssignment({
       setSelectedServiceId('');
       load();
     } catch (err) {
-      showToast(err instanceof ApiError ? err.message : t('employees.serviceAssignment.assignError'), 'danger');
+      showToast(
+        err instanceof ApiError ? err.message : t('employees.serviceAssignment.assignError'),
+        'danger',
+      );
     } finally {
       setAssigning(false);
     }
@@ -85,7 +88,10 @@ export function ServiceAssignment({
       setUnassignTarget(null);
       load();
     } catch (err) {
-      showToast(err instanceof ApiError ? err.message : t('employees.serviceAssignment.unassignError'), 'danger');
+      showToast(
+        err instanceof ApiError ? err.message : t('employees.serviceAssignment.unassignError'),
+        'danger',
+      );
     } finally {
       setUnassigning(false);
     }
@@ -99,7 +105,10 @@ export function ServiceAssignment({
     return (
       <p className="text-sm text-text-secondary">
         {t('services.noServices')}{' '}
-        <a href={`/salon/${salonId}/services/new`} className="text-accent underline-offset-4 hover:underline">
+        <a
+          href={`/salon/${salonId}/services/new`}
+          className="text-accent underline-offset-4 hover:underline"
+        >
           + {t('services.new')}
         </a>
       </p>
@@ -133,7 +142,9 @@ export function ServiceAssignment({
       </div>
 
       {!assigned || assigned.length === 0 ? (
-        <p className="text-sm text-text-secondary">{t('employees.serviceAssignment.noServicesAssigned')}</p>
+        <p className="text-sm text-text-secondary">
+          {t('employees.serviceAssignment.noServicesAssigned')}
+        </p>
       ) : (
         <ul className="flex flex-col gap-2">
           {assigned.map((service) => (

@@ -7,7 +7,8 @@ export async function GET(req: NextRequest) {
   if (check instanceof NextResponse) return check;
 
   const { searchParams } = req.nextUrl;
-  const from = searchParams.get('from') ?? new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
+  const from =
+    searchParams.get('from') ?? new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
   const to = searchParams.get('to') ?? new Date().toISOString().slice(0, 10);
   const salonId = searchParams.get('salonId') ?? '';
   const start = new Date(`${from}T00:00:00.000Z`);

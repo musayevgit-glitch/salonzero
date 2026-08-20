@@ -7,7 +7,7 @@ import { apiFetchFormData, ApiError } from '../../../../lib/api-client';
 interface Props {
   label: string;
   currentUrl: string | null;
-  uploadPath: string;   // POST multipart/form-data with 'file' field
+  uploadPath: string; // POST multipart/form-data with 'file' field
   aspectRatio?: string;
   rounded?: boolean;
   onUpdated?: (url: string) => void;
@@ -49,10 +49,11 @@ export function PhotoUploadWidget({
     try {
       const form = new FormData();
       form.append('file', file);
-      const result = await apiFetchFormData<{ coverUrl?: string; logoUrl?: string; photoUrl?: string }>(
-        uploadPath,
-        { method: 'POST', body: form },
-      );
+      const result = await apiFetchFormData<{
+        coverUrl?: string;
+        logoUrl?: string;
+        photoUrl?: string;
+      }>(uploadPath, { method: 'POST', body: form });
       const url = result.coverUrl ?? result.logoUrl ?? result.photoUrl ?? '';
       setPreviewUrl(url);
       onUpdated?.(url);

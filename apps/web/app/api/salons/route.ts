@@ -33,7 +33,10 @@ export async function GET(req: NextRequest) {
   });
 
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid query parameters.', errors: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid query parameters.', errors: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const query = parsed.data;
@@ -88,7 +91,10 @@ export async function POST(req: NextRequest) {
 
   const parsed = createSalonSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid input.', errors: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid input.', errors: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const input = parsed.data;
@@ -103,7 +109,10 @@ export async function POST(req: NextRequest) {
 
   const existing = await prisma.salon.findUnique({ where: { slug } });
   if (existing) {
-    return NextResponse.json({ message: 'A salon with this slug already exists.' }, { status: 409 });
+    return NextResponse.json(
+      { message: 'A salon with this slug already exists.' },
+      { status: 409 },
+    );
   }
 
   const { token, tokenHash } = generateToken();
@@ -158,5 +167,8 @@ export async function POST(req: NextRequest) {
     metadata: { adminEmailInvited: input.adminEmail },
   });
 
-  return NextResponse.json({ salon, invitation: { email: input.adminEmail, expiresAt, token } }, { status: 201 });
+  return NextResponse.json(
+    { salon, invitation: { email: input.adminEmail, expiresAt, token } },
+    { status: 201 },
+  );
 }

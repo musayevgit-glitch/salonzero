@@ -5,10 +5,7 @@ import { badRequest, notFound } from '../../../../../lib/server/auth';
 import { createServiceCategorySchema } from '@salonomia/validation';
 import { recordAudit } from '../../../../../lib/server/audit';
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ salonId: string }> }
-) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ salonId: string }> }) {
   const { salonId } = await params;
   const ctx = await getSalonContext(req, salonId);
   if (isSalonContextError(ctx)) return ctx;
@@ -21,10 +18,7 @@ export async function GET(
   return NextResponse.json(categories);
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ salonId: string }> }
-) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ salonId: string }> }) {
   const { salonId } = await params;
   const ctx = await getSalonContext(req, salonId, 'SALON_ADMIN');
   if (isSalonContextError(ctx)) return ctx;
@@ -38,7 +32,10 @@ export async function POST(
 
   const parsed = createServiceCategorySchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid input.', errors: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid input.', errors: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const input = parsed.data;
@@ -49,7 +46,10 @@ export async function POST(
     select: { id: true },
   });
   if (existing) {
-    return NextResponse.json({ message: 'A category with this name already exists.' }, { status: 409 });
+    return NextResponse.json(
+      { message: 'A category with this name already exists.' },
+      { status: 409 },
+    );
   }
 
   const last = await prisma.serviceCategory.findFirst({

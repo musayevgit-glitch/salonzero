@@ -80,8 +80,19 @@ export function SalonFilters({ initial }: { initial: SalonFilterValues }) {
       }}
     >
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'flex-end' }}>
-        <div style={{ flex: '1 1 220px', display: 'flex', flexDirection: 'column', gap: '0.4rem', minWidth: 0 }}>
-          <label htmlFor="salon-search" style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e1b2e' }}>
+        <div
+          style={{
+            flex: '1 1 220px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.4rem',
+            minWidth: 0,
+          }}
+        >
+          <label
+            htmlFor="salon-search"
+            style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e1b2e' }}
+          >
             {t('searchPlaceholder')}
           </label>
           <input
@@ -92,12 +103,33 @@ export function SalonFilters({ initial }: { initial: SalonFilterValues }) {
             placeholder={t('searchPlaceholder')}
             autoComplete="off"
             className="sz-filter-input"
-            style={{ height: 44, boxSizing: 'border-box', padding: '0 1rem', borderRadius: 10, border: '1px solid #e4d4f4', outline: 'none', fontSize: '0.9rem', fontFamily: 'inherit', width: '100%' }}
+            style={{
+              height: 44,
+              boxSizing: 'border-box',
+              padding: '0 1rem',
+              borderRadius: 10,
+              border: '1px solid #e4d4f4',
+              outline: 'none',
+              fontSize: '0.9rem',
+              fontFamily: 'inherit',
+              width: '100%',
+            }}
           />
         </div>
 
-        <div style={{ flex: '1 1 160px', display: 'flex', flexDirection: 'column', gap: '0.4rem', minWidth: 0 }}>
-          <label htmlFor="salon-city" style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e1b2e' }}>
+        <div
+          style={{
+            flex: '1 1 160px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.4rem',
+            minWidth: 0,
+          }}
+        >
+          <label
+            htmlFor="salon-city"
+            style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e1b2e' }}
+          >
             {t('filterCity')}
           </label>
           <input
@@ -108,7 +140,17 @@ export function SalonFilters({ initial }: { initial: SalonFilterValues }) {
             placeholder={t('filterCity')}
             autoComplete="off"
             className="sz-filter-input"
-            style={{ height: 44, boxSizing: 'border-box', padding: '0 1rem', borderRadius: 10, border: '1px solid #e4d4f4', outline: 'none', fontSize: '0.9rem', fontFamily: 'inherit', width: '100%' }}
+            style={{
+              height: 44,
+              boxSizing: 'border-box',
+              padding: '0 1rem',
+              borderRadius: 10,
+              border: '1px solid #e4d4f4',
+              outline: 'none',
+              fontSize: '0.9rem',
+              fontFamily: 'inherit',
+              width: '100%',
+            }}
           />
         </div>
 
@@ -159,7 +201,10 @@ export function SalonFilters({ initial }: { initial: SalonFilterValues }) {
         </div>
       </div>
 
-      <p aria-live="polite" style={{ marginTop: '0.75rem', fontSize: '0.78rem', color: '#7c6fa0', minHeight: '1rem' }}>
+      <p
+        aria-live="polite"
+        style={{ marginTop: '0.75rem', fontSize: '0.78rem', color: '#7c6fa0', minHeight: '1rem' }}
+      >
         {isPending ? tc('searching') : ''}
       </p>
 

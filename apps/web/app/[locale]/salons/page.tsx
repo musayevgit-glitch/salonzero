@@ -96,7 +96,15 @@ export default async function SalonsPage({
   return (
     <PageLayout isAuthenticated={isAuthenticated} activeNav="salons">
       <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '2.5rem', fontWeight: 700, color: '#1e1b2e', margin: '0 0 1rem 0' }}>
+        <h1
+          style={{
+            fontFamily: "'Playfair Display', Georgia, serif",
+            fontSize: '2.5rem',
+            fontWeight: 700,
+            color: '#1e1b2e',
+            margin: '0 0 1rem 0',
+          }}
+        >
           {t('title')}
         </h1>
       </div>
@@ -135,7 +143,13 @@ export default async function SalonsPage({
           {(currentPage > 1 || currentPage < totalPages) && (
             <nav
               aria-label={t('title')}
-              style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginTop: '3rem' }}
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: '1rem',
+                marginTop: '3rem',
+              }}
             >
               {currentPage > 1 && (
                 <Link href={pageHref(currentPage - 1)} className="sz-page-link">

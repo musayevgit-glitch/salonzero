@@ -144,7 +144,13 @@ export function SalonAuditLogsClient() {
                       key: 'time',
                       header: t('auditLog.time'),
                       render: (log) => (
-                        <span style={{ fontSize: '0.8125rem', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>
+                        <span
+                          style={{
+                            fontSize: '0.8125rem',
+                            color: 'var(--color-text-secondary)',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
                           {formatDatetime(log.createdAt)}
                         </span>
                       ),
@@ -172,7 +178,9 @@ export function SalonAuditLogsClient() {
                       key: 'target',
                       header: t('auditLog.target'),
                       render: (log) => (
-                        <span style={{ fontSize: '0.8125rem', color: 'var(--color-text-secondary)' }}>
+                        <span
+                          style={{ fontSize: '0.8125rem', color: 'var(--color-text-secondary)' }}
+                        >
                           {log.targetType}{' '}
                           <code style={{ fontSize: '0.6875rem', fontFamily: 'monospace' }}>
                             {log.targetId.slice(0, 8)}…
@@ -189,7 +197,9 @@ export function SalonAuditLogsClient() {
                             {log.actor.fullName}
                           </span>
                         ) : (
-                          <span style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)' }}>
+                          <span
+                            style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)' }}
+                          >
                             {t('auditLog.system')}
                           </span>
                         ),

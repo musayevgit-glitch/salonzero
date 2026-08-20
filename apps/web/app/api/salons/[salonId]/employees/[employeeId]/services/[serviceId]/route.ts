@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../../../../lib/server/prisma';
-import { getSalonContext, isSalonContextError } from '../../../../../../../../lib/server/salon-context';
+import {
+  getSalonContext,
+  isSalonContextError,
+} from '../../../../../../../../lib/server/salon-context';
 import { notFound } from '../../../../../../../../lib/server/auth';
 
 export async function DELETE(

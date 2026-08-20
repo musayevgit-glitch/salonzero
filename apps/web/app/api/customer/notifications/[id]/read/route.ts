@@ -10,10 +10,7 @@ import { prisma } from '../../../../../../lib/server/prisma';
  * 404 — the same response as an id that does not exist, which keeps the endpoint from confirming
  * whether someone else's notification id is real.
  */
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const payload = verifyRequest(req);
   if (!payload) return unauthorized();
 
@@ -31,7 +28,8 @@ export async function POST(
       where: { id, userId: payload.sub },
       select: { id: true, readAt: true },
     });
-    if (!existing) return NextResponse.json({ message: 'Notification not found.' }, { status: 404 });
+    if (!existing)
+      return NextResponse.json({ message: 'Notification not found.' }, { status: 404 });
     return NextResponse.json({ id: existing.id, readAt: existing.readAt });
   }
 

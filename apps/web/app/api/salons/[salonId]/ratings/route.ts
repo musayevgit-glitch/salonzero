@@ -10,10 +10,7 @@ import { getSalonContext, isSalonContextError } from '../../../../../lib/server/
  * and every query below is filtered by that same `salonId` — the id in the URL is never used to
  * fetch rows that are then checked afterwards.
  */
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ salonId: string }> },
-) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ salonId: string }> }) {
   const { salonId } = await params;
   const ctx = await getSalonContext(req, salonId);
   if (isSalonContextError(ctx)) return ctx;
@@ -21,7 +18,10 @@ export async function GET(
   const raw = Object.fromEntries(req.nextUrl.searchParams.entries());
   const parsed = listSalonRatingsQuerySchema.safeParse(raw);
   if (!parsed.success) {
-    return NextResponse.json({ message: 'Invalid query.', errors: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { message: 'Invalid query.', errors: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
   const { page, pageSize, stars } = parsed.data;
