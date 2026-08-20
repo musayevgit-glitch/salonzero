@@ -10,6 +10,8 @@ interface BookingPageShellProps {
   children: ReactNode;
   /** Sticky CTA button at bottom */
   footer?: ReactNode;
+  /** 1-based booking step: 1 = service, 2 = stylist, 3 = datetime, 4 = confirm. */
+  step?: number;
 }
 
 function ArrowLeftIcon() {
@@ -32,108 +34,110 @@ export function BookingPageShell({
   backLabel,
   children,
   footer,
+  step,
 }: BookingPageShellProps) {
   return (
-    <div
-      style={{ minHeight: '100dvh', background: 'white', display: 'flex', flexDirection: 'column' }}
-    >
-      {/* Header */}
-      <header
-        style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 40,
-          background: 'rgba(255,255,255,0.96)',
-          backdropFilter: 'blur(12px)',
-          borderBottom: '1px solid #e4d4f4',
-        }}
-      >
+    <main className="sz-book-main" data-has-footer={footer ? 'true' : 'false'}>
+      <div style={{ maxWidth: 600, margin: '0 auto', width: '100%' }}>
+        {/* Back link + title */}
         <div
           style={{
-            maxWidth: 600,
-            margin: '0 auto',
-            padding: '0 1rem',
-            height: 56,
             display: 'flex',
             alignItems: 'center',
-            gap: '0.75rem',
+            gap: '0.6rem',
+            marginBottom: '1.25rem',
           }}
         >
-          <a
-            href={backHref}
-            aria-label={backLabel ?? 'Geri'}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 36,
-              height: 36,
-              borderRadius: 10,
-              background: 'white',
-              border: '1px solid #e4d4f4',
-              color: '#1e1b2e',
-              flexShrink: 0,
-              textDecoration: 'none',
-              boxShadow: '0 1px 3px rgba(30,27,46,0.06)',
-            }}
-          >
+          <a href={backHref} aria-label={backLabel ?? 'Geri'} className="sz-book-back">
             <ArrowLeftIcon />
+            <span>{backLabel ?? 'Geri'}</span>
           </a>
-          <h1
-            style={{
-              flex: 1,
-              textAlign: 'center',
-              fontSize: '0.95rem',
-              fontWeight: 700,
-              color: '#1e1b2e',
-              letterSpacing: '0.01em',
-            }}
-          >
-            {title}
-          </h1>
-          {/* Spacer to center title */}
-          <span style={{ width: 36, flexShrink: 0 }} aria-hidden="true" />
         </div>
-      </header>
 
-      {/* Stepper */}
-      <div style={{ maxWidth: 600, margin: '0 auto', width: '100%', padding: '0 1.25rem' }}>
-        <BookingStepper />
+        <h1
+          style={{
+            fontFamily: "'Playfair Display', Georgia, serif",
+            fontSize: '1.5rem',
+            fontWeight: 700,
+            color: '#1e1b2e',
+            textAlign: 'center',
+            marginBottom: '1.25rem',
+          }}
+        >
+          {title}
+        </h1>
+
+        <BookingStepper step={step} />
+
+        {/* Content card */}
+        <div className="sz-book-card">{children}</div>
       </div>
 
-      {/* Content */}
-      <main
-        style={{
-          flex: 1,
-          maxWidth: 600,
-          margin: '0 auto',
-          width: '100%',
-          padding: '0 1rem',
-          paddingBottom: footer ? '100px' : '2rem',
-        }}
-      >
-        {children}
-      </main>
-
-      {/* Sticky footer CTA */}
       {footer ? (
-        <div
-          style={{
-            position: 'fixed',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            background: 'rgba(255,255,255,0.97)',
-            backdropFilter: 'blur(12px)',
-            borderTop: '1px solid #e4d4f4',
-            padding: '0.875rem 1rem calc(0.875rem + env(safe-area-inset-bottom))',
-            zIndex: 30,
-          }}
-        >
+        <div className="sz-book-footer">
           <div style={{ maxWidth: 600, margin: '0 auto' }}>{footer}</div>
         </div>
       ) : null}
-    </div>
+
+      <style>{`
+        .sz-book-main {
+          flex: 1;
+          width: 100%;
+          padding: 1.5rem 1rem 2rem;
+        }
+        .sz-book-back {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.35rem;
+          padding: 0.4rem 0.75rem 0.4rem 0.5rem;
+          border-radius: 10px;
+          background: transparent;
+          border: 1px solid transparent;
+          color: #6b5d8a;
+          font-size: 0.82rem;
+          font-weight: 600;
+          text-decoration: none;
+          transition: background 0.15s, color 0.15s;
+        }
+        .sz-book-back:hover { background: #f3e8ff; color: #5b21b6; }
+        .sz-book-back:focus-visible { outline: 2px solid #7c3aed; outline-offset: 2px; }
+        .sz-book-card {
+          background: #ffffff;
+          border: 1px solid #efe6f7;
+          border-radius: 16px;
+          padding: 1.25rem;
+          box-shadow: 0 4px 20px rgba(30,27,46,0.06);
+        }
+        /* Mobile: the CTA is pinned so it stays reachable with one thumb. */
+        .sz-book-main[data-has-footer='true'] { padding-bottom: 108px; }
+        .sz-book-footer {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          background: rgba(255,255,255,0.97);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border-top: 1px solid #e4d4f4;
+          padding: 0.875rem 1rem calc(0.875rem + env(safe-area-inset-bottom));
+          z-index: 30;
+        }
+        @media (min-width: 768px) {
+          .sz-book-main { padding: 2.5rem 1.25rem 3rem; }
+          .sz-book-main[data-has-footer='true'] { padding-bottom: 3rem; }
+          .sz-book-card { padding: 2rem; }
+          /* Desktop: the CTA rejoins normal flow directly under the card. */
+          .sz-book-footer {
+            position: static;
+            background: transparent;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            border-top: none;
+            padding: 1.25rem 0 0;
+          }
+        }
+      `}</style>
+    </main>
   );
 }
 

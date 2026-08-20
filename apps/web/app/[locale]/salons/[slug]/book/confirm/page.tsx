@@ -107,6 +107,7 @@ export default function ConfirmStep() {
 
   return (
     <BookingPageShell
+      step={4}
       title={t('confirm')}
       backHref={`/salons/${salon.slug}/book/summary`}
       backLabel={t('backToSummary')}

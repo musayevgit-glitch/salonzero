@@ -131,6 +131,7 @@ export default function SummaryStep() {
 
   return (
     <BookingPageShell
+      step={4}
       title={t('summary')}
       backHref={`/salons/${salon.slug}/book/datetime`}
       backLabel={t('backToDateTime')}
