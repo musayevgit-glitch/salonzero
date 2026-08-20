@@ -37,11 +37,19 @@ export async function GET(
   });
   if (!salon) return NextResponse.json({ message: 'Salon not found.' }, { status: 404 });
 
-  const uncategorizedServices = await prisma.service.findMany({
-    where: { salonId: salon.id, isActive: true, categoryId: null },
-    orderBy: { name: 'asc' },
-    select: PUBLIC_SERVICE_SELECT,
-  });
+  const [uncategorizedServices, ratingAggregate] = await Promise.all([
+    prisma.service.findMany({
+      where: { salonId: salon.id, isActive: true, categoryId: null },
+      orderBy: { name: 'asc' },
+      select: PUBLIC_SERVICE_SELECT,
+    }),
+    // Aggregate only — individual ratings are not part of the public salon payload.
+    prisma.rating.aggregate({
+      where: { salonId: salon.id },
+      _avg: { stars: true },
+      _count: { _all: true },
+    }),
+  ]);
 
   const openingHoursByWeekday = new Map<number, { startMinuteOfDay: number; endMinuteOfDay: number }>();
   for (const emp of salon.employees) {
@@ -61,6 +69,9 @@ export async function GET(
     addressLine: salon.addressLine, city: salon.city, phone: salon.phone, email: salon.email,
     genderFocus: salon.genderFocus,
     logoUrl: salon.logoUrl, coverUrl: salon.coverUrl,
+    // null (not 0) when nobody has rated yet, so the UI can say so instead of showing a zero score.
+    avgRating: ratingAggregate._avg.stars,
+    ratingCount: ratingAggregate._count._all,
     bookingPolicySummary: salon.bookingPolicy,
     approximateOpeningHours: [...openingHoursByWeekday.entries()]
       .map(([weekday, h]) => ({ weekday, ...h }))

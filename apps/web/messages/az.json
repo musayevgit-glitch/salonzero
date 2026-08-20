@@ -26,7 +26,8 @@
     "login": "Giriş",
     "logout": "Çıxış et",
     "profile": "Profil",
-    "language": "Dil"
+    "language": "Dil",
+    "notifications": "Bildirişlər"
   },
   "home": {
     "heroTitle": "Gözəlliyiniz bizimlə daha asandır",
@@ -312,7 +313,8 @@
       "settings": "Parametrlər",
       "auditLog": "Audit Jurnalı",
       "logout": "Çıxış et",
-      "loggingOut": "Çıxış edilir..."
+      "loggingOut": "Çıxış edilir...",
+      "ratings": "Reytinqlər"
     },
     "dashboard": {
       "title": "İcmal",
@@ -600,10 +602,70 @@
       "deactivate": "Deaktiv et",
       "status": "Status",
       "errorGeneric": "Xəta baş verdi"
+    },
+    "ratings": {
+      "title": "Reytinqlər",
+      "subtitle": "Müştərilərin salonunuza verdiyi qiymətlər.",
+      "filterAll": "Hamısı",
+      "filterStars": "{count} ulduz",
+      "colStars": "Qiymət",
+      "colCustomer": "Müştəri",
+      "colService": "Xidmət",
+      "colStylist": "Stilist",
+      "colVisitDate": "Ziyarət tarixi",
+      "colRatedAt": "Qiymət tarixi",
+      "colComment": "Rəy",
+      "empty": "Reytinq yoxdur",
+      "emptyDesc": "Tamamlanmış rezervasiyalardan sonra müştəri rəyləri burada görünəcək.",
+      "loadError": "Reytinqlər yüklənmədi",
+      "noComment": "—",
+      "average": "Orta qiymət",
+      "total": "Ümumi rəy"
     }
   },
   "superadmin": {
     "logout": "Çıxış et",
     "loggingOut": "Çıxış edilir..."
+  },
+  "notifications": {
+    "title": "Bildirişlər",
+    "subtitle": "Rezervasiyalarınızla bağlı xatırlatmalar və yeniliklər.",
+    "bellLabel": "Bildirişlər",
+    "unreadBadge": "{count} oxunmamış bildiriş",
+    "markAllRead": "Hamısını oxunmuş kimi işarələ",
+    "markingAll": "İşarələnir…",
+    "unread": "Oxunmamış",
+    "empty": "Bildiriş yoxdur",
+    "emptyDesc": "Yeni bildirişləriniz burada görünəcək.",
+    "loadError": "Bildirişlər yüklənmədi",
+    "retry": "Yenidən cəhd edin",
+    "viewReservation": "Rezervasiyaya bax",
+    "pageInfo": "{page} / {pages}",
+    "previous": "Əvvəlki",
+    "next": "Növbəti",
+    "typeReminder1h": "Rezervasiyanıza 1 saat qalıb",
+    "typeReminder15m": "Rezervasiyanıza 15 dəqiqə qalıb",
+    "typeCancelled": "Rezervasiya ləğv edildi",
+    "typeConfirmed": "Rezervasiya təsdiqləndi",
+    "typePending": "Rezervasiya gözləyir",
+    "typeGeneric": "Bildiriş",
+    "markRead": "Oxunmuş kimi işarələ"
+  },
+  "ratings": {
+    "promptTitle": "Ziyarətinizi qiymətləndirin",
+    "promptSubtitle": "{service} — {salon}",
+    "starsLabel": "{count} ulduz",
+    "chooseStars": "Qiymət seçin",
+    "commentLabel": "Rəy (istəyə bağlı)",
+    "commentPlaceholder": "Təcrübəniz barədə yazın…",
+    "submit": "Göndər",
+    "submitting": "Göndərilir…",
+    "dismiss": "Bağla",
+    "later": "Sonra",
+    "thanks": "Rəyiniz üçün təşəkkür edirik!",
+    "submitError": "Qiymət göndərilmədi. Yenidən cəhd edin.",
+    "starsRequired": "Zəhmət olmasa ulduz seçin.",
+    "noRating": "Reytinq yoxdur",
+    "ratingWithCount": "{rating} ({count})"
   }
 }

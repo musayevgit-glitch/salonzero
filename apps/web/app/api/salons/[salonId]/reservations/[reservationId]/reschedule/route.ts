@@ -5,6 +5,7 @@ import { badRequest, notFound } from '../../../../../../../lib/server/auth';
 import { rescheduleReservationSchema } from '@salonomia/validation';
 import { isEmployeeSlotAvailable } from '../../../../../../../lib/server/availability';
 import { recordAudit } from '../../../../../../../lib/server/audit';
+import { clearReservationReminders } from '../../../../../../../lib/server/notifications';
 
 const RESERVATION_SELECT = {
   id: true, salonId: true, serviceId: true, employeeId: true, status: true,
@@ -168,6 +169,11 @@ export async function POST(
           reason: `Rescheduled from ${current.startAt.toISOString()} to ${newStartAt.toISOString()}`,
         },
       });
+
+      // Reminders were scheduled against the old start time. Drop the unread ones inside the same
+      // transaction as the move so the customer can never be reminded for a time that no longer
+      // exists; the cron re-creates them for the new time on its next pass.
+      await clearReservationReminders(tx, current.id);
 
       return result;
     });

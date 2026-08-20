@@ -4,6 +4,7 @@ import { getSalonContext, isSalonContextError } from '../../../../../../../lib/s
 import { notFound, badRequest } from '../../../../../../../lib/server/auth';
 import { reservationReasonSchema } from '@salonomia/validation';
 import { recordAudit } from '../../../../../../../lib/server/audit';
+import { clearReservationReminders } from '../../../../../../../lib/server/notifications';
 
 const RESERVATION_SELECT = {
   id: true, salonId: true, serviceId: true, employeeId: true, status: true,
@@ -64,6 +65,9 @@ export async function POST(
           reason,
         },
       });
+
+      // A rejected request must not keep reminding the customer to show up.
+      await clearReservationReminders(tx, current.id);
 
       return result;
     });

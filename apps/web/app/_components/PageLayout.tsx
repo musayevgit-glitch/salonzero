@@ -4,6 +4,7 @@
 import type { ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import { useParams } from 'next/navigation';
+import { NotificationBell } from './NotificationBell';
 
 export type NavKey = 'home' | 'salons' | 'stilistler' | 'reservations' | 'account';
 
@@ -82,6 +83,8 @@ export function PageHeader({
             {t('stylists')}
           </a>
           <LanguageSwitcher />
+          {/* The bell polls an authenticated endpoint, so it only exists for signed-in visitors. */}
+          {isAuthenticated ? <NotificationBell /> : null}
           <a
             href={isAuthenticated ? '/account' : '/login'}
             className="btn-lg btn-lg-primary sz-nav-cta"

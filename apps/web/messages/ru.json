@@ -26,7 +26,8 @@
     "login": "Войти",
     "logout": "Выйти",
     "profile": "Профиль",
-    "language": "Язык"
+    "language": "Язык",
+    "notifications": "Уведомления"
   },
   "home": {
     "heroTitle": "Ваша красота стала проще",
@@ -312,7 +313,8 @@
       "settings": "Настройки",
       "auditLog": "Журнал аудита",
       "logout": "Выйти",
-      "loggingOut": "Выход..."
+      "loggingOut": "Выход...",
+      "ratings": "Оценки"
     },
     "dashboard": {
       "title": "Обзор",
@@ -600,10 +602,70 @@
       "deactivate": "Деактивировать",
       "status": "Статус",
       "errorGeneric": "Произошла ошибка"
+    },
+    "ratings": {
+      "title": "Оценки",
+      "subtitle": "Оценки, которые клиенты поставили вашему салону.",
+      "filterAll": "Все",
+      "filterStars": "{count} звёзд",
+      "colStars": "Оценка",
+      "colCustomer": "Клиент",
+      "colService": "Услуга",
+      "colStylist": "Стилист",
+      "colVisitDate": "Дата визита",
+      "colRatedAt": "Дата оценки",
+      "colComment": "Отзыв",
+      "empty": "Оценок пока нет",
+      "emptyDesc": "Отзывы клиентов появятся здесь после завершённых записей.",
+      "loadError": "Не удалось загрузить оценки",
+      "noComment": "—",
+      "average": "Средняя оценка",
+      "total": "Всего отзывов"
     }
   },
   "superadmin": {
     "logout": "Выйти",
     "loggingOut": "Выход..."
+  },
+  "notifications": {
+    "title": "Уведомления",
+    "subtitle": "Напоминания и новости о ваших записях.",
+    "bellLabel": "Уведомления",
+    "unreadBadge": "Непрочитанных уведомлений: {count}",
+    "markAllRead": "Отметить все как прочитанные",
+    "markingAll": "Отмечаем…",
+    "unread": "Непрочитано",
+    "empty": "Уведомлений нет",
+    "emptyDesc": "Новые уведомления появятся здесь.",
+    "loadError": "Не удалось загрузить уведомления",
+    "retry": "Повторить",
+    "viewReservation": "Открыть запись",
+    "pageInfo": "{page} из {pages}",
+    "previous": "Назад",
+    "next": "Вперёд",
+    "typeReminder1h": "До записи остался 1 час",
+    "typeReminder15m": "До записи осталось 15 минут",
+    "typeCancelled": "Запись отменена",
+    "typeConfirmed": "Запись подтверждена",
+    "typePending": "Запись ожидает подтверждения",
+    "typeGeneric": "Уведомление",
+    "markRead": "Отметить прочитанным"
+  },
+  "ratings": {
+    "promptTitle": "Оцените ваш визит",
+    "promptSubtitle": "{service} — {salon}",
+    "starsLabel": "Звёзд: {count}",
+    "chooseStars": "Выберите оценку",
+    "commentLabel": "Отзыв (необязательно)",
+    "commentPlaceholder": "Расскажите о своих впечатлениях…",
+    "submit": "Отправить",
+    "submitting": "Отправляем…",
+    "dismiss": "Закрыть",
+    "later": "Позже",
+    "thanks": "Спасибо за отзыв!",
+    "submitError": "Не удалось отправить оценку. Попробуйте ещё раз.",
+    "starsRequired": "Пожалуйста, выберите оценку.",
+    "noRating": "Нет оценок",
+    "ratingWithCount": "{rating} ({count})"
   }
 }

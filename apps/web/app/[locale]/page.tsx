@@ -23,6 +23,9 @@ interface SalonListItem {
   coverUrl: string | null;
   categories: string[];
   startingPrice: { amount: number; currency: string } | null;
+  /** Real mean of customer ratings; null until this salon has been rated at least once. */
+  avgRating: number | null;
+  ratingCount: number;
 }
 
 export default async function HomePage() {

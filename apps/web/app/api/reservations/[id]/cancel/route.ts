@@ -3,6 +3,12 @@ import { reservationReasonSchema } from '@salonomia/validation';
 import { verifyRequest, unauthorized } from '../../../../../lib/server/auth';
 import { prisma } from '../../../../../lib/server/prisma';
 import { recordAudit } from '../../../../../lib/server/audit';
+import {
+  NOTIFICATION_TYPE,
+  RESERVATION_NOTIFICATION_SELECT,
+  buildNotificationPayload,
+  clearReservationReminders,
+} from '../../../../../lib/server/notifications';
 
 const CANCELLABLE = ['PENDING', 'CONFIRMED'] as const;
 
@@ -28,7 +34,7 @@ export async function POST(
 
   const reservation = await prisma.reservation.findFirst({
     where: { id, customerId: authPayload.sub },
-    select: { id: true, status: true, startAt: true, salonId: true, customerId: true },
+    select: { ...RESERVATION_NOTIFICATION_SELECT, status: true, salonId: true },
   });
   if (!reservation) return NextResponse.json({ message: 'Reservation not found.' }, { status: 404 });
 
@@ -52,7 +58,18 @@ export async function POST(
     await tx.reservationStatusHistory.create({
       data: { reservationId: id, fromStatus: reservation.status as never, toStatus: 'CANCELLED_BY_CUSTOMER', changedByUserId: authPayload.sub, reason: parsed.data.reason ?? null },
     });
-    await tx.notification.create({ data: { userId: authPayload.sub, type: 'reservation.cancelled_by_customer', payload: { reservationId: id } } });
+    // A cancelled appointment must stop reminding the customer to attend it.
+    await clearReservationReminders(tx, id);
+    await tx.notification.create({
+      data: {
+        userId: authPayload.sub,
+        type: NOTIFICATION_TYPE.CANCELLED,
+        payload: buildNotificationPayload(reservation, {
+          title: 'Rezervasiya ləğv edildi',
+          message: 'Rezervasiyanız ləğv edildi.',
+        }),
+      },
+    });
     return r;
   });
 

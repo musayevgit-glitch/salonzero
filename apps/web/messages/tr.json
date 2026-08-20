@@ -26,7 +26,8 @@
     "login": "Giriş",
     "logout": "Çıkış",
     "profile": "Profil",
-    "language": "Dil"
+    "language": "Dil",
+    "notifications": "Bildirimler"
   },
   "home": {
     "heroTitle": "Güzelliğiniz bizimle daha kolay",
@@ -312,7 +313,8 @@
       "settings": "Ayarlar",
       "auditLog": "Denetim Günlüğü",
       "logout": "Çıkış yap",
-      "loggingOut": "Çıkış yapılıyor..."
+      "loggingOut": "Çıkış yapılıyor...",
+      "ratings": "Değerlendirmeler"
     },
     "dashboard": {
       "title": "Genel Bakış",
@@ -600,10 +602,70 @@
       "deactivate": "Pasifleştir",
       "status": "Durum",
       "errorGeneric": "Bir hata oluştu"
+    },
+    "ratings": {
+      "title": "Değerlendirmeler",
+      "subtitle": "Müşterilerin salonunuza verdiği puanlar.",
+      "filterAll": "Tümü",
+      "filterStars": "{count} yıldız",
+      "colStars": "Puan",
+      "colCustomer": "Müşteri",
+      "colService": "Hizmet",
+      "colStylist": "Stilist",
+      "colVisitDate": "Ziyaret tarihi",
+      "colRatedAt": "Puanlama tarihi",
+      "colComment": "Yorum",
+      "empty": "Henüz değerlendirme yok",
+      "emptyDesc": "Tamamlanan randevulardan sonra müşteri yorumları burada görünür.",
+      "loadError": "Değerlendirmeler yüklenemedi",
+      "noComment": "—",
+      "average": "Ortalama puan",
+      "total": "Toplam yorum"
     }
   },
   "superadmin": {
     "logout": "Çıkış yap",
     "loggingOut": "Çıkış yapılıyor..."
+  },
+  "notifications": {
+    "title": "Bildirimler",
+    "subtitle": "Randevularınızla ilgili hatırlatmalar ve güncellemeler.",
+    "bellLabel": "Bildirimler",
+    "unreadBadge": "{count} okunmamış bildirim",
+    "markAllRead": "Tümünü okundu işaretle",
+    "markingAll": "İşaretleniyor…",
+    "unread": "Okunmamış",
+    "empty": "Bildirim yok",
+    "emptyDesc": "Yeni bildirimleriniz burada görünecek.",
+    "loadError": "Bildirimler yüklenemedi",
+    "retry": "Tekrar dene",
+    "viewReservation": "Randevuyu görüntüle",
+    "pageInfo": "{page} / {pages}",
+    "previous": "Önceki",
+    "next": "Sonraki",
+    "typeReminder1h": "Randevunuza 1 saat kaldı",
+    "typeReminder15m": "Randevunuza 15 dakika kaldı",
+    "typeCancelled": "Randevu iptal edildi",
+    "typeConfirmed": "Randevu onaylandı",
+    "typePending": "Randevu bekliyor",
+    "typeGeneric": "Bildirim",
+    "markRead": "Okundu işaretle"
+  },
+  "ratings": {
+    "promptTitle": "Ziyaretinizi değerlendirin",
+    "promptSubtitle": "{service} — {salon}",
+    "starsLabel": "{count} yıldız",
+    "chooseStars": "Bir puan seçin",
+    "commentLabel": "Yorum (isteğe bağlı)",
+    "commentPlaceholder": "Deneyiminizi anlatın…",
+    "submit": "Gönder",
+    "submitting": "Gönderiliyor…",
+    "dismiss": "Kapat",
+    "later": "Daha sonra",
+    "thanks": "Geri bildiriminiz için teşekkürler!",
+    "submitError": "Puanınız gönderilemedi. Lütfen tekrar deneyin.",
+    "starsRequired": "Lütfen bir yıldız puanı seçin.",
+    "noRating": "Henüz puan yok",
+    "ratingWithCount": "{rating} ({count})"
   }
 }

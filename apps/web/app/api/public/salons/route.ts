@@ -51,13 +51,31 @@ export async function GET(req: NextRequest) {
     prisma.salon.count({ where }),
   ]);
 
+  // Ratings are aggregated for the page of salons actually being returned, in one grouped query,
+  // rather than per-card. A salon with no ratings simply has no group — the card then shows
+  // "no rating yet" instead of inventing a number.
+  const ratingGroups = rows.length
+    ? await prisma.rating.groupBy({
+        by: ['salonId'],
+        where: { salonId: { in: rows.map((r) => r.id) } },
+        _avg: { stars: true },
+        _count: { _all: true },
+      })
+    : [];
+  const ratingBySalon = new Map(ratingGroups.map((g) => [g.salonId, g]));
+
   return NextResponse.json({
-    items: rows.map((r) => ({
-      id: r.id, slug: r.slug, name: r.name, description: r.description, city: r.city, genderFocus: r.genderFocus,
-      logoUrl: r.logoUrl, coverUrl: r.coverUrl,
-      categories: r.serviceCategories.map((c) => c.name),
-      startingPrice: r.services[0] ? { amount: r.services[0].priceAmount, currency: r.services[0].currency } : null,
-    })),
+    items: rows.map((r) => {
+      const rating = ratingBySalon.get(r.id);
+      return {
+        id: r.id, slug: r.slug, name: r.name, description: r.description, city: r.city, genderFocus: r.genderFocus,
+        logoUrl: r.logoUrl, coverUrl: r.coverUrl,
+        categories: r.serviceCategories.map((c) => c.name),
+        startingPrice: r.services[0] ? { amount: r.services[0].priceAmount, currency: r.services[0].currency } : null,
+        avgRating: rating?._avg.stars ?? null,
+        ratingCount: rating?._count._all ?? 0,
+      };
+    }),
     total,
     page: query.page,
     pageSize: query.pageSize,
