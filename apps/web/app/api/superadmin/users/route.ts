@@ -57,6 +57,14 @@ export async function GET(req: NextRequest) {
             salon: { select: { name: true } },
           },
         },
+        memberships: {
+          select: {
+            salonId: true,
+            role: true,
+            status: true,
+            salon: { select: { name: true } },
+          },
+        },
       },
     }),
     prisma.user.count({ where }),
@@ -73,6 +81,12 @@ export async function GET(req: NextRequest) {
       createdAt: u.createdAt,
       isStylist: !!u.employeeProfile,
       salonName: u.employeeProfile?.salon.name ?? null,
+      memberships: u.memberships.map((m) => ({
+        salonId: m.salonId,
+        salonName: m.salon.name,
+        role: m.role,
+        status: m.status,
+      })),
     })),
     total,
     page,

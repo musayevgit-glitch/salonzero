@@ -51,6 +51,14 @@ function IconServices() {
     </svg>
   );
 }
+function IconTag() {
+  return (
+    <svg {...ICON_PROPS}>
+      <path d="M2.5 9.2V3a.5.5 0 01.5-.5h6.2a1 1 0 01.7.3l7 7a1 1 0 010 1.4l-6.2 6.2a1 1 0 01-1.4 0l-7-7a1 1 0 01-.3-.7z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <circle cx="6.5" cy="6.5" r="1.25" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  );
+}
 function IconReservations() {
   return (
     <svg {...ICON_PROPS}>
@@ -188,6 +196,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Salonlar', href: '/superadmin/salons', section: 'İdarəetmə', icon: <IconSalons /> },
   { label: 'Stilistlər', href: '/superadmin/stylists', section: 'İdarəetmə', icon: <IconStylists /> },
   { label: 'Xidmətlər', href: '/superadmin/services', section: 'İdarəetmə', icon: <IconServices /> },
+  { label: 'Kateqoriyalar', href: '/superadmin/service-categories', section: 'İdarəetmə', icon: <IconTag /> },
   { label: 'Rezervasiyalar', href: '/superadmin/reservations', section: 'İdarəetmə', icon: <IconReservations /> },
   { label: 'Hesabatlar', href: '/superadmin/reports', section: 'Analitika', icon: <IconReports /> },
   { label: 'İstifadəçilər', href: '/superadmin/users', section: 'Sistem', icon: <IconUsers /> },

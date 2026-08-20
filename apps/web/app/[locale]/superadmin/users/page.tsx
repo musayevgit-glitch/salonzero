@@ -4,6 +4,7 @@ import {
   Badge,
   Button,
   ConfirmDialog,
+  Dialog,
   EmptyState,
   ErrorState,
   Input,
@@ -16,10 +17,19 @@ import {
   useToast,
 } from '@salonomia/ui';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { apiFetch, ApiError } from '../../../../lib/api-client';
+import { fetchAllSalons, type SalonOption } from '../../../../lib/fetch-all-salons';
+import { useDebouncedValue } from '../../../../lib/use-debounced-value';
 import { FilterBar } from '../../../_components/admin/FilterBar';
 import { PageHeader } from '../../../_components/admin/PageHeader';
+
+interface UserMembership {
+  salonId: string;
+  salonName: string;
+  role: 'SALON_ADMIN' | 'SALON_MANAGER';
+  status: 'ACTIVE' | 'SUSPENDED';
+}
 
 interface UserListItem {
   id: string;
@@ -31,6 +41,7 @@ interface UserListItem {
   createdAt: string;
   isStylist: boolean;
   salonName: string | null;
+  memberships: UserMembership[];
 }
 
 interface UserListResponse {
@@ -51,6 +62,7 @@ export default function SuperadminUsersPage() {
   const { showToast } = useToast();
 
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search, 350);
   const [status, setStatus] = useState<'' | 'ACTIVE' | 'SUSPENDED'>('');
   const [role, setRole] = useState<'' | 'SUPERADMIN' | 'STYLIST' | 'CUSTOMER'>('');
   const [page, setPage] = useState(1);
@@ -61,6 +73,14 @@ export default function SuperadminUsersPage() {
   const [actionType, setActionType] = useState<'TOGGLE_ADMIN' | 'TOGGLE_STATUS' | null>(null);
   const [actionBusy, setActionBusy] = useState(false);
 
+  // Salon assignment modal
+  const [assignUser, setAssignUser] = useState<UserListItem | null>(null);
+  const [assignSalonId, setAssignSalonId] = useState('');
+  const [assignRole, setAssignRole] = useState<'SALON_ADMIN' | 'SALON_MANAGER'>('SALON_ADMIN');
+  const [assignBusy, setAssignBusy] = useState(false);
+  const [salons, setSalons] = useState<SalonOption[] | null>(null);
+  const [salonsError, setSalonsError] = useState<string | null>(null);
+
   // Loaded current user profile so we can check ourselves
   const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
 
@@ -70,10 +90,10 @@ export default function SuperadminUsersPage() {
       .catch(() => undefined);
   }, []);
 
-  function load() {
-    setState({ kind: 'loading' });
+  const load = useCallback(() => {
+    setState((prev) => (prev.kind === 'ready' ? prev : { kind: 'loading' }));
     const query = new URLSearchParams({ page: String(page), pageSize: '20' });
-    if (search) query.set('search', search);
+    if (debouncedSearch) query.set('search', debouncedSearch);
     if (status) query.set('status', status);
     if (role) query.set('role', role);
 
@@ -95,9 +115,59 @@ export default function SuperadminUsersPage() {
           message: err instanceof ApiError ? err.message : 'Something went wrong.',
         });
       });
+  }, [debouncedSearch, status, role, page, router]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  // Salon list for the assignment modal — loaded once, on first open.
+  useEffect(() => {
+    if (!assignUser || salons !== null) return;
+    fetchAllSalons({ status: 'ACTIVE' })
+      .then((items) => setSalons(items))
+      .catch((err: unknown) => {
+        setSalonsError(err instanceof ApiError ? err.message : 'Salonları yükləmək mümkün olmadı.');
+        setSalons([]);
+      });
+  }, [assignUser, salons]);
+
+  async function handleAssignSalon() {
+    if (!assignUser || !assignSalonId) return;
+    setAssignBusy(true);
+    try {
+      await apiFetch(`/superadmin/users/${assignUser.id}/assign-salon`, {
+        method: 'POST',
+        body: JSON.stringify({ salonId: assignSalonId, role: assignRole }),
+      });
+      showToast('İstifadəçi salona təyin edildi');
+      setAssignUser(null);
+      setAssignSalonId('');
+      setAssignRole('SALON_ADMIN');
+      load();
+    } catch (err) {
+      showToast(err instanceof ApiError ? err.message : 'Xəta baş verdi', 'danger');
+    } finally {
+      setAssignBusy(false);
+    }
   }
 
-  useEffect(load, [search, status, role, page, router]);
+  async function handleRevokeMembership(user: UserListItem, salonId: string) {
+    setAssignBusy(true);
+    try {
+      await apiFetch(
+        `/superadmin/users/${user.id}/assign-salon?salonId=${encodeURIComponent(salonId)}`,
+        { method: 'DELETE' },
+      );
+      showToast('Salon səlahiyyəti ləğv edildi');
+      setAssignUser(null);
+      load();
+    } catch (err) {
+      showToast(err instanceof ApiError ? err.message : 'Xəta baş verdi', 'danger');
+    } finally {
+      setAssignBusy(false);
+    }
+  }
 
   async function handleActionConfirm() {
     if (!actionUser || !actionType) return;
@@ -126,15 +196,6 @@ export default function SuperadminUsersPage() {
     }
   }
 
-  if (state.kind === 'loading') {
-    return (
-      <main className="dashboard-page">
-        <Skeleton className="h-10 w-full max-w-md" />
-        <Skeleton className="h-64 w-full rounded-[var(--radius-lg)]" />
-      </main>
-    );
-  }
-
   if (state.kind === 'permission-denied') {
     return (
       <main className="dashboard-page">
@@ -143,20 +204,18 @@ export default function SuperadminUsersPage() {
     );
   }
 
-  if (state.kind === 'error') {
-    return (
-      <main className="dashboard-page">
-        <ErrorState title="İstifadəçiləri yükləmək mümkün olmadı" description={state.message} />
-      </main>
-    );
-  }
-
-  const { items, total, pageSize } = state.data;
+  const data = state.kind === 'ready' ? state.data : null;
+  const items = data?.items ?? [];
+  const total = data?.total ?? 0;
+  const pageSize = data?.pageSize ?? 20;
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
 
   return (
     <main className="dashboard-page">
-      <PageHeader title="İstifadəçilər" description={`Cəmi ${total} istifadəçi`} />
+      <PageHeader
+        title="İstifadəçilər"
+        description={data ? `Cəmi ${total} istifadəçi` : 'Yüklənir…'}
+      />
 
       <FilterBar
         search={
@@ -200,7 +259,11 @@ export default function SuperadminUsersPage() {
         </Select>
       </FilterBar>
 
-      {items.length === 0 ? (
+      {state.kind === 'loading' ? (
+        <Skeleton className="h-64 w-full rounded-[var(--radius-lg)]" />
+      ) : state.kind === 'error' ? (
+        <ErrorState title="İstifadəçiləri yükləmək mümkün olmadı" description={state.message} />
+      ) : items.length === 0 ? (
         <EmptyState
           title="İstifadəçi tapılmadı"
           description="Fərqli axtarış parametri və ya filtr yoxlayın."
@@ -230,7 +293,12 @@ export default function SuperadminUsersPage() {
                         Usta ({row.salonName ?? 'Salon'})
                       </Badge>
                     )}
-                    {!row.isSuperadmin && !row.isStylist && (
+                    {row.memberships.map((m) => (
+                      <Badge key={m.salonId} tone="success">
+                        {m.role === 'SALON_ADMIN' ? 'Salon admini' : 'Menecer'} ({m.salonName})
+                      </Badge>
+                    ))}
+                    {!row.isSuperadmin && !row.isStylist && row.memberships.length === 0 && (
                       <Badge tone="neutral">Müştəri</Badge>
                     )}
                   </div>
@@ -262,7 +330,18 @@ export default function SuperadminUsersPage() {
                 render: (row: UserListItem) => {
                   const isSelf = row.email === currentUserEmail;
                   return (
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        variant="secondary"
+                        disabled={row.status !== 'ACTIVE'}
+                        onClick={() => {
+                          setAssignUser(row);
+                          setAssignSalonId(row.memberships[0]?.salonId ?? '');
+                          setAssignRole(row.memberships[0]?.role ?? 'SALON_ADMIN');
+                        }}
+                      >
+                        Admin et
+                      </Button>
                       <Button
                         variant="secondary"
                         disabled={isSelf}
@@ -271,7 +350,7 @@ export default function SuperadminUsersPage() {
                           setActionType('TOGGLE_ADMIN');
                         }}
                       >
-                        {row.isSuperadmin ? 'Adminliyi ləğv et' : 'Admin et'}
+                        {row.isSuperadmin ? 'Superadminliyi ləğv et' : 'Superadmin et'}
                       </Button>
                       <Button
                         variant={row.status === 'ACTIVE' ? 'destructive' : 'secondary'}
@@ -310,7 +389,18 @@ export default function SuperadminUsersPage() {
               const isSelf = row.email === currentUserEmail;
               if (isSelf) return <span className="text-xs text-text-secondary">Siz</span>;
               return (
-                <div className="flex gap-1">
+                <div className="flex flex-wrap gap-1">
+                  <Button
+                    variant="secondary"
+                    disabled={row.status !== 'ACTIVE'}
+                    onClick={() => {
+                      setAssignUser(row);
+                      setAssignSalonId(row.memberships[0]?.salonId ?? '');
+                      setAssignRole(row.memberships[0]?.role ?? 'SALON_ADMIN');
+                    }}
+                  >
+                    Admin et
+                  </Button>
                   <Button
                     variant="secondary"
                     onClick={() => {
@@ -318,7 +408,7 @@ export default function SuperadminUsersPage() {
                       setActionType('TOGGLE_ADMIN');
                     }}
                   >
-                    Admin
+                    Superadmin
                   </Button>
                   <Button
                     variant={row.status === 'ACTIVE' ? 'destructive' : 'secondary'}
@@ -337,6 +427,97 @@ export default function SuperadminUsersPage() {
       )}
 
       <Pagination page={page} pageCount={pageCount} onPageChange={setPage} />
+
+      {/* Salon admin assignment */}
+      {assignUser && (
+        <Dialog
+          open={true}
+          onOpenChange={(open) => {
+            if (!open) setAssignUser(null);
+          }}
+          title="Salon səlahiyyəti təyin et"
+          description={`${assignUser.fullName} üçün salon və rol seçin.`}
+          footer={
+            <>
+              <Button variant="secondary" onClick={() => setAssignUser(null)} disabled={assignBusy}>
+                Ləğv et
+              </Button>
+              <Button
+                onClick={handleAssignSalon}
+                disabled={assignBusy || !assignSalonId || salons === null}
+              >
+                {assignBusy ? 'Yadda saxlanılır…' : 'Yadda saxla'}
+              </Button>
+            </>
+          }
+        >
+          <div className="flex flex-col gap-4">
+            {assignUser.memberships.length > 0 && (
+              <div className="flex flex-col gap-2">
+                <span className="text-sm font-medium text-text-primary">Mövcud səlahiyyətlər</span>
+                <ul className="flex flex-col gap-2">
+                  {assignUser.memberships.map((m) => (
+                    <li
+                      key={m.salonId}
+                      className="flex items-center justify-between gap-2 rounded-[var(--radius-sm)] bg-surface px-3 py-2"
+                    >
+                      <span className="text-sm text-text-primary">
+                        {m.salonName} —{' '}
+                        {m.role === 'SALON_ADMIN' ? 'Salon admini' : 'Menecer'}
+                      </span>
+                      <Button
+                        variant="destructive"
+                        disabled={assignBusy}
+                        onClick={() => handleRevokeMembership(assignUser, m.salonId)}
+                      >
+                        Ləğv et
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {salonsError && (
+              <p className="text-sm text-danger" role="alert">
+                {salonsError}
+              </p>
+            )}
+
+            <label className="flex flex-col gap-1">
+              <span className="text-sm font-medium text-text-primary">Salon</span>
+              <Select
+                value={assignSalonId}
+                onChange={(e) => setAssignSalonId(e.target.value)}
+                disabled={salons === null}
+                aria-label="Salon seçin"
+              >
+                <option value="">
+                  {salons === null ? 'Yüklənir…' : 'Salon seçin'}
+                </option>
+                {(salons ?? []).map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                    {s.city ? ` — ${s.city}` : ''}
+                  </option>
+                ))}
+              </Select>
+            </label>
+
+            <label className="flex flex-col gap-1">
+              <span className="text-sm font-medium text-text-primary">Rol</span>
+              <Select
+                value={assignRole}
+                onChange={(e) => setAssignRole(e.target.value as typeof assignRole)}
+                aria-label="Rol seçin"
+              >
+                <option value="SALON_ADMIN">Salon admini</option>
+                <option value="SALON_MANAGER">Salon meneceri</option>
+              </Select>
+            </label>
+          </div>
+        </Dialog>
+      )}
 
       {/* Confirmation Dialogs */}
       {actionUser && actionType === 'TOGGLE_ADMIN' && (

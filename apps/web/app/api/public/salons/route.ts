@@ -38,7 +38,14 @@ export async function GET(req: NextRequest) {
       take: query.pageSize,
       select: {
         id: true, slug: true, name: true, description: true, city: true, genderFocus: true,
+        logoUrl: true, coverUrl: true,
         services: { where: { isActive: true }, orderBy: { priceAmount: 'asc' }, take: 1, select: { priceAmount: true, currency: true } },
+        // Real service categories power the card chips — the cards must never invent labels.
+        serviceCategories: {
+          where: { isActive: true },
+          orderBy: { sortOrder: 'asc' },
+          select: { id: true, name: true },
+        },
       },
     }),
     prisma.salon.count({ where }),
@@ -47,6 +54,8 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     items: rows.map((r) => ({
       id: r.id, slug: r.slug, name: r.name, description: r.description, city: r.city, genderFocus: r.genderFocus,
+      logoUrl: r.logoUrl, coverUrl: r.coverUrl,
+      categories: r.serviceCategories.map((c) => c.name),
       startingPrice: r.services[0] ? { amount: r.services[0].priceAmount, currency: r.services[0].currency } : null,
     })),
     total,

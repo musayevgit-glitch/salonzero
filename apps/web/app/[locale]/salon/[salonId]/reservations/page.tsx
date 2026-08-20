@@ -16,8 +16,9 @@ import {
 } from '@salonomia/ui';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { apiFetch, ApiError } from '../../../../../lib/api-client';
+import { WeekCalendar } from './_components/WeekCalendar';
 import { LinkButton } from '../../../../_components/admin/LinkButton';
 import { PageHeader } from '../../../../_components/admin/PageHeader';
 
@@ -92,11 +93,15 @@ function startOfWeek(date: Date): Date {
 }
 
 type ViewMode = 'today' | 'day' | 'week';
+type DisplayMode = 'calendar' | 'list';
 
 export default function SalonReservationsPage() {
   const router = useRouter();
   const { salonId } = useParams<{ salonId: string }>();
   const t = useTranslations('salonAdmin');
+  const locale = useLocale();
+  // Calendar is the default surface; the list remains available and is the better mobile view.
+  const [displayMode, setDisplayMode] = useState<DisplayMode>('calendar');
   const [viewMode, setViewMode] = useState<ViewMode>('today');
   const [selectedDate, setSelectedDate] = useState(() => toLocalDateInput(new Date()));
   const [status, setStatus] = useState('');
@@ -110,6 +115,13 @@ export default function SalonReservationsPage() {
 
   const { from, to } = useMemo(() => {
     const reference = viewMode === 'today' ? new Date() : startOfLocalDay(selectedDate);
+    // The calendar always renders a full Mon–Sun week, whatever the list's range buttons say.
+    if (displayMode === 'calendar') {
+      const weekStart = startOfWeek(startOfLocalDay(selectedDate));
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 7);
+      return { from: weekStart, to: weekEnd };
+    }
     if (viewMode === 'week') {
       const weekStart = startOfWeek(reference);
       const weekEnd = new Date(weekStart);
@@ -121,7 +133,7 @@ export default function SalonReservationsPage() {
     const dayEnd = new Date(dayStart);
     dayEnd.setDate(dayStart.getDate() + 1);
     return { from: dayStart, to: dayEnd };
-  }, [viewMode, selectedDate]);
+  }, [displayMode, viewMode, selectedDate]);
 
   useEffect(() => {
     apiFetch<{ services: unknown[]; employees: { id: string; fullName: string }[] }>(
@@ -136,8 +148,9 @@ export default function SalonReservationsPage() {
   function load() {
     setState({ kind: 'loading' });
     const query = new URLSearchParams({
-      page: String(page),
-      pageSize: '20',
+      // The calendar must show every booking in the week at once, so it never paginates.
+      page: displayMode === 'calendar' ? '1' : String(page),
+      pageSize: displayMode === 'calendar' ? '200' : '20',
       from: from.toISOString(),
       to: to.toISOString(),
     });
@@ -163,7 +176,25 @@ export default function SalonReservationsPage() {
       });
   }
 
-  useEffect(load, [salonId, viewMode, selectedDate, status, employeeId, search, page]);
+  useEffect(load, [salonId, displayMode, viewMode, selectedDate, status, employeeId, search, page]);
+
+  const calendarWeekStart = useMemo(
+    () => startOfWeek(startOfLocalDay(selectedDate)),
+    [selectedDate],
+  );
+
+  function shiftWeek(direction: -1 | 1) {
+    const next = new Date(calendarWeekStart);
+    next.setDate(calendarWeekStart.getDate() + direction * 7);
+    setSelectedDate(toLocalDateInput(next));
+  }
+
+  const weekLabel = useMemo(() => {
+    const end = new Date(calendarWeekStart);
+    end.setDate(calendarWeekStart.getDate() + 6);
+    const fmt = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' });
+    return `${fmt.format(calendarWeekStart)} – ${fmt.format(end)}`;
+  }, [calendarWeekStart, locale]);
 
   const QUICK_ACTION = {
     confirm: { label: t('reservations.actionConfirm'), path: 'confirm' },
@@ -234,32 +265,80 @@ export default function SalonReservationsPage() {
         </div>
       ) : null}
 
-      <div className="filter-bar" role="group" aria-label={t('reservations.title')}>
-        {(['today', 'day', 'week'] as ViewMode[]).map((mode) => (
-          <Button
-            key={mode}
-            variant={viewMode === mode ? 'primary' : 'secondary'}
-            onClick={() => {
-              setViewMode(mode);
-              setPage(1);
-            }}
-          >
-            {mode === 'today' ? t('reservations.today') : mode === 'day' ? t('reservations.day') : t('reservations.week')}
+      <div className="filter-bar" role="group" aria-label="Görünüş">
+        <Button
+          variant={displayMode === 'calendar' ? 'primary' : 'secondary'}
+          onClick={() => {
+            setDisplayMode('calendar');
+            setPage(1);
+          }}
+          aria-pressed={displayMode === 'calendar'}
+        >
+          Təqvim
+        </Button>
+        <Button
+          variant={displayMode === 'list' ? 'primary' : 'secondary'}
+          onClick={() => {
+            setDisplayMode('list');
+            setPage(1);
+          }}
+          aria-pressed={displayMode === 'list'}
+        >
+          Siyahı
+        </Button>
+      </div>
+
+      {displayMode === 'calendar' ? (
+        <div className="filter-bar" role="group" aria-label="Həftə naviqasiyası">
+          <Button variant="secondary" onClick={() => shiftWeek(-1)} aria-label="Əvvəlki həftə">
+            ← Əvvəlki
           </Button>
-        ))}
-        {viewMode !== 'today' ? (
+          <Button
+            variant="secondary"
+            onClick={() => setSelectedDate(toLocalDateInput(new Date()))}
+          >
+            Bu gün
+          </Button>
+          <Button variant="secondary" onClick={() => shiftWeek(1)} aria-label="Növbəti həftə">
+            Növbəti →
+          </Button>
+          <span className="self-center text-sm font-medium text-text-primary">{weekLabel}</span>
           <Input
             type="date"
             value={selectedDate}
-            onChange={(e) => {
-              setSelectedDate(e.target.value);
-              setPage(1);
-            }}
-            aria-label={viewMode === 'week' ? 'Any day in the target week' : t('reservations.day')}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            aria-label="Həftə daxilində istənilən gün"
             className="w-auto"
           />
-        ) : null}
-      </div>
+        </div>
+      ) : (
+        <div className="filter-bar" role="group" aria-label={t('reservations.title')}>
+          {(['today', 'day', 'week'] as ViewMode[]).map((mode) => (
+            <Button
+              key={mode}
+              variant={viewMode === mode ? 'primary' : 'secondary'}
+              onClick={() => {
+                setViewMode(mode);
+                setPage(1);
+              }}
+            >
+              {mode === 'today' ? t('reservations.today') : mode === 'day' ? t('reservations.day') : t('reservations.week')}
+            </Button>
+          ))}
+          {viewMode !== 'today' ? (
+            <Input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => {
+                setSelectedDate(e.target.value);
+                setPage(1);
+              }}
+              aria-label={viewMode === 'week' ? 'Any day in the target week' : t('reservations.day')}
+              className="w-auto"
+            />
+          ) : null}
+        </div>
+      )}
 
       <div className="flex flex-wrap gap-3">
         <Input
@@ -308,6 +387,16 @@ export default function SalonReservationsPage() {
 
       {state.kind === 'loading' ? (
         <Skeleton className="h-64 w-full" />
+      ) : displayMode === 'calendar' ? (
+        <div className="rounded-[var(--radius-lg)] border border-border bg-surface-raised p-2">
+          <WeekCalendar
+            weekStart={calendarWeekStart}
+            reservations={items}
+            locale={locale}
+            emptyLabel={t('reservations.noReservations')}
+            onSelect={(id) => router.push(`/salon/${salonId}/reservations/${id}`)}
+          />
+        </div>
       ) : items.length === 0 ? (
         <EmptyState
           title={t('reservations.noReservations')}
