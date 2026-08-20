@@ -48,8 +48,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
 
   const minNoticeMinutes = salon.bookingPolicy?.minNoticeMinutes ?? 60;
   const maxAdvanceDays = salon.bookingPolicy?.maxAdvanceDays ?? 60;
-  // Salon-configured grid spacing; 15 matches the historical hardcoded default.
-  const slotIntervalMinutes = salon.bookingPolicy?.bookingSlotIntervalMinutes ?? 15;
+  // Slot interval equals service duration + buffer so back-to-back bookings fill cleanly.
+  const slotIntervalMinutes = service.durationMinutes + service.bufferMinutes;
 
   // A hold the *viewer* placed must not make their own day look unavailable while they are still
   // in the booking flow. Other customers' holds still do block, as they should.

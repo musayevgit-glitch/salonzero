@@ -31,7 +31,7 @@ interface ServiceDetail {
   durationMinutes: number;
   bufferMinutes: number;
   isActive: boolean;
-  categoryId?: string | null;
+  category?: { id: string; name: string } | null;
   salon: { id: string; name: string };
 }
 type LoadState =
@@ -64,7 +64,7 @@ export default function EditServicePage() {
         setState({ kind: 'ready', service: s });
         setName(s.name);
         setDescription(s.description ?? '');
-        setCategoryId(s.categoryId ?? '');
+        setCategoryId(s.category?.id ?? '');
         setPriceAmount(String(s.priceAmount));
         setCurrency(s.currency);
         setDurationMinutes(String(s.durationMinutes));

@@ -324,7 +324,7 @@ function Hero({ salons, salonCount }: { salons: SalonListItem[]; salonCount: num
           {/* Hero image */}
           <div className="sz-hero2-imgwrap">
             <Image
-              src="/images/hero-woman.png"
+              src="/images/hero-woman.jpg"
               alt="Gözəllik salonu"
               width={480}
               height={540}
