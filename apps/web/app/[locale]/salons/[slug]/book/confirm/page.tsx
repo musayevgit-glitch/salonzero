@@ -88,8 +88,10 @@ export default function ConfirmStep() {
         void fetch(`/api/reservations/slot-holds/${holdId}`, { method: 'DELETE' });
       }
       clearDraft();
-      // `replace` so Back does not return to the confirm screen with a spent draft.
-      router.replace(`/salons/${salon.slug}/book/result/${res.id}`);
+      // Go directly to reservations list. The result page is still accessible via direct URL
+      // but the primary post-booking destination is the customer's reservation history.
+      void res.id;
+      router.replace('/account/reservations');
     } catch (err) {
       // A 409 used to navigate straight back to the date/time step with no explanation, which read
       // as "the button does nothing". Explain what happened and let the customer choose to go back.
