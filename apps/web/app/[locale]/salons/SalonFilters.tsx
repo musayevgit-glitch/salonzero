@@ -146,22 +146,22 @@ export function SalonFilters({ initial }: { initial: SalonFilterValues }) {
           </div>
 
           <div style={{ flex: '1 1 160px', minWidth: 0 }}>
-          <Dropdown
-            label={t('filterGender')}
-            value={values.genderFocus}
-            onChange={(e) => {
-              const next = { ...values, genderFocus: e.target.value };
-              setValues(next);
-              apply(next);
-            }}
-            options={[
-              { value: '', label: t('genderAny') },
-              { value: 'Women', label: t('genderWomen') },
-              { value: 'Men', label: t('genderMen') },
-              { value: 'Unisex', label: t('genderUnisex') },
-            ]}
-          />
-        </div>
+            <Dropdown
+              label={t('filterGender')}
+              value={values.genderFocus}
+              onChange={(e) => {
+                const next = { ...values, genderFocus: e.target.value };
+                setValues(next);
+                apply(next);
+              }}
+              options={[
+                { value: '', label: t('genderAny') },
+                { value: 'Women', label: t('genderWomen') },
+                { value: 'Men', label: t('genderMen') },
+                { value: 'Unisex', label: t('genderUnisex') },
+              ]}
+            />
+          </div>
 
           <div style={{ flex: '1 1 160px', minWidth: 0 }}>
             <Dropdown

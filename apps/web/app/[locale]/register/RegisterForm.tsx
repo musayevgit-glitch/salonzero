@@ -77,68 +77,68 @@ export function RegisterForm() {
         <div className="sz-auth-field">
           <label htmlFor="reg-password">{t('password')}</label>
           <div style={{ position: 'relative', display: 'flex' }}>
-              <input
-                id="reg-password"
-                type={showPassword ? 'text' : 'password'}
-                autoComplete="new-password"
-                minLength={8}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                style={{ paddingRight: '2.9rem' }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((v) => !v)}
-                aria-label={showPassword ? tc('hidePassword') : tc('showPassword')}
-                aria-pressed={showPassword}
-                className="sz-pw-toggle"
-                style={{
-                  position: 'absolute',
-                  right: 6,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  width: 34,
-                  height: 34,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: 8,
-                  border: 'none',
-                  background: 'transparent',
-                  color: '#6b5d8a',
-                  cursor: 'pointer',
-                  padding: 0,
-                }}
-              >
-                {showPassword ? (
-                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                    <path
-                      d="M2 10s3-5 8-5 8 5 8 5-3 5-8 5-8-5-8-5z"
-                      stroke="currentColor"
-                      strokeWidth="1.4"
-                      strokeLinejoin="round"
-                    />
-                    <circle cx="10" cy="10" r="2.5" stroke="currentColor" strokeWidth="1.4" />
-                    <path
-                      d="M3.5 16.5l13-13"
-                      stroke="currentColor"
-                      strokeWidth="1.4"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                ) : (
-                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                    <path
-                      d="M2 10s3-5 8-5 8 5 8 5-3 5-8 5-8-5-8-5z"
-                      stroke="currentColor"
-                      strokeWidth="1.4"
-                      strokeLinejoin="round"
-                    />
-                    <circle cx="10" cy="10" r="2.5" stroke="currentColor" strokeWidth="1.4" />
-                  </svg>
-                )}
-              </button>
+            <input
+              id="reg-password"
+              type={showPassword ? 'text' : 'password'}
+              autoComplete="new-password"
+              minLength={8}
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={{ paddingRight: '2.9rem' }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              aria-label={showPassword ? tc('hidePassword') : tc('showPassword')}
+              aria-pressed={showPassword}
+              className="sz-pw-toggle"
+              style={{
+                position: 'absolute',
+                right: 6,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                width: 34,
+                height: 34,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: 8,
+                border: 'none',
+                background: 'transparent',
+                color: '#6b5d8a',
+                cursor: 'pointer',
+                padding: 0,
+              }}
+            >
+              {showPassword ? (
+                <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <path
+                    d="M2 10s3-5 8-5 8 5 8 5-3 5-8 5-8-5-8-5z"
+                    stroke="currentColor"
+                    strokeWidth="1.4"
+                    strokeLinejoin="round"
+                  />
+                  <circle cx="10" cy="10" r="2.5" stroke="currentColor" strokeWidth="1.4" />
+                  <path
+                    d="M3.5 16.5l13-13"
+                    stroke="currentColor"
+                    strokeWidth="1.4"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <path
+                    d="M2 10s3-5 8-5 8 5 8 5-3 5-8 5-8-5-8-5z"
+                    stroke="currentColor"
+                    strokeWidth="1.4"
+                    strokeLinejoin="round"
+                  />
+                  <circle cx="10" cy="10" r="2.5" stroke="currentColor" strokeWidth="1.4" />
+                </svg>
+              )}
+            </button>
           </div>
           <span className="sz-auth-hint">{t('passwordMinLength')}</span>
         </div>

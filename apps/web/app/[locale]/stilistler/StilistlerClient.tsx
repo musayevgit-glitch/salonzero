@@ -238,7 +238,14 @@ export function StilistlerClient({ stylists }: { stylists: Stylist[] }) {
               strokeLinecap="round"
             />
           </svg>
-          <p style={{ fontSize: '1rem', fontWeight: 600, margin: '1rem 0 0.35rem', color: '#1e1b2e' }}>
+          <p
+            style={{
+              fontSize: '1rem',
+              fontWeight: 600,
+              margin: '1rem 0 0.35rem',
+              color: '#1e1b2e',
+            }}
+          >
             {t('notFoundTitle')}
           </p>
           <p style={{ color: '#7c6fa0', fontSize: '0.9rem', margin: 0 }}>{t('notFoundDesc')}</p>
@@ -255,7 +262,13 @@ export function StilistlerClient({ stylists }: { stylists: Stylist[] }) {
               <article key={s.id} className="sz-stylist-card">
                 <div className="sz-stylist-top">
                   {avatar ? (
-                    <img className="sz-stylist-avatar" src={avatar} alt="" aria-hidden="true" loading="lazy" />
+                    <img
+                      className="sz-stylist-avatar"
+                      src={avatar}
+                      alt=""
+                      aria-hidden="true"
+                      loading="lazy"
+                    />
                   ) : (
                     <span className="sz-stylist-avatar sz-stylist-avatar-fb" aria-hidden="true">
                       {getInitials(s.fullName)}
@@ -288,11 +301,17 @@ export function StilistlerClient({ stylists }: { stylists: Stylist[] }) {
                 {s.bio ? <p className="sz-stylist-bio">{s.bio}</p> : null}
 
                 {hasPortfolio ? (
-                  <p className="sz-stylist-portfolio">{t('portfolioCount', { count: s.portfolio.length })}</p>
+                  <p className="sz-stylist-portfolio">
+                    {t('portfolioCount', { count: s.portfolio.length })}
+                  </p>
                 ) : null}
 
                 <div className="sz-stylist-actions">
-                  <button type="button" onClick={() => setSelectedStylist(s)} className="sz-outline-btn">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedStylist(s)}
+                    className="sz-outline-btn"
+                  >
                     {t('viewPortfolio')}
                   </button>
                   <Link href={bookingHref(s)} className="sz-primary-btn">

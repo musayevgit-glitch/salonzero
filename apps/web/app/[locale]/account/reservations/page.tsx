@@ -149,7 +149,15 @@ export default async function ReservationsListPage({
         {visible.length === 0 ? (
           <div className="sz-res-empty">
             <svg width="80" height="80" viewBox="0 0 80 80" fill="none" aria-hidden="true">
-              <rect x="12" y="18" width="56" height="50" rx="10" stroke="#e4d4f4" strokeWidth="2.5" />
+              <rect
+                x="12"
+                y="18"
+                width="56"
+                height="50"
+                rx="10"
+                stroke="#e4d4f4"
+                strokeWidth="2.5"
+              />
               <path
                 d="M26 12v12M54 12v12M12 34h56"
                 stroke="#6A5ACD"

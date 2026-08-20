@@ -113,7 +113,10 @@ function HeroSearch() {
           autoComplete="off"
         />
       </div>
-      <p id="hero-search-hint" style={{ marginTop: '0.5rem', fontSize: '0.74rem', color: '#8b7fae' }}>
+      <p
+        id="hero-search-hint"
+        style={{ marginTop: '0.5rem', fontSize: '0.74rem', color: '#8b7fae' }}
+      >
         {t('searchHint')}
       </p>
 
@@ -237,7 +240,9 @@ function HeroCollage({ salons }: { salons: SalonListItem[] }) {
               {logo ? (
                 <img className="sz-collage-logo" src={logo} alt="" loading="lazy" />
               ) : (
-                <span className="sz-collage-logo sz-collage-logo-fb">{getInitials(salon.name)}</span>
+                <span className="sz-collage-logo sz-collage-logo-fb">
+                  {getInitials(salon.name)}
+                </span>
               )}
               <div style={{ minWidth: 0 }}>
                 <p className="sz-collage-name">{salon.name}</p>
@@ -315,7 +320,12 @@ function HowItWorks() {
       icon: (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <rect x="3" y="5" width="18" height="16" rx="3" stroke="currentColor" strokeWidth="1.5" />
-          <path d="M8 2.5v4M16 2.5v4M3 10h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <path
+            d="M8 2.5v4M16 2.5v4M3 10h18"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
         </svg>
       ),
     },
@@ -372,7 +382,9 @@ function PopularSalons({ salons }: { salons: SalonListItem[] }) {
       </div>
 
       {salons.length === 0 ? (
-        <p style={{ textAlign: 'center', padding: '2.5rem 1rem', color: '#7c6fa0' }}>{ts('empty')}</p>
+        <p style={{ textAlign: 'center', padding: '2.5rem 1rem', color: '#7c6fa0' }}>
+          {ts('empty')}
+        </p>
       ) : (
         <div className="sz-salon-grid">
           {salons.slice(0, 6).map((salon) => (
@@ -393,8 +405,21 @@ function WhySalonomia() {
       desc: t('featEasyBookingDesc'),
       icon: (
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <rect x="3" y="4" width="14" height="13" rx="2.5" stroke="currentColor" strokeWidth="1.4" />
-          <path d="M7 2v4M13 2v4M3 9h14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+          <rect
+            x="3"
+            y="4"
+            width="14"
+            height="13"
+            rx="2.5"
+            stroke="currentColor"
+            strokeWidth="1.4"
+          />
+          <path
+            d="M7 2v4M13 2v4M3 9h14"
+            stroke="currentColor"
+            strokeWidth="1.4"
+            strokeLinecap="round"
+          />
         </svg>
       ),
     },
@@ -438,7 +463,12 @@ function WhySalonomia() {
             strokeWidth="1.4"
             strokeLinejoin="round"
           />
-          <path d="M8.2 15a1.9 1.9 0 0 0 3.6 0" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+          <path
+            d="M8.2 15a1.9 1.9 0 0 0 3.6 0"
+            stroke="currentColor"
+            strokeWidth="1.4"
+            strokeLinecap="round"
+          />
         </svg>
       ),
     },
@@ -492,7 +522,12 @@ export function LandingPage({
 }) {
   return (
     <div
-      style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', background: '#f9f6f3' }}
+      style={{
+        minHeight: '100dvh',
+        display: 'flex',
+        flexDirection: 'column',
+        background: '#f9f6f3',
+      }}
     >
       <PageHeader isAuthenticated={isAuthenticated} />
       <main style={{ flex: 1 }}>

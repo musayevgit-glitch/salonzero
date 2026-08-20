@@ -108,7 +108,13 @@ export function SalonCard({
   return (
     <article className="sz-salon-card">
       <Link href={`/salons/${salon.slug}`} className="sz-salon-cover" aria-label={salon.name}>
-        <img src={imageUrl} alt="" aria-hidden="true" loading="lazy" className="sz-salon-cover-img" />
+        <img
+          src={imageUrl}
+          alt=""
+          aria-hidden="true"
+          loading="lazy"
+          className="sz-salon-cover-img"
+        />
         <span className="sz-salon-cover-veil" aria-hidden="true" />
         {genderLabel ? <span className="sz-salon-gender">{genderLabel}</span> : null}
         {logoUrl ? (
@@ -332,10 +338,22 @@ export function SalonCardSkeleton() {
     >
       <div style={{ height: 180, background: '#ede4f8' }} className="sz-skel" />
       <div style={{ padding: '1rem 1.1rem 1.1rem', display: 'grid', gap: '0.6rem' }}>
-        <div style={{ height: 16, width: '65%', borderRadius: 6, background: '#ede4f8' }} className="sz-skel" />
-        <div style={{ height: 12, width: '40%', borderRadius: 6, background: '#f2ecf9' }} className="sz-skel" />
-        <div style={{ height: 12, width: '80%', borderRadius: 6, background: '#f2ecf9' }} className="sz-skel" />
-        <div style={{ height: 38, borderRadius: 10, background: '#ede4f8', marginTop: '0.35rem' }} className="sz-skel" />
+        <div
+          style={{ height: 16, width: '65%', borderRadius: 6, background: '#ede4f8' }}
+          className="sz-skel"
+        />
+        <div
+          style={{ height: 12, width: '40%', borderRadius: 6, background: '#f2ecf9' }}
+          className="sz-skel"
+        />
+        <div
+          style={{ height: 12, width: '80%', borderRadius: 6, background: '#f2ecf9' }}
+          className="sz-skel"
+        />
+        <div
+          style={{ height: 38, borderRadius: 10, background: '#ede4f8', marginTop: '0.35rem' }}
+          className="sz-skel"
+        />
       </div>
       <style>{`
         .sz-skel { animation: szPulse 1.4s ease-in-out infinite; }

@@ -140,7 +140,9 @@ export default async function SalonsPage({
       ) : salons.length === 0 ? (
         <div className="sz-list-state">
           <EmptyIllustration />
-          <p style={{ color: '#1e1b2e', fontWeight: 600, margin: '1rem 0 0.35rem' }}>{t('empty')}</p>
+          <p style={{ color: '#1e1b2e', fontWeight: 600, margin: '1rem 0 0.35rem' }}>
+            {t('empty')}
+          </p>
           <p style={{ color: '#7c6fa0', fontSize: '0.9rem', margin: 0 }}>{t('emptyHint')}</p>
         </div>
       ) : (

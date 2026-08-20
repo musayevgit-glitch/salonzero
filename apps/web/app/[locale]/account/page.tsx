@@ -158,7 +158,12 @@ export default function AccountProfilePage() {
       icon: (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <rect x="3" y="5" width="18" height="16" rx="3" stroke="currentColor" strokeWidth="1.6" />
-          <path d="M8 2.5v4M16 2.5v4M3 10h18" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+          <path
+            d="M8 2.5v4M16 2.5v4M3 10h18"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+          />
         </svg>
       ),
     },
@@ -173,7 +178,12 @@ export default function AccountProfilePage() {
             strokeWidth="1.6"
             strokeLinejoin="round"
           />
-          <path d="M10 18.5a2.2 2.2 0 0 0 4 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+          <path
+            d="M10 18.5a2.2 2.2 0 0 0 4 0"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+          />
         </svg>
       ),
     },
@@ -203,7 +213,12 @@ export default function AccountProfilePage() {
       label: t('salonAdminPanel'),
       icon: (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M4 21V9.5L12 4l8 5.5V21" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+          <path
+            d="M4 21V9.5L12 4l8 5.5V21"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinejoin="round"
+          />
           <path d="M9.5 21v-6h5v6" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
         </svg>
       ),
@@ -217,7 +232,12 @@ export default function AccountProfilePage() {
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <circle cx="6" cy="6" r="2.6" stroke="currentColor" strokeWidth="1.6" />
           <circle cx="6" cy="18" r="2.6" stroke="currentColor" strokeWidth="1.6" />
-          <path d="M8.2 7.6 20 18M8.2 16.4 20 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+          <path
+            d="M8.2 7.6 20 18M8.2 16.4 20 6"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+          />
         </svg>
       ),
     });
@@ -309,7 +329,12 @@ export default function AccountProfilePage() {
           </button>
         </form>
 
-        <button onClick={handleLogout} disabled={loggingOut} type="button" className="sz-acc-logout">
+        <button
+          onClick={handleLogout}
+          disabled={loggingOut}
+          type="button"
+          className="sz-acc-logout"
+        >
           {loggingOut ? tc('loading') : t('logout')}
         </button>
       </div>

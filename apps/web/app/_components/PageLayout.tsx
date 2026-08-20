@@ -56,7 +56,11 @@ function SparkIcon({ size = 18 }: { size?: number }) {
         d="M10 1.5l1.75 4.9 4.75 1.85-4.75 1.85L10 15l-1.75-4.9L3.5 8.25l4.75-1.85L10 1.5z"
         fill="currentColor"
       />
-      <path d="M15.8 13.2l.7 1.9 1.9.7-1.9.7-.7 1.9-.7-1.9-1.9-.7 1.9-.7.7-1.9z" fill="currentColor" opacity="0.55" />
+      <path
+        d="M15.8 13.2l.7 1.9 1.9.7-1.9.7-.7 1.9-.7-1.9-1.9-.7 1.9-.7.7-1.9z"
+        fill="currentColor"
+        opacity="0.55"
+      />
     </svg>
   );
 }
@@ -145,7 +149,11 @@ export function PageHeader({
 
         {/* Centre rail — collapses into the drawer below 768px. */}
         <nav className="sz-center-nav" aria-label="Salonomia">
-          <a href="/salons" className="sz-nav-link" aria-current={activeNav === 'salons' ? 'page' : undefined}>
+          <a
+            href="/salons"
+            className="sz-nav-link"
+            aria-current={activeNav === 'salons' ? 'page' : undefined}
+          >
             {t('salons')}
           </a>
           <a
@@ -188,9 +196,19 @@ export function PageHeader({
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
               {menuOpen ? (
-                <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+                <path
+                  d="M5 5l10 10M15 5L5 15"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  strokeLinecap="round"
+                />
               ) : (
-                <path d="M3 6h14M3 10h14M3 14h14" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+                <path
+                  d="M3 6h14M3 10h14M3 14h14"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  strokeLinecap="round"
+                />
               )}
             </svg>
           </button>

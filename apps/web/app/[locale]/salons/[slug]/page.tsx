@@ -130,7 +130,8 @@ export default async function SalonDetailPage({ params }: { params: Promise<{ sl
           <p className="sz-svc-name">{service.name}</p>
           {service.description ? <p className="sz-svc-desc">{service.description}</p> : null}
           <p className="sz-svc-meta">
-            {service.durationMinutes} {t('min')} · <strong>{formatMoney(service.priceAmount)}</strong>
+            {service.durationMinutes} {t('min')} ·{' '}
+            <strong>{formatMoney(service.priceAmount)}</strong>
           </p>
         </div>
         <a href={bookHref} className="sz-svc-cta">
@@ -198,7 +199,9 @@ export default async function SalonDetailPage({ params }: { params: Promise<{ sl
           <ul className="sz-kv-list">
             {salon.approximateOpeningHours.map((h) => {
               const date = new Date(2023, 0, 1 + h.weekday); // Jan 1 2023 was Sunday
-              const weekdayLabel = new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(date);
+              const weekdayLabel = new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(
+                date,
+              );
               return (
                 <li key={h.weekday}>
                   <span>{weekdayLabel}</span>
@@ -298,7 +301,13 @@ export default async function SalonDetailPage({ params }: { params: Promise<{ sl
                 {/* The same real aggregate the cards show — never a placeholder score. */}
                 {hasRating ? (
                   <span className="sz-head-rating">
-                    <svg width="13" height="13" viewBox="0 0 12 12" fill="#f59e0b" aria-hidden="true">
+                    <svg
+                      width="13"
+                      height="13"
+                      viewBox="0 0 12 12"
+                      fill="#f59e0b"
+                      aria-hidden="true"
+                    >
                       <path d="M6 1l1.4 2.8 3.1.45-2.25 2.2.53 3.1L6 8.1l-2.78 1.45.53-3.1L1.5 4.25l3.1-.45L6 1z" />
                     </svg>
                     {tr('ratingWithCount', {
