@@ -307,27 +307,13 @@ function StatsStrip() {
 
 /* ─── Hero ───────────────────────────────────────────────── */
 function Hero({ salons, salonCount }: { salons: SalonListItem[]; salonCount: number }) {
-  const featuredSalon = salons.length > 0 ? salons[0] : null;
+  void salonCount; // kept for future use
 
   return (
     <section className="sz-hero2">
       <div className="sz-hero2-inner">
         {/* Left column */}
         <div className="sz-hero2-copy">
-          {/* Badge */}
-          <div className="sz-hero2-badge" aria-label="#1 Salon Rezervasiya Platforması">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-              <path
-                d="M7 1l1.5 3.1 3.4.5-2.45 2.4.58 3.4L7 9l-3.03 1.4.58-3.4L2.1 4.6l3.4-.5L7 1z"
-                fill="#7c3aed"
-                stroke="#7c3aed"
-                strokeWidth="0.5"
-                strokeLinejoin="round"
-              />
-            </svg>
-            <span>#1 Salon Rezervasiya Platforması</span>
-          </div>
-
           {/* Headline */}
           <h1 className="sz-hero2-title">
             <span className="sz-hero2-title-dark">Gözəllik üçün</span>
@@ -373,12 +359,6 @@ function Hero({ salons, salonCount }: { salons: SalonListItem[]; salonCount: num
               priority
             />
           </div>
-
-          {/* Floating card: trust */}
-          <FloatingTrustCard />
-
-          {/* Floating card: salon (if we have real data) */}
-          {featuredSalon ? <FloatingSalonCard salon={featuredSalon} /> : null}
 
           {/* Floating card: popular services */}
           <FloatingServicesCard />
@@ -1042,7 +1022,6 @@ export function LandingPage({
       <PageHeader isAuthenticated={isAuthenticated} />
       <main style={{ flex: 1 }}>
         <Hero salons={salons} salonCount={salonCount} />
-        <StatsStrip />
         <HowItWorks />
         <PopularSalons salons={salons} />
         <WhySalonomia />
