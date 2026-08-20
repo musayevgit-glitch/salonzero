@@ -71,8 +71,8 @@ export default function EditServicePage() {
         setBufferMinutes(String(s.bufferMinutes));
         setIsActive(s.isActive);
         // load categories for this salon
-        apiFetch<{ items: Category[] }>(`/salons/${s.salon.id}/service-categories`)
-          .then((r) => setCategories(r.items))
+        apiFetch<Category[]>(`/salons/${s.salon.id}/service-categories`)
+          .then((r) => setCategories(Array.isArray(r) ? r : []))
           .catch(() => {});
       })
       .catch((err: unknown) => {
