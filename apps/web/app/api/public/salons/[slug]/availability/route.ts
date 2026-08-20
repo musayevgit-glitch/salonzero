@@ -53,10 +53,17 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
   const rangeStart = localWallTimeToUtc(localDate, 0, salon.timezone);
   const rangeEnd = localWallTimeToUtc(localDate, 24 * 60, salon.timezone);
 
+  // Default working schedule used when an employee has no explicit WorkingSchedule rows:
+  // Monday-Saturday (weekdays 1-6), 09:00-20:00 local salon time.
+  const DEFAULT_SCHEDULE = [1, 2, 3, 4, 5, 6].map((weekday) => ({
+    weekday,
+    startMinuteOfDay: 9 * 60,  // 09:00
+    endMinuteOfDay: 20 * 60,   // 20:00
+  }));
+
   const employeeWhere = {
     salonId: salon.id,
     isActive: true,
-    eligibleServices: { some: { serviceId: query.serviceId } },
     ...(query.employeeId ? { id: query.employeeId } : {}),
   };
 
@@ -112,7 +119,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
       employeeId: e.id,
       isActive: true,
       isEligibleForService: true,
-      workingSchedule: e.workingSchedules,
+      workingSchedule: e.workingSchedules.length > 0 ? e.workingSchedules : DEFAULT_SCHEDULE,
       breaks: e.breaks,
       timeOff: e.timeOff,
       blockingReservations: [

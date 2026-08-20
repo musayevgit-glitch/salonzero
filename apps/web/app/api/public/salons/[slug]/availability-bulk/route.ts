@@ -56,10 +56,16 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
   const viewer = verifyRequest(req);
   const viewerId = viewer?.sub ?? null;
 
+  // Default working schedule: Monday-Saturday (1-6), 09:00-20:00 local salon time.
+  const DEFAULT_SCHEDULE = [1, 2, 3, 4, 5, 6].map((weekday) => ({
+    weekday,
+    startMinuteOfDay: 9 * 60,
+    endMinuteOfDay: 20 * 60,
+  }));
+
   const employeeWhere = {
     salonId: salon.id,
     isActive: true,
-    eligibleServices: { some: { serviceId: query.serviceId } },
     ...(query.employeeId ? { id: query.employeeId } : {}),
   };
 
@@ -137,7 +143,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
           employeeId: e.id,
           isActive: true,
           isEligibleForService: true,
-          workingSchedule: e.workingSchedules,
+          workingSchedule: e.workingSchedules.length > 0 ? e.workingSchedules : DEFAULT_SCHEDULE,
           breaks: e.breaks,
           timeOff,
           blockingReservations: [
