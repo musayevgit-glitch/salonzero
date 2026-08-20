@@ -38,9 +38,11 @@ export default function ConfirmStep() {
   // Set when the server reports the slot was taken between selection and submission.
   const [slotConflict, setSlotConflict] = useState(false);
   const profileLoaded = useRef(false);
+  const bookingSucceeded = useRef(false);
 
   useEffect(() => {
     if (!draftLoaded) return;
+    if (bookingSucceeded.current) return;
     if (!draft.serviceId) {
       router.replace(`/salons/${salon.slug}/book/service`);
     } else if (!draft.startAt) {
@@ -87,9 +89,8 @@ export default function ConfirmStep() {
       if (holdId) {
         void fetch(`/api/reservations/slot-holds/${holdId}`, { method: 'DELETE' });
       }
+      bookingSucceeded.current = true;
       clearDraft();
-      // Go directly to reservations list. The result page is still accessible via direct URL
-      // but the primary post-booking destination is the customer's reservation history.
       void res.id;
       router.replace('/account/reservations');
     } catch (err) {
