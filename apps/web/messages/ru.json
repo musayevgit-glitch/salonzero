@@ -16,7 +16,13 @@
     "searching": "Поиск...",
     "showPassword": "Показать пароль",
     "hidePassword": "Скрыть пароль",
-    "logout": "Выйти"
+    "logout": "Выйти",
+    "footerNav": "Навигация",
+    "footerCompany": "Компания",
+    "footerSocial": "Соцсети",
+    "terms": "Условия использования",
+    "contact": "Контакты",
+    "footerTagline": "Находите салоны красоты и бронируйте онлайн."
   },
   "nav": {
     "salons": "Салоны",
@@ -57,7 +63,18 @@
     "statsLabel": "На платформе",
     "statsSalons": "{count} активных салонов",
     "statsCta": "Смотреть салоны",
-    "viewSalon": "Смотреть"
+    "viewSalon": "Смотреть",
+    "heroTitle2": "Откройте свою красоту с профессионалами",
+    "heroCtaPrimary": "Смотреть салоны",
+    "heroCtaSecondary": "Стилисты",
+    "howItWorksTitle": "Как это работает",
+    "step1Title": "Выберите салон",
+    "step1Desc": "Найдите подходящий салон.",
+    "step2Title": "Выберите время",
+    "step2Desc": "Выберите свободный слот.",
+    "step3Title": "Забронируйте",
+    "step3Desc": "Подтвердите в один клик.",
+    "whyTitle": "Почему Salonomia?"
   },
   "salons": {
     "title": "Салоны",
@@ -79,7 +96,12 @@
     "loadError": "Не удалось загрузить салоны",
     "prevPage": "Предыдущая",
     "nextPage": "Следующая",
-    "from": "от"
+    "from": "от",
+    "pageSubtitle": "Найдите ближайшие салоны красоты и забронируйте онлайн.",
+    "searchLabel": "Поиск",
+    "resultCount": "Найдено салонов: {count}",
+    "emptyHint": "Измените запрос или сбросьте фильтры.",
+    "pageLabel": "Страница {current} из {total}"
   },
   "salonDetail": {
     "about": "О нас",
@@ -97,7 +119,16 @@
     "loadError": "Не удалось загрузить данные салона.",
     "genderWomen": "Женщины",
     "genderMen": "Мужчины",
-    "genderUnisex": "Унисекс"
+    "genderUnisex": "Унисекс",
+    "tabServices": "Услуги",
+    "tabStylists": "Стилисты",
+    "tabAbout": "О салоне",
+    "contact": "Контакты",
+    "otherServices": "Другие услуги",
+    "autoConfirmOn": "Брони подтверждаются мгновенно.",
+    "autoConfirmOff": "Брони требуют подтверждения салона.",
+    "cancelWindow": "Отменить можно не позднее чем за {hours} ч. до визита.",
+    "rescheduleWindow": "Перенести можно не позднее чем за {hours} ч. до визита."
   },
   "stylists": {
     "title": "Стилисты",
@@ -277,7 +308,13 @@
     "confirmCancelBtn": "Да, отменить",
     "statusFilterLabel": "Статус",
     "statusRejected": "Отклонена",
-    "backToList": "К моим записям"
+    "backToList": "К моим записям",
+    "tabUpcoming": "Предстоящие",
+    "tabPast": "Прошедшие",
+    "noUpcoming": "У вас нет предстоящих броней.",
+    "noPast": "У вас нет прошедших броней.",
+    "quickLinks": "Быстрые ссылки",
+    "notifications": "Уведомления"
   },
   "terms": {
     "pageTitle": "Условия использования — Salonomia",

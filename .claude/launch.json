@@ -18,6 +18,12 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "@salonomia/web", "dev"],
       "port": 3000
+    },
+    {
+      "name": "web-local",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--dir", "apps/web", "exec", "next", "dev", "--port", "3100"],
+      "port": 3100
     }
   ]
 }

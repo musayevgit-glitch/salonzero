@@ -7,6 +7,7 @@ import { useRouter } from '../../../i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { useState, useEffect } from 'react';
 import { apiFetch, ApiError } from '../../../lib/api-client';
+import { AuthShell } from '../../_components/AuthShell';
 
 export function LoginForm() {
   const t = useTranslations('auth');
@@ -45,113 +46,29 @@ export function LoginForm() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: 'white',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '1rem',
-      }}
-    >
-      <div
-        style={{
-          background: 'white',
-          borderRadius: 20,
-          padding: '2rem',
-          width: '100%',
-          maxWidth: 400,
-          boxShadow: '0 10px 40px rgba(30,27,46,0.05)',
-        }}
-      >
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <a href="/" style={{ textDecoration: 'none' }}>
-            <span
-              style={{
-                fontFamily: "'Playfair Display', Georgia, serif",
-                fontSize: '1.5rem',
-                fontWeight: 700,
-                letterSpacing: '0.05em',
-                color: '#1e1b2e',
-              }}
-            >
-              SALONOMIA
-            </span>
-          </a>
-          <p
-            style={{
-              color: '#7c3aed',
-              fontSize: '0.875rem',
-              marginTop: '0.5rem',
-              margin: '0.5rem 0 0 0',
-            }}
-          >
-            {tc('tagline')}
+    <AuthShell title={t('loginTitle')}>
+      <form onSubmit={handleSubmit} noValidate className="sz-auth-form">
+        {error ? (
+          <p role="alert" className="sz-auth-error">
+            {error}
           </p>
+        ) : null}
+
+        <div className="sz-auth-field">
+          <label htmlFor="login-email">{t('email')}</label>
+          <input
+            id="login-email"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
         </div>
 
-        <h1
-          style={{
-            fontSize: '1.25rem',
-            fontWeight: 600,
-            color: '#1e1b2e',
-            marginBottom: '1.5rem',
-            textAlign: 'center',
-            fontFamily: "'Playfair Display', Georgia, serif",
-          }}
-        >
-          {t('loginTitle')}
-        </h1>
-
-        <form
-          onSubmit={handleSubmit}
-          noValidate
-          style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
-        >
-          {error ? (
-            <div
-              style={{
-                color: '#dc2626',
-                fontSize: '0.875rem',
-                background: '#fef2f2',
-                padding: '0.75rem',
-                borderRadius: 8,
-              }}
-            >
-              {error}
-            </div>
-          ) : null}
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <label style={{ fontSize: '0.875rem', color: '#1e1b2e', fontWeight: 500 }}>
-              {t('email')}
-            </label>
-            <input
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              style={{
-                border: '1px solid #e4d4f4',
-                borderRadius: 12,
-                padding: '0.75rem 1rem',
-                fontFamily: 'Inter, sans-serif',
-                fontSize: '0.95rem',
-                outline: 'none',
-              }}
-            />
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <label
-              htmlFor="login-password"
-              style={{ fontSize: '0.875rem', color: '#1e1b2e', fontWeight: 500 }}
-            >
-              {t('password')}
-            </label>
-            <div style={{ position: 'relative', display: 'flex' }}>
+        <div className="sz-auth-field">
+          <label htmlFor="login-password">{t('password')}</label>
+          <div style={{ position: 'relative', display: 'flex' }}>
               <input
                 id="login-password"
                 type={showPassword ? 'text' : 'password'}
@@ -159,16 +76,7 @@ export function LoginForm() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                style={{
-                  flex: 1,
-                  minWidth: 0,
-                  border: '1px solid #e4d4f4',
-                  borderRadius: 12,
-                  padding: '0.75rem 2.9rem 0.75rem 1rem',
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: '0.95rem',
-                  outline: 'none',
-                }}
+                style={{ paddingRight: '2.9rem' }}
               />
               <button
                 type="button"
@@ -222,48 +130,25 @@ export function LoginForm() {
                   </svg>
                 )}
               </button>
-            </div>
           </div>
-
-          <Button
-            type="submit"
-            loading={loading}
-            disabled={loading}
-            style={{ width: '100%', marginTop: '0.5rem' }}
-          >
-            {t('loginBtn')}
-          </Button>
-        </form>
-
-        <style>{`
-          .sz-pw-toggle:hover { background: #f3e8ff; color: #5b21b6; }
-          .sz-pw-toggle:focus-visible { outline: 2px solid #7c3aed; outline-offset: 2px; }
-        `}</style>
-
-        <div
-          style={{
-            marginTop: '1.5rem',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.5rem',
-            alignItems: 'center',
-            fontSize: '0.875rem',
-          }}
-        >
-          <a href="/forgot-password" style={{ color: '#7c6fa0', textDecoration: 'none' }}>
-            {t('forgotPassword')}
-          </a>
-          <p style={{ color: '#7c6fa0', margin: 0 }}>
-            {t('noAccount')}{' '}
-            <a
-              href="/register"
-              style={{ color: '#1e1b2e', fontWeight: 500, textDecoration: 'none' }}
-            >
-              {t('register')}
-            </a>
-          </p>
         </div>
+
+        <Button
+          type="submit"
+          loading={loading}
+          disabled={loading}
+          style={{ width: '100%', marginTop: '0.5rem' }}
+        >
+          {t('loginBtn')}
+        </Button>
+      </form>
+
+      <div className="sz-auth-links">
+        <a href="/forgot-password">{t('forgotPassword')}</a>
+        <p style={{ margin: 0 }}>
+          {t('noAccount')} <a href="/register">{t('register')}</a>
+        </p>
       </div>
-    </div>
+    </AuthShell>
   );
 }

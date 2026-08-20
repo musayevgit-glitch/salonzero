@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { apiFetch, ApiError } from '../../../lib/api-client';
+import { AuthShell } from '../../_components/AuthShell';
 
 export function RegisterForm() {
   const t = useTranslations('auth');
@@ -41,134 +42,41 @@ export function RegisterForm() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: 'white',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '1rem',
-      }}
-    >
-      <div
-        style={{
-          background: 'white',
-          borderRadius: 20,
-          padding: '2rem',
-          width: '100%',
-          maxWidth: 400,
-          boxShadow: '0 10px 40px rgba(30,27,46,0.05)',
-        }}
-      >
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <a href="/" style={{ textDecoration: 'none' }}>
-            <span
-              style={{
-                fontFamily: "'Playfair Display', Georgia, serif",
-                fontSize: '1.5rem',
-                fontWeight: 700,
-                letterSpacing: '0.05em',
-                color: '#1e1b2e',
-              }}
-            >
-              SALONOMIA
-            </span>
-          </a>
-          <p
-            style={{
-              color: '#7c3aed',
-              fontSize: '0.875rem',
-              marginTop: '0.5rem',
-              margin: '0.5rem 0 0 0',
-            }}
-          >
-            {t('tagline')}
+    <AuthShell title={t('registerTitle')}>
+      <form onSubmit={handleSubmit} noValidate className="sz-auth-form">
+        {error ? (
+          <p role="alert" className="sz-auth-error">
+            {error}
           </p>
+        ) : null}
+
+        <div className="sz-auth-field">
+          <label htmlFor="reg-fullname">{t('fullName')}</label>
+          <input
+            id="reg-fullname"
+            type="text"
+            autoComplete="name"
+            required
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+          />
         </div>
 
-        <h1
-          style={{
-            fontSize: '1.25rem',
-            fontWeight: 600,
-            color: '#1e1b2e',
-            marginBottom: '1.5rem',
-            textAlign: 'center',
-            fontFamily: "'Playfair Display', Georgia, serif",
-          }}
-        >
-          {t('registerTitle')}
-        </h1>
+        <div className="sz-auth-field">
+          <label htmlFor="reg-email">{t('email')}</label>
+          <input
+            id="reg-email"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
 
-        <form
-          onSubmit={handleSubmit}
-          noValidate
-          style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
-        >
-          {error ? (
-            <div
-              style={{
-                color: '#dc2626',
-                fontSize: '0.875rem',
-                background: '#fef2f2',
-                padding: '0.75rem',
-                borderRadius: 8,
-              }}
-            >
-              {error}
-            </div>
-          ) : null}
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <label style={{ fontSize: '0.875rem', color: '#1e1b2e', fontWeight: 500 }}>
-              {t('fullName')}
-            </label>
-            <input
-              type="text"
-              autoComplete="name"
-              required
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              style={{
-                border: '1px solid #e4d4f4',
-                borderRadius: 12,
-                padding: '0.75rem 1rem',
-                fontFamily: 'Inter, sans-serif',
-                fontSize: '0.95rem',
-                outline: 'none',
-              }}
-            />
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <label style={{ fontSize: '0.875rem', color: '#1e1b2e', fontWeight: 500 }}>
-              {t('email')}
-            </label>
-            <input
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              style={{
-                border: '1px solid #e4d4f4',
-                borderRadius: 12,
-                padding: '0.75rem 1rem',
-                fontFamily: 'Inter, sans-serif',
-                fontSize: '0.95rem',
-                outline: 'none',
-              }}
-            />
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <label
-              htmlFor="reg-password"
-              style={{ fontSize: '0.875rem', color: '#1e1b2e', fontWeight: 500 }}
-            >
-              {t('password')}
-            </label>
-            <div style={{ position: 'relative', display: 'flex' }}>
+        <div className="sz-auth-field">
+          <label htmlFor="reg-password">{t('password')}</label>
+          <div style={{ position: 'relative', display: 'flex' }}>
               <input
                 id="reg-password"
                 type={showPassword ? 'text' : 'password'}
@@ -177,16 +85,7 @@ export function RegisterForm() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                style={{
-                  flex: 1,
-                  minWidth: 0,
-                  border: '1px solid #e4d4f4',
-                  borderRadius: 12,
-                  padding: '0.75rem 2.9rem 0.75rem 1rem',
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: '0.95rem',
-                  outline: 'none',
-                }}
+                style={{ paddingRight: '2.9rem' }}
               />
               <button
                 type="button"
@@ -240,43 +139,25 @@ export function RegisterForm() {
                   </svg>
                 )}
               </button>
-            </div>
-            <span style={{ fontSize: '0.75rem', color: '#7c6fa0' }}>{t('passwordMinLength')}</span>
           </div>
-
-          <Button
-            type="submit"
-            loading={loading}
-            disabled={loading}
-            style={{ width: '100%', marginTop: '0.5rem' }}
-          >
-            {t('registerBtn')}
-          </Button>
-        </form>
-
-        <style>{`
-          .sz-pw-toggle:hover { background: #f3e8ff; color: #5b21b6; }
-          .sz-pw-toggle:focus-visible { outline: 2px solid #7c3aed; outline-offset: 2px; }
-        `}</style>
-
-        <div
-          style={{
-            marginTop: '1.5rem',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.5rem',
-            alignItems: 'center',
-            fontSize: '0.875rem',
-          }}
-        >
-          <p style={{ color: '#7c6fa0', margin: 0 }}>
-            {t('haveAccount')}{' '}
-            <a href="/login" style={{ color: '#1e1b2e', fontWeight: 500, textDecoration: 'none' }}>
-              {t('login')}
-            </a>
-          </p>
+          <span className="sz-auth-hint">{t('passwordMinLength')}</span>
         </div>
+
+        <Button
+          type="submit"
+          loading={loading}
+          disabled={loading}
+          style={{ width: '100%', marginTop: '0.5rem' }}
+        >
+          {t('registerBtn')}
+        </Button>
+      </form>
+
+      <div className="sz-auth-links">
+        <p style={{ margin: 0 }}>
+          {t('haveAccount')} <a href="/login">{t('login')}</a>
+        </p>
       </div>
-    </div>
+    </AuthShell>
   );
 }

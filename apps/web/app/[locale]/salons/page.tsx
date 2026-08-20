@@ -34,6 +34,16 @@ interface SalonListResponse {
   pageSize: number;
 }
 
+function EmptyIllustration() {
+  return (
+    <svg width="88" height="88" viewBox="0 0 88 88" fill="none" aria-hidden="true">
+      <circle cx="44" cy="44" r="43" stroke="#e4d4f4" strokeWidth="2" />
+      <circle cx="39" cy="39" r="15" stroke="#6A5ACD" strokeWidth="2.5" />
+      <path d="M50 50l14 14" stroke="#6A5ACD" strokeWidth="2.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export default async function SalonsPage({
   searchParams,
 }: {
@@ -91,23 +101,27 @@ export default async function SalonsPage({
   const salons: SalonListItem[] = data ? data.items : [];
   const total = data ? data.total : 0;
   const currentPage = data ? data.page : 1;
-  const totalPages = data ? Math.ceil(total / data.pageSize) : 1;
+  const totalPages = data ? Math.max(1, Math.ceil(total / data.pageSize)) : 1;
 
   return (
     <PageLayout isAuthenticated={isAuthenticated} activeNav="salons">
-      <div style={{ marginBottom: '2rem' }}>
+      <header style={{ marginBottom: '1.75rem', maxWidth: 680 }}>
         <h1
           style={{
             fontFamily: "'Playfair Display', Georgia, serif",
-            fontSize: '2.5rem',
+            fontSize: 'clamp(1.9rem, 5vw, 2.6rem)',
             fontWeight: 700,
             color: '#1e1b2e',
-            margin: '0 0 1rem 0',
+            margin: 0,
+            lineHeight: 1.15,
           }}
         >
           {t('title')}
         </h1>
-      </div>
+        <p style={{ margin: '0.6rem 0 0', color: '#7c6fa0', fontSize: '1rem', lineHeight: 1.6 }}>
+          {t('pageSubtitle')}
+        </p>
+      </header>
 
       <SalonFilters
         initial={{
@@ -119,70 +133,120 @@ export default async function SalonsPage({
       />
 
       {isError ? (
-        <div style={{ textAlign: 'center', padding: '4rem 1rem', color: '#7c6fa0' }}>
-          {t('loadError')}
+        <div className="sz-list-state">
+          <EmptyIllustration />
+          <p style={{ color: '#1e1b2e', fontWeight: 600, margin: '1rem 0 0' }}>{t('loadError')}</p>
         </div>
       ) : salons.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '4rem 1rem', color: '#7c6fa0' }}>
-          {t('empty')}
+        <div className="sz-list-state">
+          <EmptyIllustration />
+          <p style={{ color: '#1e1b2e', fontWeight: 600, margin: '1rem 0 0.35rem' }}>{t('empty')}</p>
+          <p style={{ color: '#7c6fa0', fontSize: '0.9rem', margin: 0 }}>{t('emptyHint')}</p>
         </div>
       ) : (
         <>
-          <div
-            style={{
-              display: 'grid',
-              gap: '1.5rem',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-            }}
+          <p
+            aria-live="polite"
+            style={{ margin: '0 0 1.25rem', fontSize: '0.88rem', color: '#7c6fa0' }}
           >
+            {t('resultCount', { count: total })}
+          </p>
+
+          <div className="sz-salons-grid">
             {salons.map((salon) => (
               <SalonCard key={salon.id} salon={salon} />
             ))}
           </div>
 
-          {(currentPage > 1 || currentPage < totalPages) && (
-            <nav
-              aria-label={t('title')}
-              style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                gap: '1rem',
-                marginTop: '3rem',
-              }}
-            >
-              {currentPage > 1 && (
-                <Link href={pageHref(currentPage - 1)} className="sz-page-link">
+          {totalPages > 1 && (
+            <nav aria-label={t('title')} className="sz-pagination">
+              {currentPage > 1 ? (
+                <Link href={pageHref(currentPage - 1)} className="sz-page-link" rel="prev">
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                    <path
+                      d="M8.5 3.5 5 7l3.5 3.5"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
                   {t('prevPage')}
                 </Link>
+              ) : (
+                <span className="sz-page-link sz-page-link-off" aria-disabled="true">
+                  {t('prevPage')}
+                </span>
               )}
-              <span style={{ fontSize: '0.85rem', color: '#7c6fa0' }}>
-                {currentPage} / {totalPages}
+
+              <span className="sz-page-count">
+                {t('pageLabel', { current: currentPage, total: totalPages })}
               </span>
-              {currentPage < totalPages && (
-                <Link href={pageHref(currentPage + 1)} className="sz-page-link">
+
+              {currentPage < totalPages ? (
+                <Link href={pageHref(currentPage + 1)} className="sz-page-link" rel="next">
                   {t('nextPage')}
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                    <path
+                      d="M5.5 3.5 9 7l-3.5 3.5"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
                 </Link>
+              ) : (
+                <span className="sz-page-link sz-page-link-off" aria-disabled="true">
+                  {t('nextPage')}
+                </span>
               )}
             </nav>
           )}
         </>
       )}
-      {/* The grid is responsive through `auto-fill`/`minmax` alone. The media queries that used to
-          live here targeted `div[style*="gridTemplateColumns"]`, which never matched anything —
-          React renders the kebab-case `grid-template-columns` into the style attribute. */}
+
       <style>{`
+        .sz-salons-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+        @media (min-width: 640px) { .sz-salons-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (min-width: 1024px) { .sz-salons-grid { grid-template-columns: repeat(3, 1fr); } }
+
+        .sz-list-state {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+          padding: 4rem 1rem;
+          background: #fff;
+          border: 1px dashed #e4d4f4;
+          border-radius: 18px;
+        }
+
+        .sz-pagination {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 0.75rem;
+          margin-top: 2.5rem;
+          flex-wrap: wrap;
+        }
         .sz-page-link {
-          padding: 0.6rem 1.5rem;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.35rem;
+          padding: 0.6rem 1.15rem;
           border: 1px solid #e4d4f4;
           border-radius: 10px;
-          color: #1e1b2e;
+          color: #4a3f6b;
           text-decoration: none;
           font-weight: 600;
+          font-size: 0.86rem;
           background: white;
         }
-        .sz-page-link:hover { background: #f3e8ff; border-color: #c4b5fd; }
+        .sz-page-link:hover { background: #f3e8ff; border-color: #c4b5fd; color: #5b21b6; }
         .sz-page-link:focus-visible { outline: 2px solid #7c3aed; outline-offset: 2px; }
+        .sz-page-link-off { opacity: 0.42; pointer-events: none; }
+        .sz-page-count { font-size: 0.85rem; color: #7c6fa0; font-weight: 600; }
       `}</style>
     </PageLayout>
   );
